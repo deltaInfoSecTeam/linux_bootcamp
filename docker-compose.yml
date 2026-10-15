@@ -1,0 +1,16 @@
+services:
+  bootcamp:
+    build: .
+    container_name: linux_bootcamp
+    restart: unless-stopped
+    ports:
+      - "80:8000"
+      - "8000:8000"
+    volumes:
+      # Datenbank auf dem Host sichern
+      - ./bootcamp.db:/app/bootcamp.db
+    environment:
+      - NODE_ENV=production
+      - USE_HTTP=true
+      - PORT=8000
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}

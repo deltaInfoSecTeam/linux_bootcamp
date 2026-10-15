@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KI Fragen-Generator | Linux Bootcamp</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <span style="font-size: 2rem; margin-right: 12px;">🪖</span>
+                <h1>Linux Bootcamp</h1>
+            </div>
+            <div style="flex-grow: 1; text-align: right;">
+                <a href="index.html" class="btn-primary" style="text-decoration: none; padding: 8px 16px;">⬅️ Zurück zum Quiz</a>
+            </div>
+        </header>
+
+        <!-- Main Layout -->
+        <div class="app-layout" style="display: block;">
+            <main class="app-main" style="max-width: 800px; margin: 0 auto; padding-top: 20px;">
+                <div class="quiz-card">
+                    <div class="card-inner">
+                        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--bg-card-border); padding-bottom: 15px; margin-bottom: 20px;">
+                            <h2 style="font-size: 1.5rem; color: #fff;">🐧 Tux Fragen-Generator</h2>
+                        </div>
+                        
+                        <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 1rem; line-height: 1.5;">
+                            Erzeuge automatisch neue Quiz-Fragen! Lade eine Datei (PDF/MD) hoch oder gib einfach ein Thema ein. Die generierten Fragen werden lokal in deinem Browser gespeichert und sind direkt im Quiz verfügbar.
+                        </p>
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: 600; color: #e2e8f0; margin-bottom: 8px;">Quellmaterial (Optional)</label>
+                            <input type="file" id="gen-file-upload" accept=".pdf,.md,.txt" style="display: block; margin-top: 5px; color: white; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--bg-card-border); border-radius: 4px; width: 100%;">
+                            <small style="color: var(--text-muted); display: block; margin-top: 5px;">Unterstützt: PDF, Markdown, TXT. Leer lassen für Freitext-Generierung.</small>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: 600; color: #e2e8f0; margin-bottom: 8px;">Thema oder Anweisungen</label>
+                            <textarea id="gen-topic-input" rows="3" placeholder="Z.B.: Erstelle 3 schwere Fragen zum Thema Docker Container Networking..." style="width: 100%; padding: 12px; border-radius: 4px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--bg-card-border); font-family: inherit; resize: vertical;"></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 30px;">
+                            <label style="display: block; font-weight: 600; color: #e2e8f0; margin-bottom: 8px;">Kategorie für neue Fragen</label>
+                            <select id="gen-category-select" style="width: 100%; padding: 12px; border-radius: 4px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--bg-card-border); margin-bottom: 10px;">
+                                <option value="new">-- ✨ Neues Modul erstellen --</option>
+                            </select>
+                            <div id="gen-new-category-container" style="display: flex; flex-direction: column; gap: 10px;">
+                                <input type="text" id="gen-new-category-name" placeholder="Modul (z.B. linux.security)" style="width: 100%; padding: 12px; border-radius: 4px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--bg-card-border);">
+                                <input type="text" id="gen-new-chapter-name" placeholder="Unterkapitel (Optional, z.B. Kapitel 1)" style="width: 100%; padding: 12px; border-radius: 4px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--bg-card-border);">
+                            </div>
+                        </div>
+
+                        <div id="gen-status" style="margin-bottom: 20px; font-size: 1rem; color: #4ade80; display: none; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.2);"></div>
+                        
+                        <button id="btn-generate-questions" class="btn-primary" style="width: 100%; background: #10b981; padding: 14px; font-size: 1.1rem; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                            <span>🚀</span> Fragen jetzt generieren
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="generator.js"></script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+[
+  {
+    "id": 1,
+    "category": "1. Aufbau von Linux",
+    "question": "Was bedeutet das Linux-Grundprinzip „Alles ist eine Datei“?\nNenne drei konkrete Beispiele für Systemkomponenten oder Ressourcen, die keine regulären Dateien sind, aber wie solche behandelt werden."
+  },
+  {
+    "id": 2,
+    "category": "1. Aufbau von Linux",
+    "question": "Erkläre den Unterschied zwischen dem Kernelmodus (Kernel Mode) und dem Benutzermodus (User Mode).\nWarum ist diese Trennung für die Stabilität und Sicherheit des Systems unerlässlich?"
+  },
+  {
+    "id": 3,
+    "category": "1. Aufbau von Linux",
+    "question": "Was versteht man unter der modularen Architektur des Linux-Kernels (LKMs)? Nenne Vor- und Nachteile."
+  },
+  {
+    "id": 4,
+    "category": "1. Aufbau von Linux",
+    "question": "Nenne die vier Hauptaufgaben (Kernelfunktionen) des Linux-Kernels."
+  },
+  {
+    "id": 5,
+    "category": "1. Verzeichnisstruktur",
+    "question": "Welche Art von Daten liegt typischerweise in /var/log und /etc?\nNenne für jedes Verzeichnis zwei konkrete Dateibeispiele."
+  },
+  {
+    "id": 6,
+    "category": "1. Verzeichnisstruktur",
+    "question": "Ein Systemdienst (z. B. Apache) startet nicht. In welchen Verzeichnissen und Dateien suchst du nach Fehlern und wie gehst du vor?"
+  },
+  {
+    "id": 7,
+    "category": "1. Berechtigungsmodell",
+    "question": "Übersetze die Berechtigungen in das jeweils andere Format (Oktal <-> Symbolisch) und erkläre sie:\n1. datei1.sh: rwxr-xr-x\n2. datei2.txt: 640"
+  },
+  {
+    "id": 8,
+    "category": "1. Berechtigungsmodell",
+    "question": "Erkläre SUID, SGID und Sticky Bit und nenne jeweils ein typisches Praxisbeispiel."
+  },
+  {
+    "id": 9,
+    "category": "1. Berechtigungsmodell",
+    "question": "Ein Ordner hat die Rechte 1777 (drwxrwxrwt). Benutzer A erstellt darin die Datei entwurf.txt mit 666 (rw-rw-rw-).\n1. Kann Benutzer B den Inhalt verändern?\n2. Kann Benutzer B die Datei löschen?"
+  },
+  {
+    "id": 10,
+    "category": "2. Shell- und Bash-Grundlagen",
+    "question": "Was passiert bei folgendem Befehl im Hintergrund?\n`cat /var/log/syslog | grep \"ERROR\"`\nWarum ist dies ein „Useless Use of Cat“ (UUOC) und wie lautet der optimierte Befehl?"
+  },
+  {
+    "id": 11,
+    "category": "2. Shell- und Bash-Grundlagen",
+    "question": "Erkläre die Unterschiede zwischen einem Hardlink und einem Symbolischen Link (Symlink) bezüglich:\n- Worauf sie verweisen\n- Verhalten beim Löschen des Originals\n- Verwendung über Partitionsgrenzen hinweg"
+  },
+  {
+    "id": 12,
+    "category": "2. Shell- und Bash-Grundlagen",
+    "question": "Was ist der Unterschied zwischen einer Shell-Variable und einer Umgebungsvariable (Environment Variable)?\nWie deklarierst und exportierst du eine Variable namens PROJEKT mit dem Wert „Lernen“?"
+  },
+  {
+    "id": 13,
+    "category": "3. I/O und File-Deskriptoren",
+    "question": "Welche Standard-Datenströme besitzen die Nummern 0, 1 und 2?\nSchreibe einen Befehl, der die Dateiliste (ls -la) ausgibt, dabei Fehler verwirft und die normale Ausgabe in inventar.txt speichert."
+  },
+  {
+    "id": 14,
+    "category": "3. I/O und File-Deskriptoren",
+    "question": "Erkläre den Unterschied zwischen den beiden folgenden Umleitungen:\n1. `backup.sh > backup.log 2>&1`\n2. `backup.sh 2>&1 > backup.log`"
+  },
+  {
+    "id": 15,
+    "category": "4. Wichtige Kommandozeilenprogramme",
+    "question": "Schreibe einen find-Befehl, der in /var/log nach allen regulären Dateien sucht, die auf „.log“ enden, root gehören und in den letzten 7 Tagen geändert wurden."
+  },
+  {
+    "id": 16,
+    "category": "4. Wichtige Kommandozeilenprogramme",
+    "question": "Wie filterst du eine Datei mit grep so, dass alle Leerzeilen und alle Kommentarzeilen (beginnend mit #) ignoriert werden?\nNutze reguläre Ausdrücke."
+  },
+  {
+    "id": 17,
+    "category": "4. Wichtige Kommandozeilenprogramme",
+    "question": "Warum ist ifconfig veraltet? Nenne die modernen ip-Befehle für:\n1. IP-Adressen anzeigen\n2. Interface eth0 aktivieren\n3. Routing-Tabelle anzeigen"
+  },
+  {
+    "id": 18,
+    "category": "4. Wichtige Kommandozeilenprogramme",
+    "question": "Wie mountest du /dev/sdb1 schreibgeschützt nach /mnt/usb?\nWelche Option in /etc/fstab verhindert, dass das System beim Booten hängen bleibt, wenn die USB-Platte fehlt?"
+  },
+  {
+    "id": 19,
+    "category": "4. Wichtige Kommandozeilenprogramme",
+    "question": "Über welche Datei wird sudo konfiguriert?\nWarum sollte man sie niemals direkt mit einem normalen Editor editieren und welches Tool nutzt man stattdessen?"
+  },
+  {
+    "id": 20,
+    "category": "4. Wichtige Kommandozeilenprogramme",
+    "question": "Was zeigt `ps aux` an und was bedeuten die Spalten PID, PPID und %CPU?\n(Zeigt ps aux standardmäßig die PPID an?)"
+  },
+  {
+    "id": 21,
+    "category": "5. Texteditoren (nano, vim)",
+    "question": "Welche drei grundlegenden Modi hat vi/vim und wie wechselst du zwischen ihnen?"
+  },
+  {
+    "id": 22,
+    "category": "5. Texteditoren (nano, vim)",
+    "question": "Wie führt man in vi/vim folgende Aktionen aus (ausgehend vom Normalmodus)?\n1. Speichern und schließen\n2. Beenden ohne Speichern erzwingen\n3. Aktuelle Zeile löschen\n4. Nach dem Wort \"Fehler\" suchen\n5. Letzten Schritt rückgängig machen (Undo)"
+  },
+  {
+    "id": 23,
+    "category": "6. Netzwerk- und Systemkonzepte",
+    "question": "Beschreibe die Phasen des Linux-Boot-Prozesses (BIOS/UEFI -> Bootloader -> Kernel -> initramfs -> init).\nWelche Rolle spielt das initramfs?"
+  },
+  {
+    "id": 24,
+    "category": "6. Netzwerk- und Systemkonzepte",
+    "question": "Was sind Linux-Namespaces? Wie unterscheiden sie sich von Hardware-Virtualisierung (z. B. VirtualBox) und warum sind sie wichtig für Docker?"
+  },
+  {
+    "id": 25,
+    "category": "6. Netzwerk- und Systemkonzepte",
+    "question": "Was sind Linux Capabilities und welches Problem des klassischen Unix-Rechtekonzepts lösen sie?"
+  },
+  {
+    "id": 26,
+    "category": "6. Netzwerk- und Systemkonzepte",
+    "question": "Was sind Access Control Lists (ACLs) und wie erweitern sie das Standard-UGO-Modell?\nNenne die Befehle zum:\n1. Anzeigen von ACLs einer Datei\n2. Zuweisen von Leserechten an Benutzer \"schmidt\""
+  },
+  {
+    "id": 27,
+    "category": "7. Fortgeschrittene Administration",
+    "question": "Du möchtest ein komprimiertes Archiv ('backup.tar.gz') des Verzeichnisses '/var/log' erstellen. Wie lautet der exakte tar-Befehl dazu?"
+  },
+  {
+    "id": 28,
+    "category": "7. Fortgeschrittene Administration",
+    "question": "Wie generierst du einen modernen ED25519 SSH-Schlüssel und kopierst diesen anschließend sicher auf den Server '192.168.1.10' für den User 'admin'?"
+  },
+  {
+    "id": 29,
+    "category": "7. Fortgeschrittene Administration",
+    "question": "Ein Systemd-Dienst namens 'web-app.service' stürzt ständig ab. Wie zeigst du dir in Echtzeit (-f) die aktuellsten 50 Log-Einträge (-n) dieses Dienstes an?"
+  },
+  {
+    "id": 30,
+    "category": "7. Fortgeschrittene Administration",
+    "question": "Du vermutest, dass ein Prozess deinen Port 8080 blockiert. Welchen Befehl (netstat oder ss) nutzt du, um den Prozess (inkl. PID) zu finden, der an diesen Port gebunden ist?"
+  },
+  {
+    "id": 31,
+    "category": "7. Fortgeschrittene Administration",
+    "question": "Was bewirkt der folgende Cronjob und wann genau wird er ausgeführt?\n`30 2 * * 0 /opt/scripts/backup.sh`"
+  }
+]
