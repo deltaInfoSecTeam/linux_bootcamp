@@ -11,29 +11,29 @@ function escapeHtml(str) {
 }
 
 const ranks = [
-    { name: 'Schütze', minXp: 0, img: 'public/ranks/Schuetze.svg' },
-    { name: 'Gefreiter', minXp: 100, img: 'public/ranks/Gefreiter.svg' },
-    { name: 'Obergefreiter', minXp: 250, img: 'public/ranks/Obergefreiter.svg' },
-    { name: 'Hauptgefreiter', minXp: 400, img: 'public/ranks/Hauptgefreiter.svg' },
-    { name: 'Stabsgefreiter', minXp: 600, img: 'public/ranks/Stabsgefreiter.svg' },
-    { name: 'Oberstabsgefreiter', minXp: 800, img: 'public/ranks/Oberstabsgefreiter.svg' },
-    { name: 'Unteroffizier', minXp: 1100, img: 'public/ranks/Unteroffizier.svg' },
-    { name: 'Stabsunteroffizier', minXp: 1400, img: 'public/ranks/Stabsunteroffizier.svg' },
-    { name: 'Feldwebel', minXp: 1800, img: 'public/ranks/Feldwebel.svg' },
-    { name: 'Oberfeldwebel', minXp: 2200, img: 'public/ranks/Oberfeldwebel.svg' },
-    { name: 'Hauptfeldwebel', minXp: 2800, img: 'public/ranks/Hauptfeldwebel.svg' },
-    { name: 'Stabsfeldwebel', minXp: 3500, img: 'public/ranks/Stabsfeldwebel.svg' },
-    { name: 'Oberstabsfeldwebel', minXp: 4200, img: 'public/ranks/Oberstabsfeldwebel.svg' },
-    { name: 'Leutnant', minXp: 5000, img: 'public/ranks/Leutnant.svg' },
-    { name: 'Oberleutnant', minXp: 6000, img: 'public/ranks/Oberleutnant.svg' },
-    { name: 'Hauptmann', minXp: 7500, img: 'public/ranks/Hauptmann.svg' },
-    { name: 'Major', minXp: 11000, img: 'public/ranks/Major.svg' },
-    { name: 'Oberstleutnant', minXp: 14500, img: 'public/ranks/Oberstleutnant.svg' },
-    { name: 'Oberst', minXp: 18500, img: 'public/ranks/Oberst.svg' },
-    { name: 'Brigadegeneral', minXp: 23000, img: 'public/ranks/Brigadegeneral.svg' },
-    { name: 'Generalmajor', minXp: 28000, img: 'public/ranks/Generalmajor.svg' },
-    { name: 'Generalleutnant', minXp: 34000, img: 'public/ranks/Generalleutnant.svg' },
-    { name: 'General', minXp: 41000, img: 'public/ranks/General.svg' }
+    { name: 'Schütze', minXp: 0, img: 'img/ranks/Schuetze.svg' },
+    { name: 'Gefreiter', minXp: 100, img: 'img/ranks/Gefreiter.svg' },
+    { name: 'Obergefreiter', minXp: 250, img: 'img/ranks/Obergefreiter.svg' },
+    { name: 'Hauptgefreiter', minXp: 400, img: 'img/ranks/Hauptgefreiter.svg' },
+    { name: 'Stabsgefreiter', minXp: 600, img: 'img/ranks/Stabsgefreiter.svg' },
+    { name: 'Oberstabsgefreiter', minXp: 800, img: 'img/ranks/Oberstabsgefreiter.svg' },
+    { name: 'Unteroffizier', minXp: 1100, img: 'img/ranks/Unteroffizier.svg' },
+    { name: 'Stabsunteroffizier', minXp: 1400, img: 'img/ranks/Stabsunteroffizier.svg' },
+    { name: 'Feldwebel', minXp: 1800, img: 'img/ranks/Feldwebel.svg' },
+    { name: 'Oberfeldwebel', minXp: 2200, img: 'img/ranks/Oberfeldwebel.svg' },
+    { name: 'Hauptfeldwebel', minXp: 2800, img: 'img/ranks/Hauptfeldwebel.svg' },
+    { name: 'Stabsfeldwebel', minXp: 3500, img: 'img/ranks/Stabsfeldwebel.svg' },
+    { name: 'Oberstabsfeldwebel', minXp: 4200, img: 'img/ranks/Oberstabsfeldwebel.svg' },
+    { name: 'Leutnant', minXp: 5000, img: 'img/ranks/Leutnant.svg' },
+    { name: 'Oberleutnant', minXp: 6000, img: 'img/ranks/Oberleutnant.svg' },
+    { name: 'Hauptmann', minXp: 7500, img: 'img/ranks/Hauptmann.svg' },
+    { name: 'Major', minXp: 11000, img: 'img/ranks/Major.svg' },
+    { name: 'Oberstleutnant', minXp: 14500, img: 'img/ranks/Oberstleutnant.svg' },
+    { name: 'Oberst', minXp: 18500, img: 'img/ranks/Oberst.svg' },
+    { name: 'Brigadegeneral', minXp: 23000, img: 'img/ranks/Brigadegeneral.svg' },
+    { name: 'Generalmajor', minXp: 28000, img: 'img/ranks/Generalmajor.svg' },
+    { name: 'Generalleutnant', minXp: 34000, img: 'img/ranks/Generalleutnant.svg' },
+    { name: 'General', minXp: 41000, img: 'img/ranks/General.svg' }
 ];
 
 let currentUser = null;
@@ -108,7 +108,7 @@ function updateUserUI(user, currentXp = 0) {
         if (btnLogout) btnLogout.style.display = 'none';
         if (nameEl) nameEl.textContent = 'Tux';
         if (rankEl) rankEl.textContent = 'Schütze';
-        if (imgEl) imgEl.src = 'public/ranks/Schuetze.svg';
+        if (imgEl) imgEl.src = 'img/ranks/Schuetze.svg';
     }
 }
 
@@ -215,10 +215,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         div.innerHTML = `
                             <div>
                                 <div style="font-weight: bold; font-size: 1.1em; color: #4ade80;">Klausur Nr.${index + 1} vom ${dateStr}</div>
-                                <div style="color: #9ca3af; font-size: 0.9em; margin-top: 5px;">Punkte: ${ex.score} / ${ex.max_score}</div>
+                                <div style="color: #9ca3af; font-size: 0.9em; margin-top: 5px;">Punkte: ${Number(ex.score)} / ${Number(ex.max_score)}</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 1.5em; font-weight: bold; color: ${ex.grade <= '4' ? '#4ade80' : '#ef4444'};">Note: ${ex.grade}</div>
+                                <div style="font-size: 1.5em; font-weight: bold; color: ${Number(ex.grade) <= 4 ? '#4ade80' : '#ef4444'};">Note: ${Number(ex.grade)}</div>
                             </div>
                         `;
                         list.appendChild(div);
@@ -400,11 +400,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     const row = document.createElement('tr');
                     
                     row.innerHTML = `
-                        <td>${dateStr}</td>
+                        <td>${escapeHtml(dateStr)}</td>
                         <td style="font-weight: bold; color: #60a5fa;">${escapeHtml(ex.username)}</td>
-                        <td>${ex.score} / ${ex.max_score}</td>
-                        <td style="font-weight: bold; color: ${ex.grade <= '4' ? '#4ade80' : '#ef4444'};">${ex.grade}</td>
-                        <td><button class="mode-btn btn-view-exam" data-id="${ex.id}" style="padding: 2px 10px; font-size: 0.8em; margin: 0;">Ansehen</button></td>
+                        <td>${Number(ex.score)} / ${Number(ex.max_score)}</td>
+                        <td style="font-weight: bold; color: ${Number(ex.grade) <= 4 ? '#4ade80' : '#ef4444'};">${Number(ex.grade)}</td>
+                        <td><button class="mode-btn btn-view-exam" data-id="${Number(ex.id)}" style="padding: 2px 10px; font-size: 0.8em; margin: 0;">Ansehen</button></td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -446,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                 });
             } else {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">' + (data.error || 'Fehler') + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">' + escapeHtml(data.error || 'Fehler') + '</td></tr>';
             }
         } catch(e) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Netzwerkfehler.</td></tr>';
@@ -474,17 +474,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 
                 tr.innerHTML = `
-                    <td style="padding: 8px;">${u.id}</td>
+                    <td style="padding: 8px;">${Number(u.id)}</td>
                     <td style="padding: 8px;">${escapeHtml(u.username)}</td>
-                    <td style="padding: 8px;">${u.xp} XP</td>
+                    <td style="padding: 8px;">${Number(u.xp)} XP</td>
                     <td style="padding: 8px;">${status}</td>
                     <td style="padding: 8px;">${role}</td>
                     <td style="padding: 8px;">
                         <div style="display: flex; gap: 8px;">
-                            <button class="${banBtnClass}" style="width: auto;" onclick="toggleBan(${u.id}, ${!u.is_banned})">${u.is_banned ? 'Entsperren' : 'Sperren'}</button>
-                            <button class="btn-primary btn-sm" style="width: auto; ${u.is_admin ? 'opacity: 0.3; cursor: not-allowed; filter: grayscale(100%);' : ''}" onclick="${u.is_admin ? '' : `toggleAdminLevel(${u.id}, true)`}">zu Admin machen</button>
-                            <button class="btn-secondary btn-sm" style="width: auto; ${!u.is_admin ? 'opacity: 0.3; cursor: not-allowed; filter: grayscale(100%);' : ''}" onclick="${!u.is_admin ? '' : `toggleAdminLevel(${u.id}, false)`}">Adminrechte entziehen</button>
-                            <button class="btn-secondary btn-sm" style="width: auto;" onclick="forceReset(${u.id}, '${u.username}')">Reset PW</button>
+                            <button class="${banBtnClass}" style="width: auto;" data-action="ban" data-id="${Number(u.id)}" data-state="${u.is_banned ? 0 : 1}">${u.is_banned ? 'Entsperren' : 'Sperren'}</button>
+                            <button class="btn-primary btn-sm" style="width: auto; ${u.is_admin ? 'opacity: 0.3; cursor: not-allowed; filter: grayscale(100%);' : ''}" ${u.is_admin ? 'disabled' : `data-action="admin" data-id="${Number(u.id)}" data-state="1"`}>zu Admin machen</button>
+                            <button class="btn-secondary btn-sm" style="width: auto; ${!u.is_admin ? 'opacity: 0.3; cursor: not-allowed; filter: grayscale(100%);' : ''}" ${!u.is_admin ? 'disabled' : `data-action="admin" data-id="${Number(u.id)}" data-state="0"`}>Adminrechte entziehen</button>
+                            <button class="btn-secondary btn-sm" style="width: auto;" data-action="reset" data-id="${Number(u.id)}" data-name="${escapeHtml(u.username)}">Reset PW</button>
                         </div>
                     </td>
                 `;
@@ -496,6 +496,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     
+    // Admin-Aktionen per Event-Delegation (keine Inline-Handler -> strikte CSP möglich)
+    const adminUsersBody = document.getElementById('admin-users-list');
+    if (adminUsersBody) {
+        adminUsersBody.addEventListener('click', (ev) => {
+            const btn = ev.target.closest('button[data-action]');
+            if (!btn) return;
+            const id = Number(btn.dataset.id);
+            if (btn.dataset.action === 'ban') window.toggleBan(id, btn.dataset.state === '1');
+            else if (btn.dataset.action === 'admin') window.toggleAdminLevel(id, btn.dataset.state === '1');
+            else if (btn.dataset.action === 'reset') window.forceReset(id, btn.dataset.name);
+        });
+    }
+
     window.toggleAdminLevel = async (userId, makeAdmin) => {
         if (!confirm(`Nutzer wirklich ${makeAdmin ? 'zum Admin machen' : 'degradieren'}?`)) return;
         try {
@@ -533,7 +546,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
                 body: JSON.stringify({ userId, newPassword: newPw })
             });
-            if (res.ok) alert("Passwort geändert!");
+            const resData = await res.json().catch(() => ({}));
+            alert(res.ok ? "Passwort geändert!" : (resData.error || "Fehler!"));
         } catch (e) {
             alert("Fehler!");
         }
@@ -563,10 +577,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     const isMe = currentUser && currentUser.username === u.username;
                     tr.style.backgroundColor = isMe ? 'rgba(74, 222, 128, 0.1)' : 'transparent';
                     tr.innerHTML = `
-                        <td style="padding: 10px; border-bottom: 1px solid #444;">#${u.rank}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #444;">#${Number(u.rank)}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #444; font-weight: ${isMe ? 'bold' : 'normal'}; color: ${u.is_admin ? '#a855f7' : 'inherit'}">${escapeHtml(u.username)} ${isMe ? '(Du)' : ''}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #444;">${u.xp} XP</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #444;">🔥 ${u.streak}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #444;">${Number(u.xp)} XP</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #444;">🔥 ${Number(u.streak)}</td>
                     `;
                     tbody.appendChild(tr);
                 });

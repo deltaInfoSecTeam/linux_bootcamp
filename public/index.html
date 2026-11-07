@@ -5,30 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linux Bootcamp</title>
     <link rel="manifest" href="./manifest.json">
-    <script>
-        // Globaler Fehler-Fänger, damit kein Fehler mehr stumm verschluckt wird!
-        window.onerror = function(msg, url, line, col, error) {
-            alert("💥 KRITISCHER FEHLER:\n" + msg + "\nZeile: " + line + " Spalte: " + col);
-            return false;
-        };
-        window.addEventListener("unhandledrejection", function(event) {
-            alert("💥 HINTERGRUND-FEHLER:\n" + (event.reason ? event.reason.stack || event.reason : event));
-        });
-
-        // Service Worker Registrierung für PWA / Offline
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registriert', reg.scope))
-                    .catch(err => console.error('Service Worker Fehler', err));
-            });
-        }
-    </script>
+    <script src="js/boot.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/jpeg" href="public/favicon.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/jpeg" href="img/favicon.jpg">
 </head>
 <body>
     <div class="app-container">
@@ -37,7 +19,7 @@
             <div style="display: flex; align-items: center; gap: 12px;">
                 <button id="btn-toggle-sidebar" class="btn-toggle-sidebar" title="Sidebar umschalten" style="margin: 0; padding: 0; line-height: 1; display: flex; align-items: center;">&#9776;</button>
                 <div class="header-logo" style="margin: 0; display: flex; align-items: center; gap: 10px;">
-                    <img src="public/wappen.png" alt="1st Linux Cavalry Patch" class="logo-img" style="height: 52px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));">
+                    <img src="img/wappen.png" alt="1st Linux Cavalry Patch" class="logo-img" style="height: 52px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));">
                     <div style="display: flex; flex-direction: column; justify-content: center;">
                         <h1 style="margin: 0; line-height: 1;">AAP Bootcamp</h1>
                         <div style="font-size: 0.8rem; margin-top: 4px; line-height: 1;">
@@ -50,7 +32,7 @@
             <div class="quick-stats">
                 <!-- Profil / Rangbereich -->
                 <div id="player-profile" class="player-profile">
-                    <img id="rank-insignia" src="public/ranks/Schuetze.svg" alt="Rang" class="rank-insignia">
+                    <img id="rank-insignia" src="img/ranks/Schuetze.svg" alt="Rang" class="rank-insignia">
                     <div class="player-info">
                         <div id="player-rank" class="player-rank">Schütze</div>
                         <div id="player-name" class="player-name">Tux</div>
@@ -237,7 +219,7 @@
                 </div>
                 
                 <div class="sidebar-section" style="text-align: center; border-top-color: #4ade80; margin-top: auto;">
-                    <img src="./tux_aap_logo.png" alt="AAP Tux" style="width: 220px; height: 220px; border-radius: 8px; border: 2px solid #4ade80; box-shadow: 0 0 15px rgba(74,222,128,0.5);">
+                    <img src="img/tux_aap_logo.png" alt="AAP Tux" style="width: 220px; height: 220px; border-radius: 8px; border: 2px solid #4ade80; box-shadow: 0 0 15px rgba(74,222,128,0.5);">
                 </div>
             </aside>
 
@@ -246,7 +228,7 @@
                 
                 <div id="exam-result-card" class="quiz-card" style="display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px;">
                     <h2 style="color: #fbbf24; font-size: 2rem; margin-bottom: 10px;">Klausur Beendet!</h2>
-                    <img src="public/tux_aap_logo.png" alt="Zertifikat" style="width: 150px; height: 150px; margin: 20px 0;">
+                    <img src="img/tux_aap_logo.png" alt="Zertifikat" style="width: 150px; height: 150px; margin: 20px 0;">
                     <div style="font-size: 1.5rem; margin-bottom: 20px;">
                         Dein Ergebnis: <strong id="exam-result-percent" style="color: #4ade80;">0%</strong> (<span id="exam-result-points">0</span> / 24 Punkte)
                     </div>
@@ -312,7 +294,7 @@
                         <!-- Validation Feedback -->
                         <div class="feedback-container hidden" id="feedback-container">
                             <div style="display: flex; gap: 15px;">
-                                <img src="./drill_tutor_tux.jpg" alt="Drill Sgt Tux Tutor" style="width: 70px; height: 70px; border-radius: 8px; border: 2px solid var(--color-accent); flex-shrink: 0; align-self: flex-start; object-fit: cover;">
+                                <img src="img/drill_tutor_tux.jpg" alt="Drill Sgt Tux Tutor" style="width: 70px; height: 70px; border-radius: 8px; border: 2px solid var(--color-accent); flex-shrink: 0; align-self: flex-start; object-fit: cover;">
                                 <div>
                                     <div class="feedback-badge" id="feedback-badge">Auswertung...</div>
                                     <div class="feedback-details" id="feedback-details"></div>
@@ -476,7 +458,7 @@
     <!-- Neu: Login Modal (Hacker Fullscreen) -->
     <div id="login-modal" class="auth-fullscreen-overlay" style="display: none;">
         <div class="auth-terminal-box id-card-theme">
-            <button type="button" class="btn-close-modal" onclick="document.getElementById('login-modal').style.display='none'" title="Abbrechen">X</button>
+            <button type="button" class="btn-close-modal" id="btn-close-login-modal" title="Abbrechen">X</button>
             
             <div class="id-card-top">
                 <div class="id-agency">DEPARTMENT OF LINUX ADMINISTRATION</div>
@@ -485,13 +467,13 @@
 
             <div class="auth-header">
                 <div class="auth-avatar-group">
-                    <img src="public/tux_passport.jpg" alt="Tux Agent" class="auth-avatar id-photo">
+                    <img src="img/tux_passport.jpg" alt="Tux Agent" class="auth-avatar id-photo">
                     <div class="auth-title">
                         <h2>IDENTIFY YOURSELF</h2>
                         <p>SYSTEM ACCESS: RESTRICTED</p>
                     </div>
                 </div>
-                <img src="public/fbi_penguin_logo.jpg" alt="Agency Logo" class="agency-badge">
+                <img src="img/fbi_penguin_logo.jpg" alt="Agency Logo" class="agency-badge">
             </div>
             
             <form id="auth-form" class="auth-form-body">
@@ -547,7 +529,12 @@
     <!-- Notification system -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="auth.js"></script>
-    <script src="app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/core.js"></script>
+    <script src="js/questions.js"></script>
+    <script src="js/quiz.js"></script>
+    <script src="js/llm.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

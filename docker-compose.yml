@@ -3,14 +3,24 @@ services:
     build: .
     container_name: linux_bootcamp
     restart: unless-stopped
+    # Standard: nur lokal erreichbar. Für Zugriff von außen einen Reverse Proxy
+    # mit HTTPS (Caddy, Traefik, nginx) davorsetzen, statt den Port zu öffnen.
     ports:
-      - "80:8000"
-      - "8000:8000"
+      - "${BIND_ADDRESS:-127.0.0.1}:${HOST_PORT:-8000}:8000"
     volumes:
-      # Datenbank auf dem Host sichern
-      - ./bootcamp.db:/app/bootcamp.db
+      # Datenbank und automatisch erzeugte Secrets bleiben auf dem Host erhalten
+      - ./data:/app/data
+    env_file:
+      - path: .env
+        required: false
     environment:
       - NODE_ENV=production
-      - USE_HTTP=true
       - PORT=8000
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - DATA_DIR=/app/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

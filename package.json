@@ -2,9 +2,10 @@
   "name": "linux_quiz_pwa",
   "version": "1.0.0",
   "description": "Linux Bootcamp PWA Lernplattform",
-  "main": "server.js",
+  "main": "server/index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server/index.js",
+    "create-admin": "node scripts/create-admin.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -12,5 +13,8 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

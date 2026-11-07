@@ -16,7 +16,7 @@ async function fetchWithProxyFallback(url, options) {
         console.warn("Direct fetch failed (CORS/Network Error), using local proxy...", e);
         return await fetch('/api/proxy', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + safeStorage.getItem('bootcamp_token') },
             body: JSON.stringify({
                 url: url,
                 method: options.method || 'GET',

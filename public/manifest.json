@@ -8,12 +8,12 @@
   "description": "Lerne Linux interaktiv mit KI-Bewertung",
   "icons": [
     {
-      "src": "tux_army_avatar.png",
+      "src": "img/tux_army_avatar.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "tux_army_avatar.png",
+      "src": "img/tux_army_avatar.png",
       "sizes": "512x512",
       "type": "image/png"
     }
