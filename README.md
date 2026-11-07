@@ -23,20 +23,40 @@
 ## 🚀 Installation & Deployment
 
 ### Voraussetzungen
-- Docker mit Docker Compose (v2.24 oder neuer)
+- Ein Linux mit apt (Debian, Ubuntu, Raspberry Pi OS, Kali), `git` und `sudo`
+- Docker wird vom Installationsskript bei Bedarf mitinstalliert
 
 ### ⚡ Quickstart
 
+Klone das Repo **als normaler Nutzer**, nicht mit `sudo`, und starte das Installationsskript:
+
 ```bash
-git clone https://github.com/deltaInfoSecTeam/linux_bootcamp.git && cd linux_bootcamp && cp .env.example .env && docker compose up -d --build
+git clone https://github.com/deltaInfoSecTeam/linux_bootcamp.git && cd linux_bootcamp && ./scripts/install.sh --admin <dein-username>
 ```
+
+Das Skript
+1. prüft, ob Docker und Docker Compose vorhanden sind, und installiert sie nach Rückfrage über apt,
+2. korrigiert die Dateirechte (`data/` muss UID 1000 gehören, dem Nutzer im Container),
+3. legt `.env` aus `.env.example` an,
+4. baut und startet den Container und wartet auf den Healthcheck,
+5. legt mit `--admin` den ersten Admin an. Passwort und Recovery-Token erscheinen **einmalig**.
+
+Mehrfaches Ausführen schadet nicht, dasselbe Skript dient auch für Updates (`git pull && ./scripts/install.sh`). Weitere Optionen zeigt `./scripts/install.sh --help`.
 
 Danach läuft die App unter `http://localhost:8000`. Standardmäßig ist sie **nur lokal** erreichbar (`127.0.0.1`).
 
-### Ersten Admin anlegen
+### Manuelle Installation
+
+Wer Docker selbst verwaltet (Compose v2 nötig):
 
 ```bash
-docker compose exec bootcamp node scripts/create-admin.js <username>
+cp .env.example .env && sudo chown -R 1000:1000 data && docker compose up -d --build
+```
+
+### Weitere Admins
+
+```bash
+sudo docker compose exec bootcamp node scripts/create-admin.js <username>
 ```
 
 Existiert der Nutzer schon, wird er zum Admin. Sonst wird er neu angelegt, und Passwort plus Recovery-Token werden **einmalig** ausgegeben.
@@ -63,12 +83,10 @@ Setze dazu in `.env` den Wert `TRUST_PROXY=1`. HTTPS ist für PWA-Funktionen auf
 ### Update von v1.0.0
 
 ```bash
-docker compose down
-mkdir -p data && mv bootcamp.db data/ && sudo chown -R 1000:1000 data
-git pull && cp -n .env.example .env && docker compose up -d --build
+docker compose down && git pull && ./scripts/install.sh
 ```
 
-Beim ersten Start werden die alten Recovery-Codes gehasht und die API-Keys verschlüsselt. Alle Nutzer müssen sich einmal neu anmelden.
+Das Skript verschiebt eine vorhandene `bootcamp.db` automatisch nach `data/`. Beim ersten Start werden die alten Recovery-Codes gehasht und die API-Keys verschlüsselt. Alle Nutzer müssen sich einmal neu anmelden.
 
 ### Entwicklung ohne Docker
 
@@ -94,7 +112,7 @@ npm start
 │   ├── index.html  generator.html  manifest.json  sw.js
 │   ├── css/  img/
 │   └── js/            boot, auth, core, questions, quiz, llm, stats, main, generator
-├── scripts/           create-admin.js
+├── scripts/           install.sh, create-admin.js
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)
 ├── data/              Laufzeitdaten (gitignored)
 ├── Dockerfile  docker-compose.yml  .env.example
