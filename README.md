@@ -85,14 +85,34 @@ Weitere Namen fürs Zertifikat, zum Beispiel der Name, den dein Router vergibt:
 
 Die Option gibst du nur beim ersten Mal an, das Skript merkt sich die Namen in `.env`. `--no-tls` schaltet HTTPS wieder ab.
 
-#### CA-Zertifikat auf den Geräten installieren
+#### CA auf Linux-Clients per Skript vertrauen
+
+Am Ende von `./scripts/install.sh --tls` steht ein fertiger Einzeiler für Linux-Rechner, die auf das Bootcamp zugreifen sollen, zum Beispiel:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/trust-ca.sh | bash -s -- --server <name> --ip <server-ip> --fingerprint <SHA-256>
+```
+
+`scripts/trust-ca.sh` läuft **auf dem Client** und
+
+- lädt `ca.crt` vom Server und bricht ab, wenn der **Fingerabdruck** nicht exakt passt,
+- installiert nur eine echte CA **mit Name Constraints** (eine unbeschränkte CA wird abgelehnt),
+- trägt sie in den System-Zertifikatsspeicher ein (Debian/Ubuntu/Kali, Fedora/RHEL, Arch),
+- setzt sie in **jedem Firefox-Profil** und in **Chromium/Chrome** als vertrauenswürdig für Webseiten (installiert dafür bei Bedarf `certutil`),
+- legt mit `--ip` einen `/etc/hosts`-Eintrag an, falls der Name im Netz nicht auflösbar ist.
+
+`--dry-run` zeigt nur, was passieren würde. `--uninstall` macht alles rückgängig. Das Skript kommt per HTTPS von GitHub. Die CA selbst wird über HTTP geladen, ist aber durch den Fingerabdruck abgesichert.
+
+#### CA manuell installieren (Android, iOS, Windows, macOS)
+
 
 Einmal pro Gerät `http://<server>/ca.crt` öffnen und das Zertifikat installieren. **Vergleiche dabei den SHA-256-Fingerabdruck** mit dem, den das Skript am Ende ausgibt.
 
 - **Android:** Einstellungen → Sicherheit → Weitere Einstellungen → Verschlüsselung & Anmeldedaten → Zertifikat installieren → CA-Zertifikat
 - **iOS/iPadOS:** Datei öffnen → Einstellungen → Profil geladen → Installieren, danach unter Allgemein → Info → Zertifikatsvertrauenseinstellungen **voll vertrauen**
 - **Windows:** Doppelklick → Zertifikat installieren → Lokaler Computer → „Vertrauenswürdige Stammzertifizierungsstellen“
-- **Linux:** `sudo cp ca.crt /usr/local/share/ca-certificates/linux-bootcamp.crt && sudo update-ca-certificates`. Firefox nutzt einen eigenen Speicher: Einstellungen → Zertifikate → Zertifizierungsstellen → Importieren
+- **macOS:** Doppelklick → Schlüsselbund „System“ → Zertifikat öffnen → Vertrauen → „Immer vertrauen“
+- **Firefox (alle Systeme):** eigener Speicher. Einstellungen → Zertifikate anzeigen → Zertifizierungsstellen → Importieren → **„Dieser CA vertrauen, um Websites zu identifizieren“** anhaken
 
 Der CA-Schlüssel liegt in `deploy/tls/ca/` (nur root, nie im Git, nie im Container). Wer ihn hat, kann für dein Heimnetz gültige Zertifikate ausstellen. Bewahre ihn also wie ein Passwort auf.
 
@@ -156,7 +176,7 @@ npm start
 │   └── js/            boot, auth, core, questions, quiz, llm, stats, main, generator
 ├── deploy/nginx/      nginx-Konfiguration für HTTPS (Profil "tls")
 ├── deploy/dns/        dnsmasq-Image für den Heimnetz-DNS (Profil "dns")
-├── scripts/           install.sh, create-admin.js
+├── scripts/           install.sh, trust-ca.sh (Clients), create-admin.js
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)
 ├── data/              Laufzeitdaten (gitignored)
 ├── Dockerfile  docker-compose.yml  .env.example

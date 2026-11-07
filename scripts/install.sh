@@ -453,11 +453,21 @@ if [ "$TLS_MODE" = on ]; then
     ok "Linux Bootcamp ist bereit unter:"
     for n in "${names[@]}"; do [ "$n" = localhost ] || echo "     https://$n$port_suffix"; done
     for ip in "${ips[@]}"; do [ "$ip" = 127.0.0.1 ] || echo "     https://$ip$port_suffix"; done
+    CA_FP="$($SUDO openssl x509 -in "$TLS_DIR/certs/ca.crt" -noout -fingerprint -sha256 | cut -d= -f2)"
+    # Raw-URL des Client-Skripts aus dem Git-Remote ableiten (funktioniert auch für Forks)
+    origin="$(git -C "$REPO_DIR" remote get-url origin 2>/dev/null || true)"
+    origin="${origin%.git}"; origin="${origin#git@github.com:}"; origin="${origin#https://github.com/}"
     echo
-    echo "   Damit Browser dem Zertifikat vertrauen, einmal pro Gerät das CA-Zertifikat"
-    echo "   installieren (Download: http://$PRIMARY_NAME$http_suffix/ca.crt) – Anleitung im README."
-    echo "   Fingerabdruck zum Vergleichen beim Installieren:"
-    echo "     $($SUDO openssl x509 -in "$TLS_DIR/certs/ca.crt" -noout -fingerprint -sha256 | cut -d= -f2)"
+    echo "   Damit Browser dem Zertifikat vertrauen, einmal pro Gerät die CA installieren."
+    echo "   Fingerabdruck: $CA_FP"
+    if [[ "$origin" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+        echo
+        echo "   Linux-Clients (System, Firefox, Chromium) – auf dem jeweiligen Rechner ausführen:"
+        echo "     curl -fsSL https://raw.githubusercontent.com/$origin/main/scripts/trust-ca.sh | bash -s -- --server $PRIMARY_NAME --ip ${LAN_IP:-<server-ip>} --fingerprint $CA_FP"
+    fi
+    echo
+    echo "   Android/iOS/Windows: http://$PRIMARY_NAME$http_suffix/ca.crt laden, Fingerabdruck vergleichen,"
+    echo "   als vertrauenswürdige CA installieren (Anleitung im README)."
 else
     ok "Linux Bootcamp ist bereit: http://$BIND_ADDRESS:$HOST_PORT"
     if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then
