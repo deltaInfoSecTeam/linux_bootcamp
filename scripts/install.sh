@@ -12,6 +12,12 @@
 #   ./scripts/install.sh --tls --hostname bootcamp.lan --hostname pi.local
 #                                         weitere Namen ins Zertifikat aufnehmen
 #   ./scripts/install.sh --no-tls         HTTPS wieder abschalten
+#   ./scripts/install.sh --renew-ca       lokale CA neu erzeugen (danach auf
+#                                         allen Geräten neu installieren)
+#   ./scripts/install.sh --dns bootcamp.internal
+#                                         DNS-Server fürs Heimnetz, der diesen
+#                                         Namen auf den Server auflöst
+#   ./scripts/install.sh --no-dns         DNS-Server wieder abschalten
 #
 # Unterstützt Debian, Ubuntu, Raspberry Pi OS und Kali (apt-basiert).
 
@@ -29,27 +35,38 @@ warn() { printf '%s ! %s %s\n' "$C_WARN" "$C_OFF" "$*" >&2; }
 die()  { printf '%s ✘ %s %s\n' "$C_ERR" "$C_OFF" "$*" >&2; exit 1; }
 
 usage() {
-    sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
     exit 0
 }
 
 ASSUME_YES=0
 ADMIN_NAME=""
 TLS_MODE=""          # "", "on" oder "off"
+DNS_MODE=""          # "", "on" oder "off"
+DNS_NAME_ARG=""
+RENEW_CA=0
 EXTRA_HOSTNAMES=()
+valid_hostname() { [[ "$1" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$ ]]; }
 while [ $# -gt 0 ]; do
     case "$1" in
         -y|--yes) ASSUME_YES=1 ;;
         --admin) [ $# -ge 2 ] || die "--admin braucht einen Benutzernamen"; ADMIN_NAME="$2"; shift ;;
         --tls) TLS_MODE=on ;;
         --no-tls) TLS_MODE=off ;;
-        --hostname) [ $# -ge 2 ] || die "--hostname braucht einen Namen"; EXTRA_HOSTNAMES+=("$2"); shift ;;
+        --renew-ca) RENEW_CA=1 ;;
+        --hostname) [ $# -ge 2 ] || die "--hostname braucht einen Namen"; EXTRA_HOSTNAMES+=("${2,,}"); shift ;;
+        --dns) [ $# -ge 2 ] || die "--dns braucht einen Namen, z.B. bootcamp.internal"; DNS_MODE=on; DNS_NAME_ARG="${2,,}"; shift ;;
+        --no-dns) DNS_MODE=off ;;
         -h|--help) usage ;;
         *) die "Unbekannte Option: $1 (siehe --help)" ;;
     esac
     shift
 done
+for n in "${EXTRA_HOSTNAMES[@]}" ${DNS_NAME_ARG:+"$DNS_NAME_ARG"}; do
+    valid_hostname "$n" || die "Ungültiger Hostname: $n"
+done
 [ ${#EXTRA_HOSTNAMES[@]} -gt 0 ] && [ -z "$TLS_MODE" ] && TLS_MODE=on
+[ "$RENEW_CA" -eq 1 ] && [ -z "$TLS_MODE" ] && TLS_MODE=on
 
 confirm() {
     [ "$ASSUME_YES" -eq 1 ] && return 0
@@ -174,13 +191,26 @@ set_env() {
     fi
 }
 
-# TLS-Modus aus .env übernehmen, wenn nicht per Option gesetzt
+# Modi aus .env übernehmen, wenn nicht per Option gesetzt
+OLD_PROFILES=",$(env_value COMPOSE_PROFILES),"
 if [ -z "$TLS_MODE" ]; then
-    [[ ",$(env_value COMPOSE_PROFILES)," == *,tls,* ]] && TLS_MODE=on || TLS_MODE=off
+    [[ "$OLD_PROFILES" == *,tls,* ]] && TLS_MODE=on || TLS_MODE=off
+fi
+if [ -z "$DNS_MODE" ]; then
+    [[ "$OLD_PROFILES" == *,dns,* ]] && DNS_MODE=on || DNS_MODE=off
+fi
+DNS_NAME="${DNS_NAME_ARG:-$(env_value DNS_NAME)}"
+if [ "$DNS_MODE" = on ]; then
+    [ -n "$DNS_NAME" ] || die "Kein DNS-Name bekannt. Aufruf z.B.: ./scripts/install.sh --dns bootcamp.internal"
+    set_env DNS_NAME "$DNS_NAME"
 fi
 
+profiles=()
+[ "$TLS_MODE" = on ] && profiles+=(tls)
+[ "$DNS_MODE" = on ] && profiles+=(dns)
+set_env COMPOSE_PROFILES "$(IFS=,; echo "${profiles[*]:-}")"
+
 if [ "$TLS_MODE" = on ]; then
-    set_env COMPOSE_PROFILES tls
     # Die App direkt nur noch lokal anbieten – sonst ginge HTTPS am Port 8000 vorbei
     if [ "$(env_value BIND_ADDRESS)" != 127.0.0.1 ]; then
         warn "BIND_ADDRESS wird auf 127.0.0.1 gesetzt: Zugriff von außen nur noch über HTTPS."
@@ -188,13 +218,16 @@ if [ "$TLS_MODE" = on ]; then
     fi
     # Hinter nginx muss Express der ersten Proxy-Stufe vertrauen (Client-IP, HTTPS)
     set_env TRUST_PROXY 1
-else
-    if [ "$(env_value COMPOSE_PROFILES)" = tls ]; then
-        set_env COMPOSE_PROFILES ""
-        set_env TRUST_PROXY ""
-        info "HTTPS deaktiviert"
-    fi
+elif [[ "$OLD_PROFILES" == *,tls,* ]]; then
+    set_env TRUST_PROXY ""
+    info "HTTPS deaktiviert"
 fi
+[ "$DNS_MODE" = off ] && [[ "$OLD_PROFILES" == *,dns,* ]] && info "DNS-Server deaktiviert"
+
+# Primäre LAN-Adresse = Quelladresse der Default-Route (bei mehreren Interfaces die bevorzugte)
+LAN_DEV="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<NF;i++) if($i=="dev") print $(i+1)}' | head -1)"
+LAN_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<NF;i++) if($i=="src") print $(i+1)}' | head -1)"
+LAN_GW="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<NF;i++) if($i=="via") print $(i+1)}' | head -1)"
 
 BIND_ADDRESS="$(env_value BIND_ADDRESS)"; BIND_ADDRESS="${BIND_ADDRESS:-127.0.0.1}"
 HOST_PORT="$(env_value HOST_PORT)"; HOST_PORT="${HOST_PORT:-8000}"
@@ -226,11 +259,14 @@ if [ "$TLS_MODE" = on ]; then
     fqdn="$(hostname -f 2>/dev/null || true)"
     [ -n "$fqdn" ] && [[ "$fqdn" == *.* ]] && names+=("$fqdn")
     names+=("${EXTRA_HOSTNAMES[@]}")
+    [ "$DNS_MODE" = on ] && names+=("$DNS_NAME")
     # Bereits früher konfigurierte Zusatznamen beibehalten
     saved_names="$(env_value TLS_HOSTNAMES)"
     [ -n "$saved_names" ] && IFS=',' read -r -a saved_arr <<<"$saved_names" && names+=("${saved_arr[@]}")
-    # Hauptname für CN und Download-Link: erster Zusatzname, sonst FQDN, sonst Hostname
-    PRIMARY_NAME="${EXTRA_HOSTNAMES[0]:-}"
+    # Hauptname für CN und Download-Link: DNS-Name, sonst erster Zusatzname, sonst FQDN, sonst Hostname
+    PRIMARY_NAME=""
+    [ "$DNS_MODE" = on ] && PRIMARY_NAME="$DNS_NAME"
+    [ -z "$PRIMARY_NAME" ] && PRIMARY_NAME="${EXTRA_HOSTNAMES[0]:-}"
     [ -z "$PRIMARY_NAME" ] && [ -n "$saved_names" ] && PRIMARY_NAME="${saved_names%%,*}"
     [ -z "$PRIMARY_NAME" ] && [[ "$fqdn" == *.* ]] && PRIMARY_NAME="$fqdn"
     PRIMARY_NAME="$(printf '%s' "${PRIMARY_NAME:-$(hostname)}" | tr 'A-Z' 'a-z')"
@@ -244,6 +280,14 @@ if [ "$TLS_MODE" = on ]; then
 
     san="$(printf 'DNS:%s,' "${names[@]}")$(printf 'IP:%s,' "${ips[@]}")"; san="${san%,}"
 
+    # deploy/tls/ca gehört root (700): Existenz-Prüfungen deshalb immer mit $SUDO,
+    # sonst hält ein normaler Nutzer die CA für fehlend und erzeugt sie bei jedem Lauf neu.
+    tls_exists() { $SUDO test -s "$1"; }
+    if [ "$RENEW_CA" -eq 1 ] && tls_exists "$TLS_DIR/ca/ca.key"; then
+        warn "Erzeuge die CA neu – das alte CA-Zertifikat muss auf allen Geräten entfernt und das neue installiert werden."
+        confirm "Alte CA wirklich ersetzen?" || die "Abgebrochen."
+        $SUDO mv "$TLS_DIR/ca" "$TLS_DIR/ca.old-$(date +%Y%m%d%H%M%S)"
+    fi
     $SUDO mkdir -p "$TLS_DIR/ca" "$TLS_DIR/certs"
     $SUDO chmod 700 "$TLS_DIR/ca"
 
@@ -251,9 +295,6 @@ if [ "$TLS_MODE" = on ]; then
     # Name Constraints: Die CA darf nur Zertifikate für diese Domains und das
     # Heimnetz ausstellen. Selbst bei gestohlenem CA-Schlüssel lassen sich damit
     # keine fremden Webseiten fälschen.
-    # deploy/tls/ca gehört root (700): Existenz-Prüfungen deshalb immer mit $SUDO,
-    # sonst hält ein normaler Nutzer die CA für fehlend und erzeugt sie bei jedem Lauf neu.
-    tls_exists() { $SUDO test -s "$1"; }
     if ! tls_exists "$TLS_DIR/ca/ca.key" || ! tls_exists "$TLS_DIR/ca/ca.crt"; then
         permitted=""
         for n in "${names[@]}"; do
@@ -308,11 +349,50 @@ if [ "$TLS_MODE" = on ]; then
     $SUDO chmod 644 "$TLS_DIR/certs/server.crt" "$TLS_DIR/certs/ca.crt"
 fi
 
-# --- 5. Bauen und starten -------------------------------------------------
+# --- 5. DNS-Server fürs Heimnetz ------------------------------------------
+if [ "$DNS_MODE" = on ]; then
+    info "Bereite DNS-Server für $DNS_NAME vor"
+    [ -n "$LAN_IP" ] && [ -n "$LAN_GW" ] && [ -n "$LAN_DEV" ] \
+        || die "LAN-Adresse oder Router nicht ermittelbar (ip route get 1.1.1.1)."
+    # Stabile IPv6-Adresse (ULA fd00::/8, nicht temporär) auf dem LAN-Interface, falls vorhanden.
+    # Globale IPv6-Adressen taugen nicht: das Präfix des Providers wechselt.
+    LAN_IP6="$(ip -6 -o addr show dev "$LAN_DEV" scope global 2>/dev/null \
+        | awk '$4 ~ /^fd/ && $0 !~ /temporary/ {sub(/\/.*/, "", $4); print $4; exit}')"
+    $SUDO sed -i '/^DNS_BIND_ADDRESS6\?=/d' "$REPO_DIR/.env"
+    # Der Container läuft im Host-Netzwerk. Statt einer festen IP antwortet dnsmasq
+    # per interface-name immer mit der aktuellen IPv4 des LAN-Interfaces und lauscht
+    # (bind-dynamic) auf allen Adressen, die das Interface gerade hat.
+    dns_conf="# Von scripts/install.sh erzeugt – wird beim nächsten Lauf überschrieben.
+# Beantwortet $DNS_NAME mit der aktuellen Adresse von $LAN_DEV, alles andere fragt den Router.
+no-resolv
+no-hosts
+server=$LAN_GW
+interface=$LAN_DEV
+interface=lo
+bind-dynamic
+interface-name=$DNS_NAME,$LAN_DEV/4
+cache-size=1000
+pid-file="
+    if [ "$($SUDO cat "$REPO_DIR/deploy/dns/bootcamp.conf" 2>/dev/null || true)" != "$dns_conf" ]; then
+        printf '%s\n' "$dns_conf" | $SUDO tee "$REPO_DIR/deploy/dns/bootcamp.conf" >/dev/null
+        $SUDO chmod 644 "$REPO_DIR/deploy/dns/bootcamp.conf"
+        RESTART_DNS=1
+    fi
+    ok "DNS: $DNS_NAME -> Adresse von $LAN_DEV (jetzt $LAN_IP), Weiterleitung an $LAN_GW"
+fi
+
+# --- 6. Bauen und starten -------------------------------------------------
 info "Baue und starte die Container (beim ersten Mal dauert das einige Minuten)"
 $DOCKER compose up -d --build --remove-orphans
-if [ "$TLS_MODE" = off ] && $DOCKER ps -a --format '{{.Names}}' | grep -qx linux_bootcamp_nginx; then
-    $DOCKER rm -f linux_bootcamp_nginx >/dev/null
+for svc in nginx:tls dns:dns; do
+    name="linux_bootcamp_${svc%%:*}"
+    mode_var="${svc##*:}"; [ "$mode_var" = tls ] && mode="$TLS_MODE" || mode="$DNS_MODE"
+    if [ "$mode" = off ] && $DOCKER ps -a --format '{{.Names}}' | grep -qx "$name"; then
+        $DOCKER rm -f "$name" >/dev/null
+    fi
+done
+if [ "$DNS_MODE" = on ] && [ "${RESTART_DNS:-}" = 1 ]; then
+    $DOCKER compose restart dns >/dev/null
 fi
 if [ "$TLS_MODE" = on ] && [ "${RELOAD_NGINX:-}" = 1 ]; then
     $DOCKER compose exec -T nginx nginx -s reload >/dev/null 2>&1 || true
@@ -346,7 +426,20 @@ if [ "$TLS_MODE" = on ]; then
     ok "nginx läuft, HTTPS funktioniert"
 fi
 
-# --- 6. Optional: Admin ---------------------------------------------------
+if [ "$DNS_MODE" = on ]; then
+    answer=""
+    for _ in $(seq 1 15); do
+        answer="$($DOCKER compose exec -T dns nslookup -type=a "$DNS_NAME" 127.0.0.1 2>/dev/null | awk '/^Name:/ {f=1} f && /^Address/ {print $NF; exit}' || true)"
+        [ "$answer" = "$LAN_IP" ] && break
+        sleep 1
+    done
+    [ "$answer" = "$LAN_IP" ] || { $DOCKER compose logs --tail 30 dns >&2; die "DNS-Server antwortet nicht korrekt für $DNS_NAME (bekam: ${answer:-nichts})."; }
+    $DOCKER compose exec -T dns nslookup -type=a debian.org 127.0.0.1 >/dev/null 2>&1 \
+        || warn "Weiterleitung an den Router ($LAN_GW) funktioniert nicht – Internet-Namen würden nicht aufgelöst!"
+    ok "DNS-Server läuft"
+fi
+
+# --- 7. Optional: Admin ---------------------------------------------------
 if [ -n "$ADMIN_NAME" ]; then
     info "Lege Admin \"$ADMIN_NAME\" an"
     $DOCKER compose exec -T bootcamp node scripts/create-admin.js "$ADMIN_NAME"
@@ -370,6 +463,17 @@ else
     if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then
         echo "   Nur lokal erreichbar. Für Zugriff im Heimnetz mit HTTPS: ./scripts/install.sh --tls"
     fi
+fi
+if [ "$DNS_MODE" = on ]; then
+    echo
+    echo "   DNS: Damit Geräte $DNS_NAME finden, im Router als DNS-Server verteilen:"
+    echo "     IPv4: $LAN_IP   (dem Server im Router eine feste IPv4 zuweisen!)"
+    if [ -n "${LAN_IP6:-}" ]; then
+        echo "     IPv6: $LAN_IP6"
+    else
+        echo "     IPv6: keine stabile ULA-Adresse vorhanden – im Router ULA aktivieren, Skript erneut starten"
+    fi
+    echo "   Läuft dieser Server nicht, funktioniert im Heimnetz keine Namensauflösung mehr."
 fi
 if [ -z "$ADMIN_NAME" ]; then
     echo "   Ersten Admin anlegen:  $DOCKER compose exec bootcamp node scripts/create-admin.js <name>"
