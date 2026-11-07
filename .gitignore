@@ -1,10 +1,17 @@
 node_modules/
-bootcamp.db
-bootcamp.db-journal
-cert.pfx
-cert.pem
-key.pem
+
+# Laufzeitdaten: Datenbank und automatisch erzeugte Secrets
+data/*
+!data/.gitkeep
+bootcamp.db*
+
+# Secrets / Zertifikate
 .env
-bootcamp_app.zip
-bootcamp_docker.zip
+*.pem
+*.pfx
+*.key
 .jwt_secret
+.encryption_secret
+
+# Artefakte
+*.zip

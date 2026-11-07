@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/favicon.jpg" alt="Linux Bootcamp Logo" width="150" style="border-radius: 50%;">
+  <img src="public/img/favicon.jpg" alt="Linux Bootcamp Logo" width="150" style="border-radius: 50%;">
   
   # 🐧 Linux Bootcamp PWA
   
@@ -22,43 +22,94 @@
 
 ## 🚀 Installation & Deployment
 
-Das Projekt ist für den produktiven Einsatz vorkonfiguriert und nutzt Docker zur Isolierung.
-
 ### Voraussetzungen
-- Docker
-- Docker Compose
+- Docker mit Docker Compose (v2.24 oder neuer)
 
-### ⚡ Quickstart (Der Einzeiler)
-
-Mit einem einzigen Befehl alles klonen, vorbereiten, starten und direkt im Browser öffnen:
+### ⚡ Quickstart
 
 ```bash
-git clone https://github.com/deltaInfoSecTeam/linux_bootcamp.git && cd linux_bootcamp && touch bootcamp.db && (sudo docker compose up -d --build 2>/dev/null || sudo docker-compose up -d --build) && (xdg-open http://localhost:8000 2>/dev/null || echo -e "\n🎉 Bootcamp läuft bereit unter: http://localhost:8000\n")
+git clone https://github.com/deltaInfoSecTeam/linux_bootcamp.git && cd linux_bootcamp && cp .env.example .env && docker compose up -d --build
+```
+
+Danach läuft die App unter `http://localhost:8000`. Standardmäßig ist sie **nur lokal** erreichbar (`127.0.0.1`).
+
+### Ersten Admin anlegen
+
+```bash
+docker compose exec bootcamp node scripts/create-admin.js <username>
+```
+
+Existiert der Nutzer schon, wird er zum Admin. Sonst wird er neu angelegt, und Passwort plus Recovery-Token werden **einmalig** ausgegeben.
+
+### Zugriff von außen (Server / LAN)
+
+Öffne den Port nicht direkt, sondern setze einen Reverse Proxy mit HTTPS davor. Ein Beispiel mit Caddy, das das Zertifikat automatisch holt:
+
+```
+bootcamp.example.de {
+    reverse_proxy 127.0.0.1:8000
+}
+```
+
+Setze dazu in `.env` den Wert `TRUST_PROXY=1`. HTTPS ist für PWA-Funktionen auf Mobilgeräten ohnehin Pflicht.
+
+### Daten & Secrets
+
+- Alles Persistente liegt in `./data/`: `bootcamp.db`, `.jwt_secret`, `.encryption_secret`.
+- Die Secrets werden beim ersten Start zufällig erzeugt. Alternativ trägst du sie in `.env` ein.
+- **Backup:** den Ordner `./data` sichern. Ohne `.encryption_secret` sind die gespeicherten API-Keys nicht mehr lesbar.
+- Der Container läuft als Nutzer `node` (UID 1000). Gehört `./data` einem anderen Nutzer: `sudo chown -R 1000:1000 data`
+
+### Update von v1.0.0
+
+```bash
+docker compose down
+mkdir -p data && mv bootcamp.db data/ && sudo chown -R 1000:1000 data
+git pull && cp -n .env.example .env && docker compose up -d --build
+```
+
+Beim ersten Start werden die alten Recovery-Codes gehasht und die API-Keys verschlüsselt. Alle Nutzer müssen sich einmal neu anmelden.
+
+### Entwicklung ohne Docker
+
+```bash
+npm ci
+npm start
 ```
 
 ---
 
-### Schritt-für-Schritt Starten
+## 📁 Projektstruktur
 
-1. Repository klonen:
-   ```bash
-   git clone https://github.com/deltaInfoSecTeam/linux_bootcamp.git
-   cd linux_bootcamp
-   ```
+```
+├── server/            Backend (Express)
+│   ├── index.js       Einstiegspunkt, Middleware, Static-Hosting von public/
+│   ├── config.js      Konfiguration aus Umgebungsvariablen, Secrets
+│   ├── db.js          SQLite-Zugriff und Migrationen
+│   ├── crypto.js      Recovery-Code-Hashing, Verschlüsselung der API-Keys
+│   ├── validation.js  Eingabeprüfung
+│   ├── middleware/    auth, rateLimit, security (CSP & Header)
+│   └── routes/        auth, admin, user, proxy
+├── public/            Frontend – nur dieser Ordner wird ausgeliefert
+│   ├── index.html  generator.html  manifest.json  sw.js
+│   ├── css/  img/
+│   └── js/            boot, auth, core, questions, quiz, llm, stats, main, generator
+├── scripts/           create-admin.js
+├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)
+├── data/              Laufzeitdaten (gitignored)
+├── Dockerfile  docker-compose.yml  .env.example
+```
 
-2. Initiale Datenbankdatei anlegen (verhindert Docker-Fehler beim Mounten):
-   ```bash
-   touch bootcamp.db
-   ```
+---
 
-3. Docker Container bauen und starten:
-   ```bash
-   docker-compose up -d --build
-   ```
+## 🔒 Sicherheit
 
-Die App ist nun unter `http://<deine-server-ip>:8000` erreichbar. 
-
-*(Hinweis: Für den produktiven Einsatz wird empfohlen, einen Reverse Proxy wie Nginx oder Traefik vorzuschalten, um SSL/HTTPS zu aktivieren. Dies ist für PWA-Funktionen auf mobilen Endgeräten zwingend erforderlich).*
+- Ausgeliefert wird nur `public/`. Datenbank, Secrets und Server-Code sind nicht über HTTP erreichbar.
+- Passwörter werden mit bcrypt gehasht, Recovery-Codes mit HMAC. Gespeicherte LLM-API-Keys sind mit AES-256-GCM verschlüsselt.
+- Nach Passwortwechsel, Sperre oder Rechteänderung werden alle JWTs des Nutzers ungültig.
+- Eine strikte Content-Security-Policy (`script-src 'self'`) verhindert Inline-Skripte.
+- Der LLM-Proxy erreicht nur Gemini, OpenAI und die in `OLLAMA_URL` eingetragene Adresse.
+- Der Container läuft ohne root, mit schreibgeschütztem Dateisystem und ohne Capabilities.
 
 ---
 
