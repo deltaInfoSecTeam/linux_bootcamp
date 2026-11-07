@@ -58,3 +58,37 @@ services:
       - NET_BIND_SERVICE
     security_opt:
       - no-new-privileges:true
+
+  # DNS fürs Heimnetz: löst DNS_NAME (z.B. bootcamp.internal) auf diesen Server
+  # auf und leitet alles andere an den Router weiter.
+  # Nur aktiv mit COMPOSE_PROFILES=...,dns (scripts/install.sh --dns NAME)
+  dns:
+    build: ./deploy/dns
+    profiles: ["dns"]
+    container_name: linux_bootcamp_dns
+    restart: unless-stopped
+    ports:
+      - "${DNS_BIND_ADDRESS:-127.0.0.1}:53:53/udp"
+      - "${DNS_BIND_ADDRESS:-127.0.0.1}:53:53/tcp"
+      - "[${DNS_BIND_ADDRESS6:-::1}]:53:53/udp"
+      - "[${DNS_BIND_ADDRESS6:-::1}]:53:53/tcp"
+    volumes:
+      # Wird von scripts/install.sh erzeugt
+      - ./deploy/dns/bootcamp.conf:/etc/dnsmasq.d/bootcamp.conf:ro
+    healthcheck:
+      test: ["CMD", "nslookup", "-type=a", "${DNS_NAME:-localhost}", "127.0.0.1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
