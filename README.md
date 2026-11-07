@@ -61,17 +61,44 @@ sudo docker compose exec bootcamp node scripts/create-admin.js <username>
 
 Existiert der Nutzer schon, wird er zum Admin. Sonst wird er neu angelegt, und Passwort plus Recovery-Token werden **einmalig** ausgegeben.
 
-### Zugriff von außen (Server / LAN)
+### HTTPS im Heimnetz (nginx + eigene CA)
 
-Öffne den Port nicht direkt, sondern setze einen Reverse Proxy mit HTTPS davor. Ein Beispiel mit Caddy, das das Zertifikat automatisch holt:
-
-```
-bootcamp.example.de {
-    reverse_proxy 127.0.0.1:8000
-}
+```bash
+./scripts/install.sh --tls
 ```
 
-Setze dazu in `.env` den Wert `TRUST_PROXY=1`. HTTPS ist für PWA-Funktionen auf Mobilgeräten ohnehin Pflicht.
+Damit startet zusätzlich ein nginx-Container, der HTTPS übernimmt:
+
+- **Port 443:** HTTPS mit HTTP/2, leitet an die App weiter.
+- **Port 80:** leitet nur auf HTTPS um und bietet unter `/ca.crt` das CA-Zertifikat zum Download an.
+- **Port 8000:** Die App selbst ist dann nur noch lokal (`127.0.0.1`) erreichbar.
+
+Weil Let's Encrypt Server im Heimnetz nicht prüfen kann, erzeugt das Skript eine **eigene lokale Zertifizierungsstelle**. Die gilt 10 Jahre, das Server-Zertifikat 397 Tage, und das Skript erneuert es bei jedem Lauf automatisch, wenn es bald abläuft oder sich Namen oder IPs geändert haben.
+
+Die CA hat **Name Constraints**: Sie darf nur Zertifikate für die Domains und das LAN ausstellen, die bei ihrer Erzeugung bekannt waren. Selbst mit gestohlenem CA-Schlüssel lassen sich damit keine fremden Webseiten fälschen.
+
+Weitere Namen fürs Zertifikat, zum Beispiel der Name, den dein Router vergibt:
+
+```bash
+./scripts/install.sh --tls --hostname meinserver.lan
+```
+
+Die Option gibst du nur beim ersten Mal an, das Skript merkt sich die Namen in `.env`. `--no-tls` schaltet HTTPS wieder ab.
+
+#### CA-Zertifikat auf den Geräten installieren
+
+Einmal pro Gerät `http://<server>/ca.crt` öffnen und das Zertifikat installieren. **Vergleiche dabei den SHA-256-Fingerabdruck** mit dem, den das Skript am Ende ausgibt.
+
+- **Android:** Einstellungen → Sicherheit → Weitere Einstellungen → Verschlüsselung & Anmeldedaten → Zertifikat installieren → CA-Zertifikat
+- **iOS/iPadOS:** Datei öffnen → Einstellungen → Profil geladen → Installieren, danach unter Allgemein → Info → Zertifikatsvertrauenseinstellungen **voll vertrauen**
+- **Windows:** Doppelklick → Zertifikat installieren → Lokaler Computer → „Vertrauenswürdige Stammzertifizierungsstellen“
+- **Linux:** `sudo cp ca.crt /usr/local/share/ca-certificates/linux-bootcamp.crt && sudo update-ca-certificates`. Firefox nutzt einen eigenen Speicher: Einstellungen → Zertifikate → Zertifizierungsstellen → Importieren
+
+Der CA-Schlüssel liegt in `deploy/tls/ca/` (nur root, nie im Git, nie im Container). Wer ihn hat, kann für dein Heimnetz gültige Zertifikate ausstellen. Bewahre ihn also wie ein Passwort auf.
+
+### Zugriff aus dem Internet
+
+Für einen öffentlich erreichbaren Server ist ein Zertifikat von Let's Encrypt (oder Caddy mit automatischem ACME) der richtige Weg statt der lokalen CA. Setze in `.env` den Wert `TRUST_PROXY=1`, wenn ein eigener Reverse Proxy vor der App steht.
 
 ### Daten & Secrets
 
@@ -112,6 +139,7 @@ npm start
 │   ├── index.html  generator.html  manifest.json  sw.js
 │   ├── css/  img/
 │   └── js/            boot, auth, core, questions, quiz, llm, stats, main, generator
+├── deploy/nginx/      nginx-Konfiguration für HTTPS (Profil "tls")
 ├── scripts/           install.sh, create-admin.js
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)
 ├── data/              Laufzeitdaten (gitignored)
@@ -128,6 +156,7 @@ npm start
 - Eine strikte Content-Security-Policy (`script-src 'self'`) verhindert Inline-Skripte.
 - Der LLM-Proxy erreicht nur Gemini, OpenAI und die in `OLLAMA_URL` eingetragene Adresse.
 - Der Container läuft ohne root, mit schreibgeschütztem Dateisystem und ohne Capabilities.
+- Optional HTTPS über nginx (TLS 1.2/1.3) mit einer per Name Constraints auf das Heimnetz beschränkten lokalen CA.
 
 ---
 

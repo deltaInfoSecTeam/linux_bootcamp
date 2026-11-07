@@ -5,7 +5,8 @@ data/*
 !data/.gitkeep
 bootcamp.db*
 
-# Secrets / Zertifikate
+# Secrets / Zertifikate (inkl. lokaler CA aus install.sh --tls)
+deploy/tls/
 .env
 *.pem
 *.pfx
