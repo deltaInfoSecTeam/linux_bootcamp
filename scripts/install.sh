@@ -280,7 +280,10 @@ if [ "$TLS_MODE" = on ]; then
 
     san="$(printf 'DNS:%s,' "${names[@]}")$(printf 'IP:%s,' "${ips[@]}")"; san="${san%,}"
 
-    if [ "$RENEW_CA" -eq 1 ] && [ -e "$TLS_DIR/ca/ca.key" ]; then
+    # deploy/tls/ca gehört root (700): Existenz-Prüfungen deshalb immer mit $SUDO,
+    # sonst hält ein normaler Nutzer die CA für fehlend und erzeugt sie bei jedem Lauf neu.
+    tls_exists() { $SUDO test -s "$1"; }
+    if [ "$RENEW_CA" -eq 1 ] && tls_exists "$TLS_DIR/ca/ca.key"; then
         warn "Erzeuge die CA neu – das alte CA-Zertifikat muss auf allen Geräten entfernt und das neue installiert werden."
         confirm "Alte CA wirklich ersetzen?" || die "Abgebrochen."
         $SUDO mv "$TLS_DIR/ca" "$TLS_DIR/ca.old-$(date +%Y%m%d%H%M%S)"
@@ -292,7 +295,7 @@ if [ "$TLS_MODE" = on ]; then
     # Name Constraints: Die CA darf nur Zertifikate für diese Domains und das
     # Heimnetz ausstellen. Selbst bei gestohlenem CA-Schlüssel lassen sich damit
     # keine fremden Webseiten fälschen.
-    if [ ! -s "$TLS_DIR/ca/ca.key" ] || [ ! -s "$TLS_DIR/ca/ca.crt" ]; then
+    if ! tls_exists "$TLS_DIR/ca/ca.key" || ! tls_exists "$TLS_DIR/ca/ca.crt"; then
         permitted=""
         for n in "${names[@]}"; do
             if [[ "$n" == *.* ]]; then permitted+="permitted;DNS:${n#*.},"; else permitted+="permitted;DNS:$n,"; fi
@@ -315,7 +318,7 @@ if [ "$TLS_MODE" = on ]; then
 
     # Server-Zertifikat erneuern, wenn es fehlt, bald abläuft oder Namen/IPs sich geändert haben
     renew=""
-    if [ ! -s "$TLS_DIR/certs/server.crt" ]; then renew="fehlt"
+    if ! tls_exists "$TLS_DIR/certs/server.crt"; then renew="fehlt"
     elif ! $SUDO openssl x509 -in "$TLS_DIR/certs/server.crt" -noout -checkend $((30*24*3600)) >/dev/null; then renew="läuft bald ab"
     elif [ "$($SUDO cat "$TLS_DIR/certs/.san" 2>/dev/null)" != "$san" ]; then renew="Namen/IPs geändert"
     fi
