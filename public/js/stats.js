@@ -1,5 +1,32 @@
 // Statistik, Streak, Schwierigkeit, Bewertung
 // Stats and LocalStorage management
+// Abgeschaltete Modell-IDs der Anbieter -> offizieller Nachfolger.
+// Gespeicherte Einstellungen werden beim Laden automatisch umgestellt.
+const RETIRED_MODELS = {
+    'llama-3.3-70b-versatile': 'openai/gpt-oss-120b',   // Groq, abgeschaltet 16.08.2026
+    'llama-3.1-8b-instant': 'openai/gpt-oss-20b',        // Groq, abgeschaltet 16.08.2026
+    'gemini-3.7-flash': 'gemini-3.8-flash',              // Google, abgekündigt 08.10.2026
+    'gemini-3.5-flash': 'gemini-3.8-flash',              // Google, abgekündigt 08.10.2026
+    'grok-2-latest': 'grok-4.3',                         // xAI
+    'grok-2': 'grok-4.3'                                 // xAI
+};
+
+function migrateLlmConfig(cfg) {
+    if (!cfg || typeof cfg !== 'object') return cfg;
+    let changed = false;
+    if (cfg.model && RETIRED_MODELS[cfg.model]) {
+        cfg.model = RETIRED_MODELS[cfg.model];
+        changed = true;
+    }
+    // Metas Llama API wurde eingestellt; URL und Modell bleiben als benutzerdefiniert erhalten
+    if (cfg.provider === 'llama_api') {
+        cfg.provider = 'custom';
+        changed = true;
+    }
+    if (changed) safeStorage.setItem('llm_config', JSON.stringify(cfg));
+    return cfg;
+}
+
 function loadStats() {
     const saved = safeStorage.getItem('linux_quiz_stats_v2');
     if (saved) {
@@ -23,7 +50,7 @@ function loadStats() {
         const cfg = safeStorage.getItem('llm_config');
         if (cfg) {
             try {
-                state.llmConfig = JSON.parse(cfg);
+                state.llmConfig = migrateLlmConfig(JSON.parse(cfg));
                 el.inputApiUrl.value = state.llmConfig.url || '';
                 el.inputModel.value = state.llmConfig.model || '';
                 el.inputApiKey.value = state.llmConfig.key || '';
@@ -41,7 +68,7 @@ function loadStats() {
     const llmCfg = safeStorage.getItem('llm_config');
     if (llmCfg) {
         try {
-            state.llmConfig = JSON.parse(llmCfg);
+            state.llmConfig = migrateLlmConfig(JSON.parse(llmCfg));
             el.inputApiUrl.value = state.llmConfig.url || '';
             el.inputModel.value = state.llmConfig.model || '';
             el.inputApiKey.value = state.llmConfig.key || '';

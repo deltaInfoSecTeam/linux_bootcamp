@@ -125,18 +125,17 @@
                         <div style="margin-top: 10px;">
                             <div class="api-key-container" style="flex-direction: column;">
                                 <select id="llm-provider" style="margin-bottom: 6px; width: 100%; box-sizing: border-box;">
-                                    <option value="gemini">Google Gemini (z.B. gemini-3.7-flash)</option>
-                                    <option value="openai">OpenAI (z.B. gpt-4o-mini)</option>
-                                    <option value="groq">Groq Cloud (z.B. llama-3.3-70b-versatile)</option>
-                                    <option value="grok">xAI Grok (z.B. grok-2)</option>
+                                    <option value="gemini">Google Gemini (z.B. gemini-3.8-flash)</option>
+                                    <option value="openai">OpenAI (z.B. gpt-6-luna)</option>
+                                    <option value="groq">Groq Cloud (z.B. openai/gpt-oss-120b)</option>
+                                    <option value="grok">xAI Grok (z.B. grok-4.3)</option>
                                     <option value="ollama">Lokales Ollama</option>
                                     <option value="offline">Offline Keyword-Prüfer (Ohne Internet)</option>
                                     <option value="together">Together.ai</option>
-                                    <option value="llama_api">Llama API</option>
                                     <option value="custom">Benutzerdefiniert...</option>
                                 </select>
                                 <input type="text" id="llm-api-url" value="https://generativelanguage.googleapis.com/v1beta/openai/chat/completions" placeholder="API URL" style="display: none; margin-bottom: 6px; width: 100%; box-sizing: border-box;">
-                                <input type="text" id="llm-model" value="gemini-3.7-flash" placeholder="Modell (z.B. gemini-3.7-flash)" style="margin-bottom: 6px; width: 100%; box-sizing: border-box;">
+                                <input type="text" id="llm-model" value="gemini-3.8-flash" placeholder="Modell (z.B. gemini-3.8-flash)" style="margin-bottom: 6px; width: 100%; box-sizing: border-box;">
                                 <input type="password" id="llm-api-key" placeholder="Dein API Key" style="margin-bottom: 6px; width: 100%; box-sizing: border-box;">
                                 <button id="btn-save-key" class="btn-primary btn-sm" style="width: 100%;">Speichern</button>
                                 <!-- API Traffic Light -->

@@ -141,17 +141,18 @@ function bindEvents() {
     el.inputProvider.addEventListener('change', (e) => {
         const val = e.target.value;
         el.inputApiUrl.style.display = (val === 'custom' || val === 'ollama_cloud') ? 'block' : 'none';
+        el.inputModel.placeholder = 'Modell';
         
         switch (val) {
             case 'gemini':
                 el.inputApiUrl.value = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-                el.inputModel.value = 'gemini-3.7-flash';
+                el.inputModel.value = 'gemini-3.8-flash';
                 // HIER: Trage deinen API-Schlüssel ein, damit er immer vorbefüllt ist
                 el.inputApiKey.value = '';
                 break;
             case 'openai':
                 el.inputApiUrl.value = 'https://api.openai.com/v1/chat/completions';
-                el.inputModel.value = 'gpt-4o-mini';
+                el.inputModel.value = 'gpt-6-luna';
                 break;
             case 'ollama':
                 el.inputApiUrl.value = 'http://127.0.0.1:11434/v1/chat/completions';
@@ -164,19 +165,18 @@ function bindEvents() {
                 break;
             case 'groq':
                 el.inputApiUrl.value = 'https://api.groq.com/openai/v1/chat/completions';
-                el.inputModel.value = 'llama-3.3-70b-versatile';
+                el.inputModel.value = 'openai/gpt-oss-120b';
                 break;
             case 'grok':
                 el.inputApiUrl.value = 'https://api.x.ai/v1/chat/completions';
-                el.inputModel.value = 'grok-2-latest';
+                el.inputModel.value = 'grok-4.3';
                 break;
             case 'together':
                 el.inputApiUrl.value = 'https://api.together.xyz/v1/chat/completions';
-                el.inputModel.value = 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo';
-                break;
-            case 'llama_api':
-                el.inputApiUrl.value = 'https://api.llama-api.com/chat/completions';
-                el.inputModel.value = 'llama3.1-8b';
+                // Together hat kein festes Nachfolgemodell benannt: Modell aus dem
+                // aktuellen Katalog (api.together.ai/models) selbst eintragen.
+                el.inputModel.value = '';
+                el.inputModel.placeholder = 'Modell-ID aus dem Together-Katalog';
                 break;
             case 'custom':
                 el.inputApiUrl.value = '';
