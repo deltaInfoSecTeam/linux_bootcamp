@@ -355,24 +355,27 @@ if [ "$DNS_MODE" = on ]; then
     # Globale IPv6-Adressen taugen nicht: das Präfix des Providers wechselt.
     LAN_IP6="$(ip -6 -o addr show dev "$LAN_DEV" scope global 2>/dev/null \
         | awk '$4 ~ /^fd/ && $0 !~ /temporary/ {sub(/\/.*/, "", $4); print $4; exit}')"
-    set_env DNS_BIND_ADDRESS "$LAN_IP"
-    set_env DNS_BIND_ADDRESS6 "${LAN_IP6:-::1}"
-
+    $SUDO sed -i '/^DNS_BIND_ADDRESS6\?=/d' "$REPO_DIR/.env"
+    # Der Container läuft im Host-Netzwerk. Statt einer festen IP antwortet dnsmasq
+    # per interface-name immer mit der aktuellen IPv4 des LAN-Interfaces und lauscht
+    # (bind-dynamic) auf allen Adressen, die das Interface gerade hat.
     dns_conf="# Von scripts/install.sh erzeugt – wird beim nächsten Lauf überschrieben.
-# Beantwortet $DNS_NAME lokal, alles andere fragt den Router.
+# Beantwortet $DNS_NAME mit der aktuellen Adresse von $LAN_DEV, alles andere fragt den Router.
 no-resolv
 no-hosts
 server=$LAN_GW
-address=/$DNS_NAME/$LAN_IP
+interface=$LAN_DEV
+interface=lo
+bind-dynamic
+interface-name=$DNS_NAME,$LAN_DEV/4
 cache-size=1000
-interface=eth0
 pid-file="
     if [ "$($SUDO cat "$REPO_DIR/deploy/dns/bootcamp.conf" 2>/dev/null || true)" != "$dns_conf" ]; then
         printf '%s\n' "$dns_conf" | $SUDO tee "$REPO_DIR/deploy/dns/bootcamp.conf" >/dev/null
         $SUDO chmod 644 "$REPO_DIR/deploy/dns/bootcamp.conf"
         RESTART_DNS=1
     fi
-    ok "DNS: $DNS_NAME -> $LAN_IP (Weiterleitung an $LAN_GW, IPv6: ${LAN_IP6:-keine ULA})"
+    ok "DNS: $DNS_NAME -> Adresse von $LAN_DEV (jetzt $LAN_IP), Weiterleitung an $LAN_GW"
 fi
 
 # --- 6. Bauen und starten -------------------------------------------------

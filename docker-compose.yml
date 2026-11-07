@@ -62,16 +62,16 @@ services:
   # DNS fürs Heimnetz: löst DNS_NAME (z.B. bootcamp.internal) auf diesen Server
   # auf und leitet alles andere an den Router weiter.
   # Nur aktiv mit COMPOSE_PROFILES=...,dns (scripts/install.sh --dns NAME)
+  #
+  # Läuft im Host-Netzwerk: dnsmasq lauscht direkt auf dem LAN-Interface und
+  # antwortet immer mit dessen aktueller Adresse. IP-Wechsel, Neustarts oder
+  # eine später hinzukommende IPv6-ULA brauchen keinen neuen Skriptlauf.
   dns:
     build: ./deploy/dns
     profiles: ["dns"]
     container_name: linux_bootcamp_dns
     restart: unless-stopped
-    ports:
-      - "${DNS_BIND_ADDRESS:-127.0.0.1}:53:53/udp"
-      - "${DNS_BIND_ADDRESS:-127.0.0.1}:53:53/tcp"
-      - "[${DNS_BIND_ADDRESS6:-::1}]:53:53/udp"
-      - "[${DNS_BIND_ADDRESS6:-::1}]:53:53/tcp"
+    network_mode: host
     volumes:
       # Wird von scripts/install.sh erzeugt
       - ./deploy/dns/bootcamp.conf:/etc/dnsmasq.d/bootcamp.conf:ro

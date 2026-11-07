@@ -102,11 +102,11 @@ Der CA-Schlüssel liegt in `deploy/tls/ca/` (nur root, nie im Git, nie im Contai
 ./scripts/install.sh --tls --dns bootcamp.internal
 ```
 
-Startet zusätzlich einen kleinen DNS-Server (dnsmasq). Der beantwortet `bootcamp.internal` mit der LAN-Adresse des Servers und leitet alle anderen Anfragen an deinen Router weiter. Der Name kommt automatisch ins Zertifikat.
+Startet zusätzlich einen kleinen DNS-Server (dnsmasq) im Host-Netzwerk. Der beantwortet `bootcamp.internal` immer mit der **aktuellen** LAN-Adresse des Servers und leitet alle anderen Anfragen an deinen Router weiter. IP-Wechsel oder Neustarts brauchen also keinen neuen Skriptlauf. Der Name kommt automatisch ins Zertifikat.
 
 - **Warum `.internal`?** Diese Endung ist für private Netze reserviert und wird nie öffentlich vergeben. Erfundene Endungen können später im Internet auftauchen und kollidieren.
 - **Router einstellen:** Damit die Geräte den Server als DNS benutzen, trägst du dessen IPv4 (und, falls vorhanden, seine IPv6-ULA) im Router als lokalen DNS-Server ein. Das Skript zeigt beide Adressen an. Gib dem Server im Router außerdem eine **feste IPv4-Adresse**.
-- **IPv6:** Verteilt der Router eigene IPv6-DNS-Server, fragen viele Geräte bevorzugt dort und finden den Namen nicht. Aktiviere dann im Router ULA-Adressen (`fd00::/8`), starte das Skript erneut, damit der DNS auch dort lauscht, und trage diese Adresse als lokalen DNSv6-Server ein.
+- **IPv6:** Verteilt der Router eigene IPv6-DNS-Server, fragen viele Geräte bevorzugt dort und finden den Namen nicht. Aktiviere dann im Router ULA-Adressen (`fd00::/8`) und trage die ULA des Servers als lokalen DNSv6-Server ein. Der DNS lauscht automatisch auf jeder Adresse des LAN-Interfaces, `./scripts/install.sh` zeigt die ULA an.
 - **Achtung:** Läuft der Server nicht, funktioniert im ganzen Heimnetz keine Namensauflösung mehr.
 - Bei einer **neuen Domain-Endung** passt das Zertifikat nicht mehr zu den Name Constraints der CA. Dann einmal `--renew-ca` angeben und das neue CA-Zertifikat auf den Geräten installieren.
 - Abschalten mit `--no-dns`. Danach den Router wieder auf sich selbst als DNS stellen.
