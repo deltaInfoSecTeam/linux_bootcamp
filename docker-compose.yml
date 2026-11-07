@@ -10,9 +10,9 @@ services:
     volumes:
       # Datenbank und automatisch erzeugte Secrets bleiben auf dem Host erhalten
       - ./data:/app/data
+    # Wird von scripts/install.sh aus .env.example angelegt
     env_file:
-      - path: .env
-        required: false
+      - .env
     environment:
       - NODE_ENV=production
       - PORT=8000
