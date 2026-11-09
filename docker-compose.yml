@@ -10,6 +10,8 @@ services:
     volumes:
       # Datenbank und automatisch erzeugte Secrets bleiben auf dem Host erhalten
       - ./data:/app/data
+      # Serverzertifikat von "scripts/install.sh --tls" (nur gelesen)
+      - ./tls/server:/app/tls:ro
     # Wird von scripts/install.sh aus .env.example angelegt
     env_file:
       - .env

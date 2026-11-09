@@ -8,6 +8,7 @@
 #   ./scripts/install.sh               interaktiv
 #   ./scripts/install.sh --yes         ohne Rückfragen (z.B. für Automatisierung)
 #   ./scripts/install.sh --admin NAME  zusätzlich ersten Admin anlegen
+#   ./scripts/install.sh --tls         HTTPS mit lokal vertrauter CA (grünes Schloss)
 #
 # Unterstützt Debian, Ubuntu, Raspberry Pi OS und Kali (apt-basiert).
 
@@ -25,16 +26,18 @@ warn() { printf '%s ! %s %s\n' "$C_WARN" "$C_OFF" "$*" >&2; }
 die()  { printf '%s ✘ %s %s\n' "$C_ERR" "$C_OFF" "$*" >&2; exit 1; }
 
 usage() {
-    sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
     exit 0
 }
 
 ASSUME_YES=0
 ADMIN_NAME=""
+WANT_TLS=0
 while [ $# -gt 0 ]; do
     case "$1" in
         -y|--yes) ASSUME_YES=1 ;;
         --admin) [ $# -ge 2 ] || die "--admin braucht einen Benutzernamen"; ADMIN_NAME="$2"; shift ;;
+        --tls) WANT_TLS=1 ;;
         -h|--help) usage ;;
         *) die "Unbekannte Option: $1 (siehe --help)" ;;
     esac
@@ -90,7 +93,7 @@ if [ ${#need_pkgs[@]} -gt 0 ]; then
         if [ "$p" = compose ]; then
             $SUDO apt-get update -qq
             for candidate in docker-compose-v2 docker-compose-plugin docker-compose; do
-                ver="$(apt-cache policy "$candidate" 2>/dev/null | awk '/Candidate:/ {print $2}')"
+                ver="$(LC_ALL=C apt-cache policy "$candidate" 2>/dev/null | awk '/Candidate:/ {print $2}')"
                 if [ -n "$ver" ] && [ "$ver" != "(none)" ]; then
                     # Nur Compose v2 (Go) taugt; v1 (Python, 1.x) kennt "docker compose" nicht
                     case "$ver" in 1.*|*:1.*) continue ;; esac
@@ -127,9 +130,10 @@ else
 fi
 
 # --- 2. Dateirechte -------------------------------------------------------
-if [ "$(stat -c %U "$REPO_DIR")" != "$OWNER" ] || find "$REPO_DIR" -path "$REPO_DIR/data" -prune -o ! -user "$OWNER" -print -quit | grep -q .; then
+# data/ und tls/ haben eigene Besitzer (Container bzw. root) und bleiben außen vor
+if [ "$(stat -c %U "$REPO_DIR")" != "$OWNER" ] || find "$REPO_DIR" \( -path "$REPO_DIR/data" -o -path "$REPO_DIR/tls" \) -prune -o ! -user "$OWNER" -print -quit | grep -q .; then
     info "Übertrage Projektordner an $OWNER"
-    $SUDO chown -R "$OWNER": "$REPO_DIR"
+    $SUDO find "$REPO_DIR" \( -path "$REPO_DIR/data" -o -path "$REPO_DIR/tls" \) -prune -o -exec chown -h "$OWNER": {} +
 fi
 $SUDO mkdir -p "$REPO_DIR/data"
 
@@ -150,12 +154,47 @@ else
     ok ".env vorhanden (unverändert)"
 fi
 env_value() { grep -E "^$1=" "$REPO_DIR/.env" | tail -1 | cut -d= -f2- || true; }
+env_set() {
+    if grep -qE "^$1=" "$REPO_DIR/.env"; then
+        $SUDO sed -i "s|^$1=.*|$1=$2|" "$REPO_DIR/.env"
+    else
+        echo "$1=$2" | $SUDO tee -a "$REPO_DIR/.env" >/dev/null
+    fi
+}
 BIND_ADDRESS="$(env_value BIND_ADDRESS)"; BIND_ADDRESS="${BIND_ADDRESS:-127.0.0.1}"
 HOST_PORT="$(env_value HOST_PORT)"; HOST_PORT="${HOST_PORT:-8000}"
 
-# --- 4. Bauen und starten -------------------------------------------------
+# --- 4. HTTPS (optional) -------------------------------------------------
+# Einmal mit --tls eingerichtet, wird das Zertifikat bei jedem weiteren Lauf
+# geprüft und bei Bedarf erneuert (Ablauf, neue IP-Adresse, neuer Hostname).
+TLS_ACTIVE=0
+[ -n "$(env_value TLS_CERT_PATH)" ] && TLS_ACTIVE=1
+if [ "$WANT_TLS" -eq 1 ] && [ "$TLS_ACTIVE" -eq 0 ]; then
+    echo "   HTTPS-Einrichtung: Es wird eine eigene Zertifizierungsstelle (CA) erzeugt,"
+    echo "   die nur für lokale Namen und private IP-Adressen gilt. Sie wird im System"
+    echo "   und in Firefox/Chrome von $OWNER als vertrauenswürdig hinterlegt."
+    confirm "HTTPS jetzt einrichten?" || die "Abgebrochen."
+    TLS_ACTIVE=1
+fi
+$SUDO install -d -m 700 -o "$CONTAINER_UID" -g "$CONTAINER_UID" "$REPO_DIR/tls/server" 2>/dev/null \
+    || $SUDO mkdir -p "$REPO_DIR/tls/server"
+CERT_BEFORE=""
+if [ "$TLS_ACTIVE" -eq 1 ]; then
+    CERT_BEFORE="$($SUDO sha256sum "$REPO_DIR/tls/server/server.crt" 2>/dev/null || true)"
+    $SUDO env SUDO_USER="$OWNER" bash "$REPO_DIR/scripts/tls.sh" setup
+    $SUDO env SUDO_USER="$OWNER" bash "$REPO_DIR/scripts/tls.sh" trust
+    env_set TLS_CERT_PATH /app/tls/server.crt
+    env_set TLS_KEY_PATH /app/tls/server.key
+fi
+
+# --- 5. Bauen und starten -------------------------------------------------
 info "Baue und starte den Container (beim ersten Mal dauert das einige Minuten)"
 $DOCKER compose up -d --build
+if [ "$TLS_ACTIVE" -eq 1 ] && [ -n "$CERT_BEFORE" ] \
+   && [ "$CERT_BEFORE" != "$($SUDO sha256sum "$REPO_DIR/tls/server/server.crt" 2>/dev/null || true)" ]; then
+    info "Zertifikat wurde erneuert – starte Container neu"
+    $DOCKER compose restart bootcamp
+fi
 
 info "Warte auf den Healthcheck"
 status=""
@@ -171,7 +210,7 @@ if [ "$status" != healthy ]; then
 fi
 ok "Container läuft und ist gesund"
 
-# --- 5. Optional: Admin ---------------------------------------------------
+# --- 6. Optional: Admin ---------------------------------------------------
 if [ -n "$ADMIN_NAME" ]; then
     info "Lege Admin \"$ADMIN_NAME\" an"
     $DOCKER compose exec -T bootcamp node scripts/create-admin.js "$ADMIN_NAME"
@@ -179,7 +218,13 @@ fi
 
 # --- Zusammenfassung ------------------------------------------------------
 echo
-ok "Linux Bootcamp ist bereit: http://$BIND_ADDRESS:$HOST_PORT"
+PROTO=http; [ "$TLS_ACTIVE" -eq 1 ] && PROTO=https
+if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then SHOW_HOST=localhost; else SHOW_HOST="$(hostname -s)"; fi
+ok "Linux Bootcamp ist bereit: $PROTO://$SHOW_HOST:$HOST_PORT"
+if [ "$TLS_ACTIVE" -eq 1 ]; then
+    echo "   Andere Geräte (Handy, Laptop): Datei tls/linux-bootcamp-ca.crt dort als"
+    echo "   vertrauenswürdige Zertifizierungsstelle importieren (siehe README)."
+fi
 if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then
     echo "   Nur lokal erreichbar. Für Zugriff von außen einen Reverse Proxy mit HTTPS"
     echo "   davorsetzen (siehe README) oder für das Heimnetz BIND_ADDRESS=0.0.0.0 in .env."
