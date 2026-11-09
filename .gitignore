@@ -7,6 +7,7 @@ bootcamp.db*
 
 # Secrets / Zertifikate
 .env
+tls/
 *.pem
 *.pfx
 *.key

@@ -63,7 +63,10 @@ const config = {
     // Ollama-Server, den der Proxy erreichen darf, z.B. http://host.docker.internal:11434
     OLLAMA_ORIGIN: parseOrigin(process.env.OLLAMA_URL),
 
-    // Optional: HTTPS direkt in Node (empfohlen ist stattdessen ein Reverse Proxy)
+    // Optional: HTTPS direkt in Node. Entweder Zertifikat + Schlüssel als PEM
+    // (so richtet es "scripts/install.sh --tls" ein) oder eine PFX-Datei.
+    TLS_CERT_PATH: process.env.TLS_CERT_PATH || '',
+    TLS_KEY_PATH: process.env.TLS_KEY_PATH || '',
     TLS_PFX_PATH: process.env.TLS_PFX_PATH || '',
     TLS_PFX_PASSPHRASE: process.env.TLS_PFX_PASSPHRASE || '',
 };

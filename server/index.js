@@ -53,18 +53,24 @@ app.use((err, req, res, next) => {
     res.status(err.status || 500).json({ error: 'Interner Server Fehler' });
 });
 
-function start() {
-    let server;
-    if (config.TLS_PFX_PATH) {
-        server = https.createServer({
-            pfx: fs.readFileSync(config.TLS_PFX_PATH),
-            passphrase: config.TLS_PFX_PASSPHRASE,
-        }, app);
-    } else {
-        server = http.createServer(app);
+function tlsOptions() {
+    if (config.TLS_CERT_PATH || config.TLS_KEY_PATH) {
+        if (!config.TLS_CERT_PATH || !config.TLS_KEY_PATH) {
+            throw new Error('TLS_CERT_PATH und TLS_KEY_PATH müssen beide gesetzt sein.');
+        }
+        return { cert: fs.readFileSync(config.TLS_CERT_PATH), key: fs.readFileSync(config.TLS_KEY_PATH) };
     }
+    if (config.TLS_PFX_PATH) {
+        return { pfx: fs.readFileSync(config.TLS_PFX_PATH), passphrase: config.TLS_PFX_PASSPHRASE };
+    }
+    return null;
+}
+
+function start() {
+    const tls = tlsOptions();
+    const server = tls ? https.createServer(tls, app) : http.createServer(app);
     server.listen(config.PORT, config.HOST, () => {
-        const proto = config.TLS_PFX_PATH ? 'https' : 'http';
+        const proto = tls ? 'https' : 'http';
         console.log(`Linux Bootcamp läuft auf ${proto}://${config.HOST}:${config.PORT}`);
         console.log(`Datenverzeichnis: ${config.DATA_DIR}`);
     });

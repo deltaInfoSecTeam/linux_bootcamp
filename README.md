@@ -73,6 +73,66 @@ bootcamp.example.de {
 
 Setze dazu in `.env` den Wert `TRUST_PROXY=1`. HTTPS ist für PWA-Funktionen auf Mobilgeräten ohnehin Pflicht.
 
+### HTTPS im Heimnetz mit grünem Schloss (`--tls`)
+
+Ohne öffentliche Domain gibt es kein Zertifikat von Let's Encrypt. Dafür bringt das Installationsskript eine eigene kleine Zertifizierungsstelle (CA) mit:
+
+```bash
+./scripts/install.sh --tls
+```
+
+Das Skript
+1. erzeugt eine eigene CA und damit ein Zertifikat für `localhost`, den Hostnamen, `<hostname>.local` und die IP-Adressen des Rechners,
+2. hinterlegt die CA als vertrauenswürdig im System (`curl`, `wget` …) sowie in Firefox und Chrome/Chromium des Nutzers, der das Skript startet (installiert dafür `libnss3-tools`),
+3. trägt `TLS_CERT_PATH` und `TLS_KEY_PATH` in `.env` ein und startet den Container mit HTTPS.
+
+Danach den Browser einmal neu starten. `https://localhost:8000` zeigt dann ein gültiges Zertifikat ohne Warnung.
+
+**Sicherheit:** Die CA ist per *Name Constraints* auf lokale Namen (`localhost`, `.local`, `.lan`, `.home.arpa`, `.internal`, `.intern`, den Hostnamen) und private IP-Bereiche (`10/8`, `172.16/12`, `192.168/16`, `127/8`, `fc00::/7`) beschränkt. Selbst wenn ihr privater Schlüssel (`tls/ca/ca.key`, nur für root lesbar) in falsche Hände gerät, lassen sich damit keine Zertifikate für fremde Websites fälschen.
+
+**Weitere Hostnamen**, z. B. eine interne Domain: in `.env` eintragen und das Skript erneut ausführen. Öffentliche Domains werden bewusst nur so aufgenommen. Jeder Eintrag erlaubt der CA auch alle Subdomains, deshalb nur eigene, vollständige Namen eintragen (z. B. `schule.lan`, nicht `lan` oder `com`); ungültige Einträge lehnt das Skript ab.
+
+```
+TLS_HOSTNAMES=bootcamp.intern.example.org,schule.lan
+```
+
+**Erneuerung:** Das Serverzertifikat gilt 825 Tage. Jeder weitere Lauf von `./scripts/install.sh` prüft es und stellt es neu aus, wenn es bald abläuft oder sich IP-Adresse oder Hostname geändert haben.
+
+**Andere Geräte** (Handy, Laptop) vertrauen der CA erst, wenn du `tls/linux-bootcamp-ca.crt` dort importierst:
+- **Android:** Einstellungen → Sicherheit → Verschlüsselung & Anmeldedaten → Zertifikat installieren → CA-Zertifikat
+- **iOS/iPadOS:** Datei öffnen, Profil installieren, dann unter Einstellungen → Allgemein → Info → Zertifikatsvertrauenseinstellungen aktivieren
+- **Windows:** Datei doppelklicken → Zertifikat installieren → „Vertrauenswürdige Stammzertifizierungsstellen“
+- **Linux/macOS:** wie oben mit `sudo ./scripts/tls.sh trust` bzw. über die Schlüsselbundverwaltung
+
+**Ohne Portnummer (Port 443):** Ist Port 443 frei, in `.env` einfach `HOST_PORT=443` setzen und das Skript erneut ausführen. Läuft auf dem Rechner schon ein nginx auf 443, kann er Bootcamp anhand des Namens weiterreichen (SNI), mit demselben Zertifikat:
+
+```
+server {
+    listen 443 ssl default_server;
+    server_name _;
+    ssl_certificate     /pfad/zu/linux_bootcamp/tls/server/server.crt;
+    ssl_certificate_key /pfad/zu/linux_bootcamp/tls/server/server.key;
+    location / {
+        proxy_pass https://127.0.0.1:8000;
+        proxy_ssl_verify on;
+        proxy_ssl_trusted_certificate /pfad/zu/linux_bootcamp/tls/linux-bootcamp-ca.crt;
+        proxy_ssl_name localhost;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Dazu `TRUST_PROXY=1` in `.env`. Wird das Zertifikat erneuert, lädt `tls.sh` nginx automatisch neu.
+
+**Verwalten:**
+
+```bash
+./scripts/tls.sh status           # Zertifikate und Ablaufdaten anzeigen
+sudo ./scripts/tls.sh untrust     # CA aus System und Browsern entfernen
+```
+
 ### Daten & Secrets
 
 - Alles Persistente liegt in `./data/`: `bootcamp.db`, `.jwt_secret`, `.encryption_secret`.
@@ -112,7 +172,7 @@ npm start
 │   ├── index.html  generator.html  manifest.json  sw.js
 │   ├── css/  img/
 │   └── js/            boot, auth, core, questions, quiz, llm, stats, main, generator
-├── scripts/           install.sh, create-admin.js
+├── scripts/           install.sh, tls.sh, create-admin.js, healthcheck.js
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)
 ├── data/              Laufzeitdaten (gitignored)
 ├── Dockerfile  docker-compose.yml  .env.example
