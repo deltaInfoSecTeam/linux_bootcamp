@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/img/favicon.jpg" alt="Linux Bootcamp Logo" width="150" style="border-radius: 50%;">
   
-  # 🐧 Linux Bootcamp PWA
+  # Linux Bootcamp PWA
   
   **Eine interaktive, KI-gestützte Lernplattform (Progressive Web App) für angehende Linux-Administratoren.** <br>
   *Lerne Kommandozeilen, Konfigurationen und Server-Basics spielerisch durch ein XP- und Ränge-System.*
@@ -9,24 +9,24 @@
 
 ---
 
-## ✨ Features
+## Features
 
-- 🧠 **KI-Tutor Integration:** Verknüpfbar mit Google Gemini, OpenAI oder lokalen LLMs (Ollama), um falsch beantwortete Fragen detailliert und verständlich im "Ausbilder-Ton" zu erklären.
-- 🎓 **Klausur-Modus:** Simuliert eine echte IHK-Prüfungssituation (45 Minuten Timer, 24 Fragen quer durch alle Kategorien, automatische Notenberechnung von 1 bis 6).
-- 🏆 **Gamification & Ränge:** Sammle XP durch korrekte Antworten, halte deine Streak und steige im Dienstgrad auf (von *Schütze* bis *General* – basierend auf den Bundeswehr-Dienstgraden).
-- 📱 **Progressive Web App (PWA):** Kann als native App auf Android, iOS oder dem Desktop installiert werden. Funktioniert auch bei schlechter Internetverbindung dank Service Worker Caching.
-- 👨‍💻 **Admin-Konsole:** Integriertes Lehrer-Pult zur Verwaltung von Benutzern, Rechten und zur Einsicht aller absolvierten Schüler-Klausuren.
-- 🐳 **Docker-Ready:** Vollständig isoliertes Setup für sekundenschnelles Deployment auf jedem Linux-Server.
+- **KI-Tutor Integration:** Verknüpfbar mit Google Gemini, OpenAI oder lokalen LLMs (Ollama), um falsch beantwortete Fragen detailliert und verständlich im "Ausbilder-Ton" zu erklären.
+- **Klausur-Modus:** Simuliert eine echte IHK-Prüfungssituation (45 Minuten Timer, 24 Fragen quer durch alle Kategorien, automatische Notenberechnung von 1 bis 6).
+- **Gamification & Ränge:** Sammle XP durch korrekte Antworten, halte deine Streak und steige im Dienstgrad auf (von *Schütze* bis *General* – basierend auf den Bundeswehr-Dienstgraden).
+- **Progressive Web App (PWA):** Kann als native App auf Android, iOS oder dem Desktop installiert werden. Funktioniert auch bei schlechter Internetverbindung dank Service Worker Caching.
+- **Admin-Konsole:** Integriertes Lehrer-Pult zur Verwaltung von Benutzern, Rechten und zur Einsicht aller absolvierten Schüler-Klausuren.
+- **Docker-Ready:** Vollständig isoliertes Setup für sekundenschnelles Deployment auf jedem Linux-Server.
 
 ---
 
-## 🚀 Installation & Deployment
+## Installation & Deployment
 
 ### Voraussetzungen
 - Ein Linux mit apt (Debian, Ubuntu, Raspberry Pi OS, Kali), `git` und `sudo`
 - Docker wird vom Installationsskript bei Bedarf mitinstalliert
 
-### ⚡ Quickstart
+### Quickstart
 
 Klone das Repo **als normaler Nutzer**, nicht mit `sudo`, und starte das Installationsskript:
 
@@ -97,7 +97,7 @@ npm start
 
 ---
 
-## 📁 Projektstruktur
+## Projektstruktur
 
 ```
 ├── server/            Backend (Express)
@@ -120,7 +120,7 @@ npm start
 
 ---
 
-## 🔒 Sicherheit
+## Sicherheit
 
 - Ausgeliefert wird nur `public/`. Datenbank, Secrets und Server-Code sind nicht über HTTP erreichbar.
 - Passwörter werden mit bcrypt gehasht, Recovery-Codes mit HMAC. Gespeicherte LLM-API-Keys sind mit AES-256-GCM verschlüsselt.
@@ -131,7 +131,7 @@ npm start
 
 ---
 
-## 🛠️ Technologie-Stack
+## Technologie-Stack
 
 - **Frontend:** Vanilla JavaScript, HTML5, CSS3 (Kein Framework-Overhead!)
 - **Backend:** Node.js, Express
@@ -141,9 +141,9 @@ npm start
 
 ---
 
-## 🤖 KI-Integration einrichten
+## KI-Integration einrichten
 
-Im Menü unter **"⚙️ Einstellungen"** kannst du deinen bevorzugten LLM-Anbieter auswählen:
+Im Menü unter **"Einstellungen"** kannst du deinen bevorzugten LLM-Anbieter auswählen:
 1. **Google Gemini (Empfohlen):** Füge deinen Gemini API Key ein.
 2. **OpenAI:** Nutze `gpt-6-luna` oder ähnliche Modelle mit deinem OpenAI Key.
 3. **Groq Cloud:** Kostenloser Zugang mit Rate-Limits, Schlüssel unter console.groq.com. Voreingestellt ist `openai/gpt-oss-120b`.
@@ -151,6 +151,6 @@ Im Menü unter **"⚙️ Einstellungen"** kannst du deinen bevorzugten LLM-Anbie
 
 ---
 
-## 📜 Lizenz
+## Lizenz
 
 Dieses Projekt ist Open-Source und für Bildungszwecke konzipiert.
