@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Linux Bootcamp – App-Icons aus dem zentralen Wappen erzeugen
+# Linux Bootcamp – Brand-Assets aus dem zentralen Wappen erzeugen
 #
-# Rendert public/img/brand/wappen.svg auf dunklem Quadrat zu
-#   public/img/brand/icon-192.png und icon-512.png
-# (PWA-Manifest und Apple-Touch-Icon). Nach jedem Wappentausch einmal ausführen.
+# Aus public/img/brand/wappen.svg entstehen:
+#   public/img/brand/icon-192.png, icon-512.png  (PWA-Manifest, Apple-Touch-Icon)
+#   docs/brand/readme-banner.svg                 (Banner der README)
+# Nach jedem Wappentausch einmal ausführen.
 #
-# Voraussetzung: Firefox (headless) oder Chromium/Chrome.
+# Voraussetzung: Python 3; für die Icons Firefox (headless) oder Chromium/Chrome.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -23,7 +24,7 @@ cat > "$WORK/icon.html" <<EOF
 <style>
   html,body{margin:0;height:100%;background:$BG}
   body{display:grid;place-items:center}
-  img{height:72vh;width:auto}
+  img{height:72vh;width:auto;filter:drop-shadow(0 0 1.5px rgba(255,255,255,.35)) drop-shadow(0 0 1px rgba(255,255,255,.35))}
 </style>
 <img src="wappen.svg" alt="">
 EOF
@@ -42,6 +43,16 @@ render() { # $1 = size, $2 = output
     fi
     [ -s "$2" ] || { echo "Rendern fehlgeschlagen: $2" >&2; exit 1; }
 }
+
+# README banner: insert the crest (as nested <svg>) into the template
+python3 - "$CREST" "$ROOT/docs/brand/readme-banner.template.svg" "$ROOT/docs/brand/readme-banner.svg" <<'PY'
+import re, sys
+crest, template, out = (open(sys.argv[1]).read(), open(sys.argv[2]).read(), sys.argv[3])
+crest = re.sub(r'<\?xml[^>]*>\s*', '', crest).strip()
+crest = crest.replace('<svg ', '<svg x="64" y="36" width="186" height="248" ', 1)
+open(out, 'w').write(template.replace('<!--CREST-->', crest))
+PY
+echo "Banner erzeugt: $ROOT/docs/brand/readme-banner.svg"
 
 render 192 "$BRAND/icon-192.png"
 render 512 "$BRAND/icon-512.png"
