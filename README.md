@@ -171,7 +171,7 @@ npm start
 ├── public/            Frontend – nur dieser Ordner wird ausgeliefert
 │   ├── index.html  generator.html  manifest.json  sw.js
 │   ├── css/           brand.css (Corporate Design), styles.css (App)
-│   ├── fonts/         Inter, JetBrains Mono (selbst gehostet, SIL OFL)
+│   ├── fonts/         JetBrains Mono (selbst gehostet, SIL OFL)
 │   ├── img/brand/     wappen.svg (zentrales Wappen), App-Icons
 │   └── js/            theme, brand, boot, auth, core, questions, quiz, llm, stats, main, generator
 ├── scripts/           install.sh, tls.sh, brand-icons.sh, create-admin.js, healthcheck.js
@@ -184,7 +184,7 @@ npm start
 
 ## Corporate Design
 
-Alle Seiten nutzen dieselbe Designschicht aus `public/css/brand.css` (Farben, Schriften, Kopfleiste, Hintergrund, Animationen) und `public/js/brand.js` (Matrix-Hintergrund, Text-Effekte). Hell/Dunkel folgt dem System und lässt sich per Knopf umschalten (`public/js/theme.js`). Alle Animationen entfallen bei „Bewegung reduzieren“.
+Alle Seiten nutzen dieselbe Designschicht aus `public/css/brand.css` (Farben, Schriften, Kopfleiste, Hintergrund, Animationen) und `public/js/brand.js` (Matrix-Hintergrund, Text-Effekte). Standard ist das dunkle Design, unabhängig von der Systemeinstellung; ein helles lässt sich per Knopf wählen und wird gemerkt (`public/js/theme.js`). Alle Animationen entfallen bei „Bewegung reduzieren“.
 
 ### Wappen austauschen
 
