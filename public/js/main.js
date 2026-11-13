@@ -299,9 +299,9 @@ async function testApiConnection() {
         const json = JSON.parse(textResult);
         
         if (json.status && json.status.toLowerCase() === 'ok') {
-            el.apiStatusLight.style.backgroundColor = '#4ade80'; // Grün
+            el.apiStatusLight.style.backgroundColor = 'var(--dis-matrix)'; // Grün
             el.apiStatusText.textContent = "Verbunden";
-            el.apiStatusText.style.color = '#4ade80';
+            el.apiStatusText.style.color = 'var(--dis-matrix)';
             
             // Button ausblenden, da nicht mehr benötigt
             el.btnTestApi.style.display = 'none';
@@ -310,9 +310,9 @@ async function testApiConnection() {
         }
     } catch (e) {
         console.error("API Test fehlgeschlagen:", e.message);
-        el.apiStatusLight.style.backgroundColor = '#ef4444'; // Rot
+        el.apiStatusLight.style.backgroundColor = 'var(--dis-danger)'; // Rot
         el.apiStatusText.textContent = "Fehler";
-        el.apiStatusText.style.color = '#ef4444';
+        el.apiStatusText.style.color = 'var(--dis-danger)';
         
         // Button wieder auf Fehler/Standard zurücksetzen und einblenden
         el.btnTestApi.style.display = 'block';
@@ -457,7 +457,7 @@ function initSpeechRecognition() {
     recognition.onstart = () => {
         isRecording = true;
         if (btnDictate) {
-            btnDictate.style.color = '#ef4444'; // Red
+            btnDictate.style.color = 'var(--dis-danger)'; // Red
             btnDictate.classList.add('recording-pulse');
         }
     };
@@ -489,7 +489,7 @@ function initSpeechRecognition() {
         }
         
         if (!isRecording && btnDictate) {
-            btnDictate.style.color = '#6b7280'; // Gray
+            btnDictate.style.color = 'var(--dis-text-3)'; // Gray
             btnDictate.classList.remove('recording-pulse');
         }
     };
@@ -501,7 +501,7 @@ function initSpeechRecognition() {
         }
         isRecording = false;
         if (btnDictate) {
-            btnDictate.style.color = '#6b7280';
+            btnDictate.style.color = 'var(--dis-text-3)';
             btnDictate.classList.remove('recording-pulse');
         }
     };
@@ -597,7 +597,7 @@ function updateSessionTimer() {
         if (remaining <= 0) {
             if (elTime) {
                 elTime.textContent = "00:00 (Zeit abgelaufen!)";
-                elTime.style.color = '#ef4444';
+                elTime.style.color = 'var(--dis-danger)';
             }
             if (!state.examFinished) {
                 showToast("Zeit abgelaufen! Klausur wird beendet.", "danger");
@@ -615,7 +615,7 @@ function updateSessionTimer() {
         const s = (remaining % 60).toString().padStart(2, '0');
         if (elTime) {
             elTime.textContent = `${m}:${s} (Verbleibend)`;
-            elTime.style.color = remaining < 300 ? '#ef4444' : '#fbbf24'; // Red if < 5 mins, else Yellow
+            elTime.style.color = remaining < 300 ? 'var(--dis-danger)' : 'var(--dis-warn)'; // Red if < 5 mins, else Yellow
         }
         return;
     }
@@ -728,12 +728,12 @@ window.renderAdminContentTree = function() {
         const summary = document.createElement('summary');
         summary.style.cursor = 'pointer';
         summary.style.padding = '8px';
-        summary.style.background = 'rgba(0,0,0,0.2)';
+        summary.style.background = 'var(--dis-bg-elev)';
         summary.style.borderRadius = '4px';
         summary.style.marginBottom = '4px';
         summary.style.fontWeight = 'bold';
         summary.style.fontFamily = 'monospace';
-        summary.style.color = '#4ade80';
+        summary.style.color = 'var(--dis-matrix)';
 
         const groupLabelSpan = document.createElement('span');
         groupLabelSpan.textContent = gName;
@@ -745,7 +745,7 @@ window.renderAdminContentTree = function() {
         deleteBtn.style.background = 'none';
         deleteBtn.style.border = 'none';
         deleteBtn.style.cursor = 'pointer';
-        deleteBtn.style.color = '#ef4444';
+        deleteBtn.style.color = 'var(--dis-danger)';
         deleteBtn.style.fontSize = '1.1rem';
         deleteBtn.title = 'Modul und alle Fragen löschen';
         deleteBtn.addEventListener('click', (e) => {
@@ -765,7 +765,7 @@ window.renderAdminContentTree = function() {
         childrenContainer.style.display = 'flex';
         childrenContainer.style.flexDirection = 'column';
         childrenContainer.style.gap = '2px';
-        childrenContainer.style.borderLeft = '2px solid #1f3a1f';
+        childrenContainer.style.borderLeft = '2px solid var(--dis-border)';
         childrenContainer.style.marginLeft = '12px';
         childrenContainer.style.marginTop = '4px';
         groupElement.appendChild(childrenContainer);
@@ -788,7 +788,7 @@ window.renderAdminContentTree = function() {
             delChapBtn.style.background = 'none';
             delChapBtn.style.border = 'none';
             delChapBtn.style.cursor = 'pointer';
-            delChapBtn.style.color = '#ef4444';
+            delChapBtn.style.color = 'var(--dis-danger)';
             delChapBtn.title = 'Kapitel löschen';
             delChapBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -820,12 +820,12 @@ function finishExam() {
     
     let grade = '6';
     let gradeText = 'Ungenügend';
-    let color = '#ef4444'; // red
+    let color = 'var(--dis-danger)'; // red
     
-    if (percent >= 92) { grade = '1'; gradeText = 'Sehr gut'; color = '#4ade80'; }
-    else if (percent >= 81) { grade = '2'; gradeText = 'Gut'; color = '#86efac'; }
-    else if (percent >= 67) { grade = '3'; gradeText = 'Befriedigend'; color = '#fcd34d'; }
-    else if (percent >= 50) { grade = '4'; gradeText = 'Ausreichend'; color = '#fbbf24'; }
+    if (percent >= 92) { grade = '1'; gradeText = 'Sehr gut'; color = 'var(--dis-matrix)'; }
+    else if (percent >= 81) { grade = '2'; gradeText = 'Gut'; color = 'var(--dis-matrix)'; }
+    else if (percent >= 67) { grade = '3'; gradeText = 'Befriedigend'; color = 'var(--dis-warn)'; }
+    else if (percent >= 50) { grade = '4'; gradeText = 'Ausreichend'; color = 'var(--dis-warn)'; }
     else if (percent >= 30) { grade = '5'; gradeText = 'Mangelhaft'; color = '#f97316'; }
     
     const elGrade = document.getElementById('exam-result-grade');
@@ -841,17 +841,17 @@ function finishExam() {
         mistakesList.innerHTML = '';
         state.examMistakes.forEach(m => {
             const div = document.createElement('div');
-            div.style.background = 'rgba(0,0,0,0.2)';
+            div.style.background = 'var(--dis-bg-elev)';
             div.style.padding = '15px';
             div.style.borderRadius = '8px';
-            div.style.borderLeft = m.pts === 1.0 ? '4px solid #4ade80' : (m.pts === 0.5 ? '4px solid #fcd34d' : '4px solid #ef4444');
+            div.style.borderLeft = m.pts === 1.0 ? '4px solid var(--dis-matrix)' : (m.pts === 0.5 ? '4px solid var(--dis-warn)' : '4px solid var(--dis-danger)');
             
             div.innerHTML = `
-                <div style="font-size: 0.9em; color: #9ca3af; margin-bottom: 5px;">Frage ${escapeHtml(m.qIndex)} (${escapeHtml(m.pts)} Pkt)</div>
+                <div style="font-size: 0.9em; color: var(--dis-text-2); margin-bottom: 5px;">Frage ${escapeHtml(m.qIndex)} (${escapeHtml(m.pts)} Pkt)</div>
                 <div style="font-weight: bold; margin-bottom: 10px;">${escapeHtml(m.question)}</div>
-                <div style="margin-bottom: 5px; color: #f87171;"><span style="color:#9ca3af">Deine Antwort:</span> ${m.userAnswer ? escapeHtml(m.userAnswer) : '<i>Keine Eingabe</i>'}</div>
-                <div style="margin-bottom: 10px; color: #4ade80;"><span style="color:#9ca3af">Musterlösung:</span> ${escapeHtml(m.correctAnswer)}</div>
-                <div style="font-size: 0.9em; color: #cbd5e1; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px;">${m.feedback}</div>
+                <div style="margin-bottom: 5px; color: var(--dis-danger);"><span style="color:var(--dis-text-2)">Deine Antwort:</span> ${m.userAnswer ? escapeHtml(m.userAnswer) : '<i>Keine Eingabe</i>'}</div>
+                <div style="margin-bottom: 10px; color: var(--dis-matrix);"><span style="color:var(--dis-text-2)">Musterlösung:</span> ${escapeHtml(m.correctAnswer)}</div>
+                <div style="font-size: 0.9em; color: var(--dis-text-2); background: var(--dis-surface-hover); padding: 10px; border-radius: 4px;">${m.feedback}</div>
             `;
             mistakesList.appendChild(div);
         });

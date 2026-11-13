@@ -55,12 +55,12 @@ function initCategories() {
         const summary = document.createElement('summary');
         summary.style.cursor = 'pointer';
         summary.style.padding = '8px';
-        summary.style.background = 'rgba(0,0,0,0.2)';
+        summary.style.background = 'var(--dis-bg-elev)';
         summary.style.borderRadius = '4px';
         summary.style.marginBottom = '4px';
         summary.style.fontWeight = 'bold';
         summary.style.fontFamily = 'monospace';
-        summary.style.color = '#4ade80';
+        summary.style.color = 'var(--dis-matrix)';
 
         const groupCheckbox = document.createElement('input');
         groupCheckbox.type = 'checkbox';
@@ -78,7 +78,7 @@ function initCategories() {
         childrenContainer.style.display = 'flex';
         childrenContainer.style.flexDirection = 'column';
         childrenContainer.style.gap = '2px';
-        childrenContainer.style.borderLeft = '2px solid #1f3a1f';
+        childrenContainer.style.borderLeft = '2px solid var(--dis-border)';
         childrenContainer.style.marginLeft = '12px';
         childrenContainer.style.marginTop = '4px';
         groupElement.appendChild(childrenContainer);
