@@ -427,7 +427,7 @@ KEIN JSON-Format.`;
 
     } catch (error) {
         console.error("More Info API failed:", error);
-        el.moreInfoText.innerHTML = `<span style="color: #ef4444;">Fehler beim Abrufen der Zusatzinformationen: ${escapeHtml(error.message)}</span>`;
+        el.moreInfoText.innerHTML = `<span style="color: var(--dis-danger);">Fehler beim Abrufen der Zusatzinformationen: ${escapeHtml(error.message)}</span>`;
         el.btnMoreInfo.textContent = "Fehler - Erneut versuchen";
         el.btnMoreInfo.disabled = false;
     }

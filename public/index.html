@@ -4,31 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linux Bootcamp</title>
+    <meta name="theme-color" content="#0a0c10">
     <link rel="manifest" href="./manifest.json">
+    <script src="js/theme.js"></script>
     <script src="js/boot.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/brand.css">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="icon" type="image/jpeg" href="img/favicon.jpg">
+    <script src="js/brand.js" defer></script>
+    <link rel="icon" type="image/svg+xml" href="img/brand/wappen.svg">
+    <link rel="apple-touch-icon" href="img/brand/icon-192.png">
 </head>
-<body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="app-header">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <button id="btn-toggle-sidebar" class="btn-toggle-sidebar" title="Sidebar umschalten" style="margin: 0; padding: 0; line-height: 1; display: flex; align-items: center;">&#9776;</button>
-                <div class="header-logo" style="margin: 0; display: flex; align-items: center; gap: 10px;">
-                    <img src="img/wappen.png" alt="1st Linux Cavalry Patch" class="logo-img" style="height: 52px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));">
-                    <div style="display: flex; flex-direction: column; justify-content: center;">
-                        <h1 style="margin: 0; line-height: 1;">AAP Bootcamp</h1>
-                        <div style="font-size: 0.8rem; margin-top: 4px; line-height: 1;">
-                            <a href="#" id="btn-show-login" style="color: var(--primary-color); text-decoration: none; font-family: 'Courier New', monospace; font-weight: bold;">[ Login ]</a>
-                            <a href="#" id="btn-logout" style="display: none; color: var(--danger-color); text-decoration: none; font-family: 'Courier New', monospace; font-weight: bold;">[ Logout ]</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<body class="dis">
+    <div class="dis-backdrop" aria-hidden="true"></div>
+    <canvas class="dis-rain" aria-hidden="true"></canvas>
+    <div class="dis-scanlines" aria-hidden="true"></div>
+
+    <!-- Header -->
+    <header class="app-header dis-bar">
+        <button id="btn-toggle-sidebar" class="btn-toggle-sidebar" title="Sidebar umschalten" aria-label="Sidebar umschalten">&#9776;</button>
+        <a class="dis-brand" href="./">
+            <span class="dis-crest" role="img" aria-label="Wappen"></span>
+            <span class="dis-brand-text">
+                <span class="dis-brand-title">Linux Bootcamp</span>
+                <span class="dis-brand-sub" data-decode>deltaInfoSec · Training</span>
+            </span>
+        </a>
+        <span class="dis-bar-spacer"></span>
             <div class="quick-stats">
                 <!-- Profil / Rangbereich -->
                 <div id="player-profile" class="player-profile">
@@ -63,8 +64,14 @@
                     </div>
                 </div>
             </div>
-        </header>
+        <div class="dis-bar-actions">
+            <a href="#" id="btn-show-login" class="header-action-btn">Login</a>
+            <a href="#" id="btn-logout" class="header-action-btn logout" style="display: none;">Logout</a>
+            <button class="dis-btn dis-btn--icon" type="button" data-theme-toggle aria-label="Hell/Dunkel umschalten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor"/></svg></button>
+        </div>
+    </header>
 
+    <div class="app-container">
         <!-- Main Layout -->
         <div class="app-layout">
             <!-- Sidebar -->
@@ -94,7 +101,7 @@
                     <details class="collapsible-section">
                         <summary><h2>Quiz Setup</h2></summary>
                         <div style="margin-top: 10px;">
-                            <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 5px; font-family: monospace;">> set_difficulty()</div>
+                            <div style="font-size: 0.8rem; color: var(--dis-text-3); margin-bottom: 5px; font-family: monospace;">> set_difficulty()</div>
                             <div class="mode-toggle-group" style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 20px;">
                                 <button id="diff-auto" class="mode-btn active" style="flex: 1;">⚡ Auto-Adaptiv</button>
                                 <div style="display: flex; gap: 5px; width: 100%;">
@@ -104,8 +111,8 @@
                                 </div>
                             </div>
 
-                            <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 5px; font-family: monospace;">> load_modules()</div>
-                            <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">
+                            <div style="font-size: 0.8rem; color: var(--dis-text-3); margin-bottom: 5px; font-family: monospace;">> load_modules()</div>
+                            <div style="font-size: 0.8rem; color: var(--dis-text-3); margin-bottom: 5px;">
                                 <label class="category-item" style="padding: 2px 6px;">
                                     <input type="checkbox" id="cat-all" checked>
                                     <span class="checkmark"></span>
@@ -170,7 +177,7 @@
                             
                             
                             <div class="detailed-stats">
-                                <h4 style="margin: 5px 0; color: #a855f7;">Aktuelle Session</h4>
+                                <h4 style="margin: 5px 0; color: var(--dis-gold);">Aktuelle Session</h4>
                                 <div class="stat-row">
                                     <span>Beantwortet:</span>
                                     <strong id="stat-session-answered">0</strong>
@@ -183,7 +190,7 @@
                                     <span>Verbleibend (Set):</span>
                                     <strong id="stat-remaining">0</strong>
                                 </div>
-                                <h4 style="margin: 10px 0 5px 0; color: #4ade80;">Dein Profil (All-Time)</h4>
+                                <h4 style="margin: 10px 0 5px 0; color: var(--dis-matrix);">Dein Profil (All-Time)</h4>
                                 <div class="stat-row">
                                     <span>Rang:</span>
                                     <strong id="stat-rank">-</strong>
@@ -217,8 +224,9 @@
                     </details>
                 </div>
                 
-                <div class="sidebar-section" style="text-align: center; border-top-color: #4ade80; margin-top: auto;">
-                    <img src="img/tux_aap_logo.png" alt="AAP Tux" style="width: 220px; height: 220px; border-radius: 8px; border: 2px solid #4ade80; box-shadow: 0 0 15px rgba(74,222,128,0.5);">
+                <div class="sidebar-brand">
+                    <span class="dis-crest" aria-hidden="true"></span>
+                    <span class="dis-wordmark"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M16 4 29 27H3Z"/><path d="M16 13.5 22.2 24H9.8Z" stroke-width="1.6" opacity=".55"/></svg><span>delta<b>InfoSec</b></span></span>
                 </div>
             </aside>
 
@@ -226,23 +234,23 @@
             <main class="app-main" id="quiz-main">
                 
                 <div id="exam-result-card" class="quiz-card" style="display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px;">
-                    <h2 style="color: #fbbf24; font-size: 2rem; margin-bottom: 10px;">Klausur Beendet!</h2>
-                    <img src="img/tux_aap_logo.png" alt="Zertifikat" style="width: 150px; height: 150px; margin: 20px 0;">
+                    <h2 style="color: var(--dis-warn); font-size: 2rem; margin-bottom: 10px;">Klausur Beendet!</h2>
+                    <span class="dis-crest dis-crest--lg" style="margin: 16px 0;" role="img" aria-label="Wappen"></span>
                     <div style="font-size: 1.5rem; margin-bottom: 20px;">
-                        Dein Ergebnis: <strong id="exam-result-percent" style="color: #4ade80;">0%</strong> (<span id="exam-result-points">0</span> / 24 Punkte)
+                        Dein Ergebnis: <strong id="exam-result-percent" style="color: var(--dis-matrix);">0%</strong> (<span id="exam-result-points">0</span> / 24 Punkte)
                     </div>
-                    <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid #444;">
-                        <div style="font-size: 1.2rem; color: #a855f7; margin-bottom: 10px;">IHK-Note:</div>
-                        <div id="exam-result-grade" style="font-size: 3rem; font-weight: bold; color: white;">-</div>
-                        <div id="exam-result-grade-text" style="font-size: 1.2rem; color: #9ca3af; margin-top: 10px;">-</div>
+                    <div style="background: var(--dis-bg-elev); padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid var(--dis-border-strong);">
+                        <div style="font-size: 1.2rem; color: var(--dis-gold); margin-bottom: 10px;">IHK-Note:</div>
+                        <div id="exam-result-grade" style="font-size: 3rem; font-weight: bold; color: var(--dis-text);">-</div>
+                        <div id="exam-result-grade-text" style="font-size: 1.2rem; color: var(--dis-text-2); margin-top: 10px;">-</div>
                     </div>
                     
                     <div id="exam-mistakes-container" style="margin-top: 30px; width: 100%; max-width: 800px; text-align: left; display: none;">
-                        <h3 style="color: #4ade80; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px;">Klausur-Auswertung</h3>
+                        <h3 style="color: var(--dis-matrix); border-bottom: 1px solid var(--dis-border-strong); padding-bottom: 10px; margin-bottom: 20px;">Klausur-Auswertung</h3>
                         <div id="exam-mistakes-list" style="display: flex; flex-direction: column; gap: 15px;"></div>
                     </div>
 
-                    <button id="btn-exam-export" class="mode-btn" style="margin-top: 30px; margin-right: 15px; font-size: 1.2rem; padding: 15px 30px; background-color: #3b82f6; border-color: #3b82f6;">Klausur Exportieren (.txt)</button>
+                    <button id="btn-exam-export" class="mode-btn" style="margin-top: 30px; margin-right: 15px; font-size: 1.2rem; padding: 15px 30px; background-color: var(--dis-info); border-color: var(--dis-info);">Klausur Exportieren (.txt)</button>
                     <button id="btn-exam-close" class="mode-btn active" style="margin-top: 30px; font-size: 1.2rem; padding: 15px 30px;">Klausur beenden & Zurück</button>
                 </div>
 
@@ -285,7 +293,7 @@
                                 <div class="terminal-body" style="position: relative;">
                                     <span class="terminal-prompt">user@linux:~$ </span>
                                     <textarea id="user-answer" placeholder="Befehl oder Erklärung eingeben..." rows="2" style="padding-right: 40px;"></textarea>
-                                    <button id="btn-dictate" title="Spracheingabe starten" style="position: absolute; right: 10px; bottom: 10px; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280; transition: color 0.3s;">🎙️</button>
+                                    <button id="btn-dictate" title="Spracheingabe starten" style="position: absolute; right: 10px; bottom: 10px; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--dis-text-3); transition: color 0.3s;">🎙️</button>
                                 </div>
                             </div>
                         </div>
@@ -293,7 +301,7 @@
                         <!-- Validation Feedback -->
                         <div class="feedback-container hidden" id="feedback-container">
                             <div style="display: flex; gap: 15px;">
-                                <img src="img/drill_tutor_tux.jpg" alt="Drill Sgt Tux Tutor" style="width: 70px; height: 70px; border-radius: 8px; border: 2px solid var(--color-accent); flex-shrink: 0; align-self: flex-start; object-fit: cover;">
+                                <span class="tutor-badge" aria-label="KI-Tutor">&gt;_</span>
                                 <div>
                                     <div class="feedback-badge" id="feedback-badge">Auswertung...</div>
                                     <div class="feedback-details" id="feedback-details"></div>
@@ -315,7 +323,7 @@
                         <!-- More Info Area (AI Explanation) -->
                         <div id="more-info-wrapper" class="hidden" style="margin-top: 15px;">
                             <button id="btn-more-info" class="term-btn" style="width: 100%; border-color: var(--color-accent); color: var(--color-accent); padding: 10px; margin-bottom: 10px; cursor: pointer; background: transparent; font-family: inherit; font-size: 1rem; transition: all 0.2s;">[+] THEMA VERTIEFEN / ERKLÄRUNG ANFORDERN</button>
-                            <div id="more-info-content" class="feedback-container hidden" style="border-color: var(--color-accent); background-color: rgba(74, 222, 128, 0.05);">
+                            <div id="more-info-content" class="feedback-container hidden" style="border-color: var(--color-accent); background-color: color-mix(in srgb, var(--dis-matrix) 5%, transparent);">
                                 <div class="feedback-details markdown-body" id="more-info-text" style="color: var(--text-light);">Verbinde zum Mainframe... Lade zusätzliches Wissen herunter...</div>
                             </div>
                         </div>
@@ -352,10 +360,10 @@
             </main>
             <main class="app-main" id="admin-main" style="display: none; flex-direction: column;">
                 <div class="quiz-card" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; max-height: 100%;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--dis-border-strong); padding-bottom: 10px; margin-bottom: 15px;">
                         
 <div style="display: flex; gap: 10px; align-items: center;">
-    <h2 style="color: #4ade80; margin: 0; white-space: nowrap;">Admin Console</h2>
+    <h2 style="color: var(--dis-matrix); margin: 0; white-space: nowrap;">Admin Console</h2>
     <button id="btn-admin-view-users" class="mode-btn active" style="margin: 0; padding: 4px 10px;">Benutzer</button>
     <button id="btn-admin-view-exams" class="mode-btn" style="margin: 0; padding: 4px 10px;">Klausuren</button>
 </div>
@@ -367,7 +375,7 @@
 <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.9em;">
 
                             <thead>
-                                <tr style="border-bottom: 1px solid #444; background: rgba(0,0,0,0.2);">
+                                <tr style="border-bottom: 1px solid var(--dis-border-strong); background: var(--dis-bg-elev);">
                                     <th style="padding: 10px;">ID</th>
                                     <th style="padding: 10px;">User</th>
                                     <th style="padding: 10px;">XP</th>
@@ -384,7 +392,7 @@
 <div id="admin-section-exams" style="display: none; padding-top: 20px;">
     <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.9em;">
         <thead>
-            <tr style="border-bottom: 1px solid #444; background: rgba(0,0,0,0.2);">
+            <tr style="border-bottom: 1px solid var(--dis-border-strong); background: var(--dis-bg-elev);">
                 <th style="padding: 10px;">Datum</th>
                 <th style="padding: 10px;">Schüler</th>
                 <th style="padding: 10px;">Punkte</th>
@@ -403,8 +411,8 @@
 
             <main class="app-main" id="admin-content-main" style="display: none; flex-direction: column;">
                 <div class="quiz-card" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; max-height: 100%;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px;">
-                        <h2 style="color: #4ade80; margin: 0; white-space: nowrap;">Contentverwaltung</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--dis-border-strong); padding-bottom: 10px; margin-bottom: 15px;">
+                        <h2 style="color: var(--dis-matrix); margin: 0; white-space: nowrap;">Contentverwaltung</h2>
                         <button id="btn-close-content-view" class="btn-secondary" style="width: auto; padding: 4px 12px; font-weight: bold;" title="Schliessen">X</button>
                     </div>
                     <div id="admin-content-tree" style="overflow-y: auto; flex: 1; text-align: left;">
@@ -415,14 +423,14 @@
 
             <main class="app-main" id="leaderboard-main" style="display: none; flex-direction: column;">
                 <div class="quiz-card" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; max-height: 100%;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px;">
-                        <h2 style="color: #fbbf24; margin: 0; white-space: nowrap;">🏆 Globales Leaderboard</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--dis-border-strong); padding-bottom: 10px; margin-bottom: 15px;">
+                        <h2 style="color: var(--dis-warn); margin: 0; white-space: nowrap;">🏆 Globales Leaderboard</h2>
                         <button id="btn-close-leaderboard" class="btn-secondary" style="width: auto; padding: 4px 12px; font-weight: bold;" title="Schliessen">X</button>
                     </div>
                     <div style="overflow-y: auto; flex: 1;">
                         <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.95em;">
                             <thead>
-                                <tr style="border-bottom: 1px solid #444; background: rgba(0,0,0,0.2);">
+                                <tr style="border-bottom: 1px solid var(--dis-border-strong); background: var(--dis-bg-elev);">
                                     <th style="padding: 10px;">Rang</th>
                                     <th style="padding: 10px;">Rekrut</th>
                                     <th style="padding: 10px;">XP</th>
@@ -444,87 +452,94 @@
     <!-- Exams Modal -->
     <div id="exams-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content" style="max-width: 600px; width: 90%;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px;">
-                <h2 style="margin: 0; color: #4ade80;">Deine Klausuren</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--dis-border-strong); padding-bottom: 15px; margin-bottom: 15px;">
+                <h2 style="margin: 0; color: var(--dis-matrix);">Deine Klausuren</h2>
                 <button id="btn-close-exams" class="mode-btn" style="padding: 5px 15px; margin: 0;">Schließen</button>
             </div>
             <div id="exams-list" style="max-height: 400px; overflow-y: auto;">
-                <p style="text-align: center; color: #9ca3af;">Lade Klausuren...</p>
+                <p style="text-align: center; color: var(--dis-text-2);">Lade Klausuren...</p>
             </div>
         </div>
     </div>
 
-    <!-- Neu: Login Modal (Hacker Fullscreen) -->
+    <!-- Login Modal -->
     <div id="login-modal" class="auth-fullscreen-overlay" style="display: none;">
-        <div class="auth-terminal-box id-card-theme">
-            <button type="button" class="btn-close-modal" id="btn-close-login-modal" title="Abbrechen">X</button>
-            
-            <div class="id-card-top">
-                <div class="id-agency">DEPARTMENT OF LINUX ADMINISTRATION</div>
-                <div class="id-clearance">SECURITY CLEARANCE CHECK</div>
-            </div>
+        <div class="auth-terminal-box" role="dialog" aria-modal="true" aria-labelledby="login-title">
+            <button type="button" class="btn-close-modal" id="btn-close-login-modal" title="Abbrechen" aria-label="Schließen">&#10005;</button>
 
             <div class="auth-header">
-                <div class="auth-avatar-group">
-                    <img src="img/tux_passport.jpg" alt="Tux Agent" class="auth-avatar id-photo">
-                    <div class="auth-title">
-                        <h2>IDENTIFY YOURSELF</h2>
-                        <p>SYSTEM ACCESS: RESTRICTED</p>
-                    </div>
+                <span class="dis-crest" aria-hidden="true"></span>
+                <div class="auth-title">
+                    <div class="dis-eyebrow">secure login</div>
+                    <h2 id="login-title">Anmelden</h2>
                 </div>
-                <img src="img/fbi_penguin_logo.jpg" alt="Agency Logo" class="agency-badge">
             </div>
-            
+
             <form id="auth-form" class="auth-form-body">
-                <div class="input-group id-input-group">
-                    <span class="prompt-prefix">ID_NUM:</span>
-                    <input type="text" id="auth-username" name="username" autocomplete="username" placeholder="Username..." required class="hacker-input">
+                <div class="auth-field">
+                    <label for="auth-username">Benutzername</label>
+                    <input type="text" id="auth-username" name="username" autocomplete="username" placeholder="username" required class="hacker-input">
                 </div>
-                <div class="input-group id-input-group">
-                    <span class="prompt-prefix">AUTH_CODE:</span>
-                    <input type="password" id="auth-password" name="password" autocomplete="current-password" placeholder="*****************" required class="hacker-input">
+                <div class="auth-field">
+                    <label for="auth-password">Passwort</label>
+                    <input type="password" id="auth-password" name="password" autocomplete="current-password" placeholder="••••••••••••" required class="hacker-input">
                 </div>
-                
-                <div class="auth-actions">
-                    <button type="submit" id="btn-login" class="hacker-btn action-login">AUTHORIZE</button>
-                    <button type="button" id="btn-register" class="hacker-btn action-register">ENLIST</button>
-                </div>
-                
+
                 <div id="auth-error" class="auth-error-log" style="display: none;"></div>
-                
-                <div class="id-barcode-container">
-                    <div class="id-barcode">|||| ||| || | |||| ||</div>
-                    <div class="id-barcode-text">DO NOT DUPLICATE - PROPERTY OF PENGUIN HQ</div>
+
+                <div class="auth-actions">
+                    <button type="submit" id="btn-login" class="hacker-btn action-login">Anmelden</button>
+                    <button type="button" id="btn-register" class="hacker-btn action-register">Registrieren</button>
                 </div>
-                            <div style="margin-top: 15px; text-align: center;">
-                    <a href="#" id="link-forgot-password" style="color: #4ade80; text-decoration: none; font-size: 0.9em;">[ Passwort vergessen? ]</a>
+
+                <div class="auth-footer">
+                    <a href="#" id="link-forgot-password" class="forgot-pwd">Passwort vergessen?</a>
+                    <span class="dis-status">TLS · session</span>
                 </div>
             </form>
         </div>
     </div>
 
-    
     <!-- Reset Password Modal -->
     <div id="reset-modal" class="modal-overlay" style="display: none;">
-        <div class="auth-terminal-box">
+        <div class="auth-terminal-box" role="dialog" aria-modal="true" aria-labelledby="reset-title">
+            <button type="button" class="btn-close-modal" id="btn-close-reset" title="Abbrechen" aria-label="Schließen">&#10005;</button>
             <div class="auth-header">
-                <span class="auth-title">ROOT RECOVERY</span>
-                <button class="btn-close-modal" id="btn-close-reset" style="background: none; border: none; color: #fff; cursor: pointer;">X</button>
+                <span class="dis-crest" aria-hidden="true"></span>
+                <div class="auth-title">
+                    <div class="dis-eyebrow">root recovery</div>
+                    <h2 id="reset-title">Passwort zurücksetzen</h2>
+                </div>
             </div>
             <div class="auth-body">
-                <p style="color: #888; font-size: 0.9em; margin-bottom: 15px;">Gib deinen Username und deinen Root-Recovery-Token ein, um ein neues Passwort zu setzen.</p>
-                <form id="reset-form" style="display: flex; flex-direction: column; gap: 15px;">
-                    <input type="text" id="reset-username" class="terminal-input hacker-input" placeholder="Username" required>
-                    <input type="text" id="reset-token" class="terminal-input hacker-input" placeholder="Root-Recovery-Token (z.B. ROOT-A1B2-C3D4)" required>
-                    <input type="password" id="reset-password" class="terminal-input hacker-input" placeholder="Neues Passwort" required>
-                    <button type="submit" class="hacker-btn action-login" style="width: 100%; padding: 12px; font-weight: bold;">[ NEUES PASSWORT SETZEN ]</button>
-                    <div id="reset-error" style="color: #ff5555; font-size: 0.9em; display: none; text-align: center;"></div>
+                <p>Gib deinen Benutzernamen und deinen Recovery-Token ein, um ein neues Passwort zu setzen.</p>
+                <form id="reset-form">
+                    <div class="auth-field">
+                        <label for="reset-username">Benutzername</label>
+                        <input type="text" id="reset-username" class="hacker-input" autocomplete="username" required>
+                    </div>
+                    <div class="auth-field">
+                        <label for="reset-token">Recovery-Token</label>
+                        <input type="text" id="reset-token" class="hacker-input" placeholder="ROOT-A1B2-C3D4" required>
+                    </div>
+                    <div class="auth-field">
+                        <label for="reset-password">Neues Passwort</label>
+                        <input type="password" id="reset-password" class="hacker-input" autocomplete="new-password" required>
+                    </div>
+                    <div id="reset-error" class="auth-error-log" style="display: none;"></div>
+                    <div class="auth-actions">
+                        <button type="submit" class="hacker-btn action-login">Neues Passwort setzen</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
-    
+    <footer class="dis-footer">
+        <span class="dis-wordmark"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M16 4 29 27H3Z"/><path d="M16 13.5 22.2 24H9.8Z" stroke-width="1.6" opacity=".55"/></svg><span class="dis-cursor">delta<b>InfoSec</b></span></span>
+        <span>Linux Bootcamp · Training für Administratoren</span>
+    </footer>
+
     <!-- Notification system -->
     <div id="toast-container" class="toast-container"></div>
 

@@ -136,7 +136,7 @@ function initGenerator() {
             btnGenerate.disabled = true;
             btnGenerate.textContent = "⏳ Analysiere und Generiere...";
             statusEl.style.display = 'block';
-            statusEl.style.color = '#ffbd2e';
+            statusEl.style.color = 'var(--dis-warn)';
             statusEl.textContent = "Bereite Daten vor...";
 
             let fileContentText = "";
@@ -246,7 +246,7 @@ ${fileContentText ? "\nInhalt der Datei:\n" + fileContentText : ""}`;
             existingCustom.push(...newQuestions);
             safeStorage.setItem('custom_questions', JSON.stringify(existingCustom));
 
-            statusEl.style.color = '#4ade80';
+            statusEl.style.color = 'var(--dis-matrix)';
             statusEl.textContent = `Erfolg! ${newQuestions.length} neue Fragen generiert und gespeichert.`;
             
             setTimeout(() => {
@@ -255,7 +255,7 @@ ${fileContentText ? "\nInhalt der Datei:\n" + fileContentText : ""}`;
 
         } catch (e) {
             console.error("Generator Fehler:", e);
-            statusEl.style.color = '#ef4444';
+            statusEl.style.color = 'var(--dis-danger)';
             statusEl.textContent = "Fehler: " + e.message;
             btnGenerate.disabled = false;
             btnGenerate.textContent = "🚀 Fragen jetzt generieren";

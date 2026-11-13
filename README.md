@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/img/favicon.jpg" alt="Linux Bootcamp Logo" width="150" style="border-radius: 50%;">
+  <img src="public/img/brand/wappen.svg" alt="Wappen" width="120">
   
   # Linux Bootcamp PWA
   
@@ -170,13 +170,55 @@ npm start
 │   └── routes/        auth, admin, user, proxy
 ├── public/            Frontend – nur dieser Ordner wird ausgeliefert
 │   ├── index.html  generator.html  manifest.json  sw.js
-│   ├── css/  img/
-│   └── js/            boot, auth, core, questions, quiz, llm, stats, main, generator
-├── scripts/           install.sh, tls.sh, create-admin.js, healthcheck.js
+│   ├── css/           brand.css (Corporate Design), styles.css (App)
+│   ├── fonts/         Inter, JetBrains Mono (selbst gehostet, SIL OFL)
+│   ├── img/brand/     wappen.svg (zentrales Wappen), App-Icons
+│   └── js/            theme, brand, boot, auth, core, questions, quiz, llm, stats, main, generator
+├── scripts/           install.sh, tls.sh, brand-icons.sh, create-admin.js, healthcheck.js
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)
 ├── data/              Laufzeitdaten (gitignored)
 ├── Dockerfile  docker-compose.yml  .env.example
 ```
+
+---
+
+## Corporate Design
+
+Alle Seiten nutzen dieselbe Designschicht aus `public/css/brand.css` (Farben, Schriften, Kopfleiste, Hintergrund, Animationen) und `public/js/brand.js` (Matrix-Hintergrund, Text-Effekte). Hell/Dunkel folgt dem System und lässt sich per Knopf umschalten (`public/js/theme.js`). Alle Animationen entfallen bei „Bewegung reduzieren“.
+
+### Wappen austauschen
+
+Das Wappen liegt an genau einer Stelle: `public/img/brand/wappen.svg`. Alle Seiten zeichnen es über CSS daraus (Kopfleiste, Seitenleiste, Dialoge, Wasserzeichen, Glanzeffekt).
+
+1. `public/img/brand/wappen.svg` durch das neue Wappen ersetzen (SVG, transparenter Hintergrund).
+2. Hat es andere Proportionen, in `public/css/brand.css` den Wert `--dis-crest-ratio` (Breite / Höhe) anpassen.
+3. App-Icons neu erzeugen: `./scripts/brand-icons.sh`
+
+Der Service Worker lädt Wappen und Design-Dateien immer zuerst aus dem Netz, installierte Apps sehen das neue Wappen also ohne Versionssprung.
+
+### Design in einer neuen Seite nutzen
+
+Eine neue Seite bekommt das Corporate Design mit diesen Zeilen:
+
+```html
+<head>
+  <script src="js/theme.js"></script>
+  <link rel="stylesheet" href="css/brand.css">
+  <script src="js/brand.js" defer></script>
+</head>
+<body class="dis">
+  <div class="dis-backdrop" aria-hidden="true"></div>
+  <canvas class="dis-rain" aria-hidden="true"></canvas>
+  <header class="dis-bar">
+    <a class="dis-brand" href="./">
+      <span class="dis-crest" role="img" aria-label="Wappen"></span>
+      <span class="dis-brand-text"><span class="dis-brand-title">Titel</span></span>
+    </a>
+  </header>
+</body>
+```
+
+Farben und Schriften stehen als CSS-Variablen (`--dis-*`) in `brand.css` bereit.
 
 ---
 
@@ -185,7 +227,7 @@ npm start
 - Ausgeliefert wird nur `public/`. Datenbank, Secrets und Server-Code sind nicht über HTTP erreichbar.
 - Passwörter werden mit bcrypt gehasht, Recovery-Codes mit HMAC. Gespeicherte LLM-API-Keys sind mit AES-256-GCM verschlüsselt.
 - Nach Passwortwechsel, Sperre oder Rechteänderung werden alle JWTs des Nutzers ungültig.
-- Eine strikte Content-Security-Policy (`script-src 'self'`) verhindert Inline-Skripte.
+- Eine strikte Content-Security-Policy (`script-src 'self'`, Schriften nur vom eigenen Server) verhindert Inline-Skripte und Fremdeinbindungen.
 - Der LLM-Proxy erreicht nur Gemini, OpenAI und die in `OLLAMA_URL` eingetragene Adresse.
 - Der Container läuft ohne root, mit schreibgeschütztem Dateisystem und ohne Capabilities.
 

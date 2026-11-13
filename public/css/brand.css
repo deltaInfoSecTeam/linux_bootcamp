@@ -1,0 +1,489 @@
+/* =====================================================================
+   deltaInfoSec Brand Layer
+   Shared corporate design for all Linux Bootcamp pages.
+   Include BEFORE page-specific styles:
+     <link rel="stylesheet" href="css/brand.css">
+   Theme: dark by default, light via prefers-color-scheme or
+   <html data-theme="light|dark"> (set by js/theme.js).
+   ===================================================================== */
+
+/* ---------- Fonts (self-hosted, SIL OFL 1.1, see fonts/LICENSE-*.txt) ---------- */
+@font-face {
+    font-family: 'Inter';
+    src: url('../fonts/inter-latin-var.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'JetBrains Mono';
+    src: url('../fonts/jetbrains-mono-latin-var.woff2') format('woff2');
+    font-weight: 100 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ---------- Crest: THE single place to swap the coat of arms ----------
+   1. Replace img/brand/wappen.svg (any proportions, transparent background).
+   2. If the new crest has a different width/height ratio, adjust --dis-crest-ratio.
+   3. Run scripts/brand-icons.sh to regenerate the PWA icons.
+   The service worker fetches brand assets network-first, no cache bump needed.
+   Every page draws the crest from these two variables (header, sidebar,
+   dialogs, watermark, sheen); no HTML changes are needed.
+   Keep the url() here: relative URLs resolve against this stylesheet. */
+:root {
+    --dis-crest-url:   url('../img/brand/wappen.svg');
+    --dis-crest-ratio: 300 / 400;
+    --dis-crest-rim:   rgba(255, 255, 255, 0.32); /* keeps the dark border visible on dark backgrounds */
+}
+
+/* ---------- Tokens: dark (default) ---------- */
+:root {
+    color-scheme: dark;
+
+    /* Surfaces */
+    --dis-bg:            #0a0c10;
+    --dis-bg-elev:       #0f1318;
+    --dis-surface:       rgba(20, 25, 32, 0.72);
+    --dis-surface-solid: #141920;
+    --dis-surface-hover: rgba(255, 255, 255, 0.04);
+    --dis-border:        rgba(255, 255, 255, 0.08);
+    --dis-border-strong: rgba(255, 255, 255, 0.16);
+
+    /* Text */
+    --dis-text:          #e7e9ec;
+    --dis-text-2:        #a3abb8;
+    --dis-text-3:        #6b7482;
+
+    /* Brand: crest gold + graphite */
+    --dis-gold:          #e2a83a;
+    --dis-gold-strong:   #f0bd55;
+    --dis-gold-soft:     rgba(226, 168, 58, 0.12);
+    --dis-gold-ink:      #1a1203;   /* text on gold fill */
+    --dis-on-gold:       #1a1203;
+    --dis-graphite:      #1a1919;
+
+    /* Signals (used sparingly) */
+    --dis-ok:            #3fd68a;   /* terminal / success */
+    --dis-ok-soft:       rgba(63, 214, 138, 0.12);
+    --dis-warn:          #f2b33d;
+    --dis-danger:        #f0606a;
+    --dis-danger-soft:   rgba(240, 96, 106, 0.12);
+    --dis-info:          #5eb5f7;
+
+    /* Matrix / tech accent (secondary to gold) */
+    --dis-matrix:        #3fd68a;
+    --dis-matrix-dim:    rgba(63, 214, 138, 0.55);
+    --dis-rain:          #2fbf76;
+    --dis-rain-head:     #c9ffe2;
+    --dis-rain-opacity:  0.30;
+    --dis-scanline:      rgba(255, 255, 255, 0.018);
+
+    /* Backdrop */
+    --dis-grid-line:     rgba(255, 255, 255, 0.035);
+    --dis-glow-a:        rgba(226, 168, 58, 0.10);
+    --dis-glow-b:        rgba(94, 181, 247, 0.06);
+
+    /* Type */
+    --dis-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --dis-font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+    /* Shape & motion */
+    --dis-radius-sm: 6px;
+    --dis-radius-md: 10px;
+    --dis-radius-lg: 14px;
+    --dis-shadow:    0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 32px -12px rgba(0,0,0,0.6);
+    --dis-ease:      cubic-bezier(0.2, 0.7, 0.2, 1);
+    --dis-header-h:  64px;
+}
+
+/* ---------- Tokens: light ---------- */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+        color-scheme: light;
+        --dis-bg:            #f5f4f0;
+        --dis-bg-elev:       #ecebe6;
+        --dis-surface:       rgba(255, 255, 255, 0.82);
+        --dis-surface-solid: #ffffff;
+        --dis-surface-hover: rgba(0, 0, 0, 0.03);
+        --dis-border:        rgba(20, 22, 26, 0.10);
+        --dis-border-strong: rgba(20, 22, 26, 0.20);
+        --dis-text:          #15171b;
+        --dis-text-2:        #4c5461;
+        --dis-text-3:        #7a828f;
+        --dis-gold:          #9a6508;
+        --dis-gold-strong:   #7c5106;
+        --dis-gold-soft:     rgba(214, 153, 38, 0.14);
+        --dis-on-gold:       #ffffff;
+        --dis-crest-rim:     transparent;
+        --dis-ok:            #13874f;
+        --dis-ok-soft:       rgba(19, 135, 79, 0.10);
+        --dis-warn:          #a86a00;
+        --dis-danger:        #c4303b;
+        --dis-danger-soft:   rgba(196, 48, 59, 0.10);
+        --dis-info:          #1f6fb2;
+        --dis-matrix:                #0f7a45;
+        --dis-matrix-dim:        rgba(15, 122, 69, 0.6);
+        --dis-rain:                  #1b8a52;
+        --dis-rain-head:         #0b4d2c;
+        --dis-rain-opacity:  0.12;
+        --dis-scanline:          rgba(0, 0, 0, 0.015);
+        --dis-grid-line:     rgba(20, 22, 26, 0.05);
+        --dis-glow-a:        rgba(214, 153, 38, 0.12);
+        --dis-glow-b:        rgba(31, 111, 178, 0.06);
+        --dis-shadow:        0 1px 2px rgba(20,22,26,0.05), 0 12px 32px -16px rgba(20,22,26,0.18);
+    }
+}
+:root[data-theme="light"] {
+    color-scheme: light;
+    --dis-bg:            #f5f4f0;
+    --dis-bg-elev:       #ecebe6;
+    --dis-surface:       rgba(255, 255, 255, 0.82);
+    --dis-surface-solid: #ffffff;
+    --dis-surface-hover: rgba(0, 0, 0, 0.03);
+    --dis-border:        rgba(20, 22, 26, 0.10);
+    --dis-border-strong: rgba(20, 22, 26, 0.20);
+    --dis-text:          #15171b;
+    --dis-text-2:        #4c5461;
+    --dis-text-3:        #7a828f;
+    --dis-gold:          #9a6508;
+    --dis-gold-strong:   #7c5106;
+    --dis-gold-soft:     rgba(214, 153, 38, 0.14);
+    --dis-on-gold:       #ffffff;
+    --dis-crest-rim:     transparent;
+    --dis-ok:            #13874f;
+    --dis-ok-soft:       rgba(19, 135, 79, 0.10);
+    --dis-warn:          #a86a00;
+    --dis-danger:        #c4303b;
+    --dis-danger-soft:   rgba(196, 48, 59, 0.10);
+    --dis-info:          #1f6fb2;
+    --dis-matrix:        #0f7a45;
+    --dis-matrix-dim:    rgba(15, 122, 69, 0.6);
+    --dis-rain:          #1b8a52;
+    --dis-rain-head:     #0b4d2c;
+    --dis-rain-opacity:  0.12;
+    --dis-scanline:      rgba(0, 0, 0, 0.015);
+    --dis-grid-line:     rgba(20, 22, 26, 0.05);
+    --dis-glow-a:        rgba(214, 153, 38, 0.12);
+    --dis-glow-b:        rgba(31, 111, 178, 0.06);
+    --dis-shadow:        0 1px 2px rgba(20,22,26,0.05), 0 12px 32px -16px rgba(20,22,26,0.18);
+}
+
+/* ---------- Base ---------- */
+html { background: var(--dis-bg); }
+body.dis {
+    background: transparent; /* html paints the bg; layers with z-index:-1 must stay visible */
+    color: var(--dis-text);
+    font-family: var(--dis-font-sans);
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+}
+.dis ::selection { background: var(--dis-gold-soft); color: var(--dis-text); }
+.dis :focus-visible { outline: 2px solid var(--dis-gold); outline-offset: 2px; }
+
+/* ---------- Backdrop: grid + soft glow, fixed behind everything ---------- */
+.dis-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+    background:
+        radial-gradient(60rem 40rem at 12% -10%, var(--dis-glow-a), transparent 60%),
+        radial-gradient(50rem 40rem at 100% 110%, var(--dis-glow-b), transparent 60%),
+        var(--dis-bg);
+}
+.dis-backdrop::before {
+    content: '';
+    position: absolute;
+    inset: -64px;
+    background-image:
+        linear-gradient(var(--dis-grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--dis-grid-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+    animation: dis-grid-drift 90s linear infinite;
+}
+/* Faint watermark crest, bottom right */
+.dis-backdrop::after {
+    content: '';
+    position: absolute;
+    right: -6vw;
+    bottom: -8vh;
+    width: min(46vw, 520px);
+    aspect-ratio: var(--dis-crest-ratio);
+    background: var(--dis-crest-url) center / contain no-repeat;
+    opacity: 0.035;
+    filter: grayscale(1);
+}
+
+/* ---------- Brand bar (header) ---------- */
+.dis-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: var(--dis-header-h);
+    padding: 8px clamp(16px, 3vw, 28px);
+    background: color-mix(in srgb, var(--dis-bg) 78%, transparent);
+    -webkit-backdrop-filter: saturate(140%) blur(14px);
+            backdrop-filter: saturate(140%) blur(14px);
+    border-bottom: 1px solid var(--dis-border);
+}
+/* Slow light that travels along the bottom edge */
+.dis-bar::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--dis-gold) 50%, transparent) no-repeat;
+    background-size: 30% 100%;
+    opacity: 0.55;
+    animation: dis-scan 9s var(--dis-ease) infinite;
+}
+.dis-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+}
+.dis-brand-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.1; }
+.dis-brand-title {
+    font-size: 1.05rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--dis-text);
+    white-space: nowrap;
+}
+.dis-brand-sub {
+    margin-top: 3px;
+    font-family: var(--dis-font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dis-text-3);
+    white-space: nowrap;
+}
+.dis-bar-spacer { flex: 1; }
+.dis-bar-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- Crest with occasional sheen ---------- */
+.dis-crest {
+    position: relative;
+    flex-shrink: 0;
+    display: inline-block;
+    height: 44px;
+    aspect-ratio: var(--dis-crest-ratio);
+    background: var(--dis-crest-url) center / contain no-repeat;
+    filter: drop-shadow(0 0 0.7px var(--dis-crest-rim)) drop-shadow(0 0 0.7px var(--dis-crest-rim)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+/* Usage: <span class="dis-crest" role="img" aria-label="Wappen"></span> */
+.dis-crest::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%) no-repeat;
+    background-size: 250% 100%;
+    background-position: 150% 0;
+    -webkit-mask: var(--dis-crest-url) center / contain no-repeat;
+            mask: var(--dis-crest-url) center / contain no-repeat;
+    mix-blend-mode: soft-light;
+    animation: dis-sheen 12s ease-in-out 2s infinite;
+}
+.dis-crest--lg { height: 120px; }
+
+/* ---------- deltaInfoSec wordmark ---------- */
+.dis-wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--dis-font-mono);
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--dis-text-2);
+    text-decoration: none;
+}
+.dis-wordmark svg, .dis-wordmark img { width: 14px; height: 14px; color: var(--dis-matrix); }
+.dis-wordmark b { font-weight: 700; color: var(--dis-text); }
+
+/* ---------- Small building blocks ---------- */
+.dis-eyebrow {
+    font-family: var(--dis-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dis-matrix);
+}
+.dis-eyebrow::before { content: '> '; opacity: 0.6; }
+.dis-card {
+    background: var(--dis-surface);
+    border: 1px solid var(--dis-border);
+    border-radius: var(--dis-radius-lg);
+    box-shadow: var(--dis-shadow);
+    -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+}
+.dis-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: var(--dis-radius-md);
+    border: 1px solid var(--dis-border-strong);
+    background: transparent;
+    color: var(--dis-text);
+    font: 500 0.9rem/1 var(--dis-font-sans);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s var(--dis-ease), border-color 0.2s var(--dis-ease), transform 0.2s var(--dis-ease);
+}
+.dis-btn:hover { background: var(--dis-surface-hover); border-color: var(--dis-text-3); }
+.dis-btn:active { transform: translateY(1px); }
+.dis-btn--primary {
+    background: var(--dis-gold);
+    border-color: transparent;
+    color: var(--dis-on-gold);
+    font-weight: 600;
+}
+.dis-btn--primary:hover { background: var(--dis-gold-strong); border-color: transparent; }
+.dis-btn--icon { width: 38px; padding: 0; }
+
+.dis-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--dis-font-mono);
+    font-size: 0.72rem;
+    color: var(--dis-text-3);
+}
+.dis-status::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--dis-ok);
+    box-shadow: 0 0 0 0 var(--dis-ok-soft);
+    animation: dis-pulse 2.8s ease-out infinite;
+}
+
+/* ---------- Footer ---------- */
+.dis-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    padding: 18px clamp(16px, 3vw, 28px);
+    border-top: 1px solid var(--dis-border);
+    font-size: 0.78rem;
+    color: var(--dis-text-3);
+}
+.dis-cursor::after {
+    content: '_';
+    margin-left: 1px;
+    color: var(--dis-matrix);
+    animation: dis-blink 1.1s steps(1) infinite;
+}
+
+/* ---------- Motion ---------- */
+@keyframes dis-grid-drift { to { transform: translate3d(64px, 64px, 0); } }
+@keyframes dis-scan {
+    0%   { background-position: -40% 0; }
+    100% { background-position: 140% 0; }
+}
+@keyframes dis-sheen {
+    0%, 82% { background-position: 150% 0; }
+    100%    { background-position: -50% 0; }
+}
+@keyframes dis-pulse {
+    0%   { box-shadow: 0 0 0 0 var(--dis-ok-soft); }
+    70%  { box-shadow: 0 0 0 7px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes dis-blink { 50% { opacity: 0; } }
+@keyframes dis-rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+.dis-rise { animation: dis-rise 0.6s var(--dis-ease) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    .dis *, .dis *::before, .dis *::after,
+    .dis-backdrop::before, .dis-bar::after, .dis-crest::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+
+/* ---------- Matrix layer ---------- */
+/* <canvas class="dis-rain" aria-hidden="true"></canvas> right after .dis-backdrop */
+.dis-rain {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--dis-rain-opacity);
+    /* strong at the edges, almost gone behind the content column */
+    -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,0.45) 22%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.45) 78%, #000 100%);
+            mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,0.45) 22%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.45) 78%, #000 100%);
+}
+/* CRT scanlines, barely visible */
+.dis-backdrop { box-shadow: none; }
+.dis-scanlines {
+    position: fixed; inset: 0; z-index: 60; pointer-events: none;
+    background: repeating-linear-gradient(0deg, var(--dis-scanline) 0 1px, transparent 1px 3px);
+}
+
+/* Prompt-style label: <span class="dis-prompt">root@bootcamp:~#</span> */
+.dis-prompt { font-family: var(--dis-font-mono); color: var(--dis-matrix); }
+.dis-prompt::after { content: ' '; }
+
+/* Hex/terminal chip, e.g. session id or build tag */
+.dis-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 8px;
+    border: 1px solid var(--dis-matrix-dim);
+    border-radius: 4px;
+    font-family: var(--dis-font-mono); font-size: 0.7rem; letter-spacing: 0.06em;
+    color: var(--dis-matrix);
+    background: color-mix(in srgb, var(--dis-matrix) 6%, transparent);
+}
+
+/* Boot log: <ol class="dis-bootlog" data-bootlog><li><span>OK</span> text</li></ol> */
+.dis-bootlog { list-style: none; margin: 0; padding: 0; font-family: var(--dis-font-mono); font-size: 0.8rem; line-height: 1.85; color: var(--dis-text-2); }
+.dis-bootlog li { transition: opacity 0.25s var(--dis-ease); }
+.dis-bootlog li.is-pending { opacity: 0; }
+.dis-bootlog li > span:first-child { display: inline-block; min-width: 5.2em; margin-right: 0.5em; color: var(--dis-matrix); }
+.dis-bootlog li > span:first-child::before { content: '[ '; color: var(--dis-text-3); }
+.dis-bootlog li > span:first-child::after  { content: ' ]'; color: var(--dis-text-3); }
+
+/* Brand title: tiny RGB split on hover, nothing at rest */
+.dis-brand:hover .dis-brand-title { animation: dis-glitch 0.35s steps(2) 1; }
+@keyframes dis-glitch {
+    0%   { text-shadow: 1px 0 var(--dis-matrix), -1px 0 var(--dis-gold); transform: translateX(0); }
+    50%  { text-shadow: -1px 0 var(--dis-matrix), 1px 0 var(--dis-gold); transform: translateX(0.5px); }
+    100% { text-shadow: none; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dis-rain { display: none; }
+    .dis-brand:hover .dis-brand-title { animation: none; }
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 560px) {
+    :root { --dis-header-h: 56px; }
+    .dis-crest { height: 38px; }
+    .dis-brand-sub { display: none; }
+    .dis-bar .dis-wordmark { display: none; }
+    .dis-rain { -webkit-mask-image: linear-gradient(180deg, #000, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.15) 80%, #000); mask-image: linear-gradient(180deg, #000, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.15) 80%, #000); }
+}
