@@ -59,7 +59,7 @@ function initCategories() {
         summary.style.borderRadius = '4px';
         summary.style.marginBottom = '4px';
         summary.style.fontWeight = 'bold';
-        summary.style.fontFamily = 'monospace';
+        summary.style.fontFamily = 'var(--dis-font-mono)';
         summary.style.color = 'var(--dis-matrix)';
 
         const groupCheckbox = document.createElement('input');

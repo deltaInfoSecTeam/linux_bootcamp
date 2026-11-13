@@ -8,7 +8,6 @@ const ASSETS_TO_CACHE = [
   './css/styles.css',
   './js/theme.js',
   './js/brand.js',
-  './fonts/inter-latin-var.woff2',
   './fonts/jetbrains-mono-latin-var.woff2',
   './img/brand/wappen.svg',
   './img/brand/icon-192.png',

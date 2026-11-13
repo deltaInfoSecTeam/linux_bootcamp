@@ -28,7 +28,7 @@
     --radius-sm: 6px;
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --font-sans: var(--dis-font-sans);
+    --font-sans: var(--dis-font-body);
     --font-mono: var(--dis-font-mono);
 }
 
@@ -169,7 +169,7 @@ body {
     box-shadow: var(--dis-shadow);
     -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
-    font-family: var(--dis-font-mono);
+    font-family: var(--dis-font-body);
     font-size: 0.92rem;
     color: var(--dis-text-2);
 }
@@ -826,7 +826,7 @@ textarea#user-answer {
     border: 1px solid var(--dis-border);
     padding: 12px 24px;
     border-radius: 4px;
-    font-family: var(--dis-font-mono);
+    font-family: var(--dis-font-body);
     font-size: 0.95rem;
     font-weight: bold;
     text-transform: uppercase;
@@ -870,7 +870,7 @@ textarea#user-answer {
     background: var(--dis-surface-hover);
     border: 1px solid transparent;
     color: var(--text-secondary);
-    font-family: var(--dis-font-mono);
+    font-family: var(--dis-font-body);
     font-size: 0.85rem;
     padding: 8px 10px;
     border-radius: 4px;
@@ -925,7 +925,7 @@ textarea#user-answer {
     color: var(--text-primary);
     padding: 10px 16px;
     border-radius: 4px;
-    font-family: var(--dis-font-mono);
+    font-family: var(--dis-font-body);
     font-size: 0.9rem;
     font-weight: bold;
     text-transform: uppercase;
@@ -1003,7 +1003,7 @@ textarea#user-answer {
     color: var(--text-secondary);
     padding: 8px 16px;
     border-radius: 4px;
-    font-family: var(--dis-font-mono);
+    font-family: var(--dis-font-body);
     font-size: 0.85rem;
     text-transform: uppercase;
     font-weight: bold;
@@ -1238,7 +1238,7 @@ body.is-admin .admin-only-btn {
     border: 1px solid var(--bg-card-border);
     padding: 0 90px 0 16px;
     border-radius: var(--radius-lg);
-    gap: 1rem;
+    gap: 10px;
     backdrop-filter: blur(10px);
     position: relative;
     box-sizing: border-box;
@@ -1246,22 +1246,27 @@ body.is-admin .admin-only-btn {
     min-width: 200px;
 }
 .rank-insignia {
-    height: 38px;
+    height: 34px;
     width: auto;
-    border-radius: 4px;
+    border-radius: 3px;
+    filter: drop-shadow(0 0 0.6px var(--dis-crest-rim));
 }
 .player-info {
     display: flex;
     flex-direction: column;
 }
 .player-rank {
-    color: var(--primary-color);
-    font-weight: bold;
-    font-size: 1.1rem;
+    color: var(--dis-text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.2;
 }
 .player-name {
-    color: var(--text-light);
-    font-size: 0.9rem;
+    color: var(--dis-text-3);
+    font-family: var(--dis-font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
 }
 .auth-modal {
     max-width: 400px;
@@ -1370,7 +1375,7 @@ body.is-admin .admin-only-btn {
     margin: 4px 0 0;
     font-size: 1.3rem;
     font-weight: 650;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     color: var(--dis-text);
 }
 .auth-title p {
@@ -1435,7 +1440,7 @@ body.is-admin .admin-only-btn {
     border: 1px solid var(--dis-border-strong);
     background: transparent;
     color: var(--dis-text);
-    font: 600 0.92rem/1 var(--dis-font-sans);
+    font: 600 0.92rem/1 var(--dis-font-body);
     cursor: pointer;
     transition: background 0.2s var(--dis-ease), border-color 0.2s var(--dis-ease), transform 0.2s var(--dis-ease);
 }
@@ -1484,7 +1489,7 @@ body.is-admin .admin-only-btn {
     border: 1px solid var(--dis-border-strong);
     border-radius: var(--dis-radius-md);
     color: var(--dis-text);
-    font: 500 0.88rem/1 var(--dis-font-sans);
+    font: 500 0.88rem/1 var(--dis-font-body);
     text-decoration: none;
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s, color 0.2s;
@@ -1570,3 +1575,37 @@ body.is-admin .admin-only { display: block !important; }
     .app-header.dis-bar { flex-direction: row; align-items: center; gap: 10px; }
     .app-header .quick-stats { width: auto; }
 }
+
+/* --- Typography rule ---
+   JetBrains Mono everywhere (--dis-font-body / --dis-font-mono, css/brand.css). */
+.term-btn, .term-btn-action, .btn-primary, .btn-nav { letter-spacing: 0.02em; }
+
+/* --- Answer terminal styled like a root shell (zsh prompt, two lines) ---
+   ┌──(root㉿kali)-[~]
+   └─# _                                                                     */
+.terminal-body.kali-shell {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 12px 14px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+.kali-line { color: var(--dis-info); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kali-user { color: var(--dis-danger); font-weight: 700; }
+.kali-path { color: var(--dis-text); font-weight: 700; }
+.kali-input { display: flex; align-items: flex-start; gap: 8px; }
+.kali-shell .terminal-prompt { color: var(--dis-info); margin: 0; padding-top: 0; font-size: inherit; font-weight: 400; white-space: nowrap; }
+.kali-hash { color: var(--dis-danger); font-weight: 700; }
+.kali-shell textarea#user-answer {
+    flex: 1;
+    min-height: 96px;
+    padding: 0 40px 0 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    font-size: inherit;
+    line-height: inherit;
+    caret-color: var(--dis-text);
+}
+.kali-shell textarea#user-answer:focus { background: transparent; box-shadow: none; border: 0; }

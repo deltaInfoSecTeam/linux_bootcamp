@@ -11,9 +11,8 @@
         try { localStorage.setItem(KEY, v); } catch (e) { /* storage blocked */ }
     }
     function current() {
-        var t = root.getAttribute('data-theme');
-        if (t) return t;
-        return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        // Dark is the corporate default; the OS setting is deliberately ignored.
+        return root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
     }
 
     var saved = read();

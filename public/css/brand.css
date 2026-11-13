@@ -3,18 +3,13 @@
    Shared corporate design for all Linux Bootcamp pages.
    Include BEFORE page-specific styles:
      <link rel="stylesheet" href="css/brand.css">
-   Theme: dark by default, light via prefers-color-scheme or
-   <html data-theme="light|dark"> (set by js/theme.js).
+   Theme: always dark by default; light only when the user picks it
+   (<html data-theme="light">, set by js/theme.js).
    ===================================================================== */
 
-/* ---------- Fonts (self-hosted, SIL OFL 1.1, see fonts/LICENSE-*.txt) ---------- */
-@font-face {
-    font-family: 'Inter';
-    src: url('../fonts/inter-latin-var.woff2') format('woff2');
-    font-weight: 100 900;
-    font-style: normal;
-    font-display: swap;
-}
+/* ---------- Font (self-hosted, SIL OFL 1.1, see fonts/LICENSE-JetBrainsMono.txt) ----------
+   One typeface for everything: JetBrains Mono. --dis-font-body and --dis-font-mono
+   are kept separate so a second typeface could be reintroduced in one place. */
 @font-face {
     font-family: 'JetBrains Mono';
     src: url('../fonts/jetbrains-mono-latin-var.woff2') format('woff2');
@@ -85,7 +80,7 @@
     --dis-glow-b:        rgba(94, 181, 247, 0.06);
 
     /* Type */
-    --dis-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --dis-font-body: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
     --dis-font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
     /* Shape & motion */
@@ -97,43 +92,7 @@
     --dis-header-h:  64px;
 }
 
-/* ---------- Tokens: light ---------- */
-@media (prefers-color-scheme: light) {
-    :root:not([data-theme="dark"]) {
-        color-scheme: light;
-        --dis-bg:            #f5f4f0;
-        --dis-bg-elev:       #ecebe6;
-        --dis-surface:       rgba(255, 255, 255, 0.82);
-        --dis-surface-solid: #ffffff;
-        --dis-surface-hover: rgba(0, 0, 0, 0.03);
-        --dis-border:        rgba(20, 22, 26, 0.10);
-        --dis-border-strong: rgba(20, 22, 26, 0.20);
-        --dis-text:          #15171b;
-        --dis-text-2:        #4c5461;
-        --dis-text-3:        #7a828f;
-        --dis-gold:          #9a6508;
-        --dis-gold-strong:   #7c5106;
-        --dis-gold-soft:     rgba(214, 153, 38, 0.14);
-        --dis-on-gold:       #ffffff;
-        --dis-crest-rim:     transparent;
-        --dis-ok:            #13874f;
-        --dis-ok-soft:       rgba(19, 135, 79, 0.10);
-        --dis-warn:          #a86a00;
-        --dis-danger:        #c4303b;
-        --dis-danger-soft:   rgba(196, 48, 59, 0.10);
-        --dis-info:          #1f6fb2;
-        --dis-matrix:                #0f7a45;
-        --dis-matrix-dim:        rgba(15, 122, 69, 0.6);
-        --dis-rain:                  #1b8a52;
-        --dis-rain-head:         #0b4d2c;
-        --dis-rain-opacity:  0.12;
-        --dis-scanline:          rgba(0, 0, 0, 0.015);
-        --dis-grid-line:     rgba(20, 22, 26, 0.05);
-        --dis-glow-a:        rgba(214, 153, 38, 0.12);
-        --dis-glow-b:        rgba(31, 111, 178, 0.06);
-        --dis-shadow:        0 1px 2px rgba(20,22,26,0.05), 0 12px 32px -16px rgba(20,22,26,0.18);
-    }
-}
+/* ---------- Tokens: light (opt-in via the theme toggle only; dark is the default) ---------- */
 :root[data-theme="light"] {
     color-scheme: light;
     --dis-bg:            #f5f4f0;
@@ -174,12 +133,24 @@ html { background: var(--dis-bg); }
 body.dis {
     background: transparent; /* html paints the bg; layers with z-index:-1 must stay visible */
     color: var(--dis-text);
-    font-family: var(--dis-font-sans);
+    font-family: var(--dis-font-body);
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
 }
 .dis ::selection { background: var(--dis-gold-soft); color: var(--dis-text); }
 .dis :focus-visible { outline: 2px solid var(--dis-gold); outline-offset: 2px; }
+/* Form controls do not inherit the font by default (browsers fall back to Arial) */
+:where(.dis) :where(button, input, select, textarea) { font-family: inherit; } /* zero specificity: component fonts still win */
+.dis ::file-selector-button {
+    margin-right: 10px;
+    padding: 6px 12px;
+    border: 1px solid var(--dis-border-strong);
+    border-radius: var(--dis-radius-sm);
+    background: var(--dis-surface-hover);
+    color: var(--dis-text);
+    font: inherit;
+    cursor: pointer;
+}
 
 /* ---------- Backdrop: grid + soft glow, fixed behind everything ---------- */
 .dis-backdrop {
@@ -256,7 +227,7 @@ body.dis {
 .dis-brand-title {
     font-size: 1.05rem;
     font-weight: 650;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     color: var(--dis-text);
     white-space: nowrap;
 }
@@ -340,7 +311,7 @@ body.dis {
     border: 1px solid var(--dis-border-strong);
     background: transparent;
     color: var(--dis-text);
-    font: 500 0.9rem/1 var(--dis-font-sans);
+    font: 500 0.9rem/1 var(--dis-font-body);
     text-decoration: none;
     cursor: pointer;
     transition: background 0.2s var(--dis-ease), border-color 0.2s var(--dis-ease), transform 0.2s var(--dis-ease);

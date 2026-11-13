@@ -101,7 +101,7 @@
                     <details class="collapsible-section">
                         <summary><h2>Quiz Setup</h2></summary>
                         <div style="margin-top: 10px;">
-                            <div style="font-size: 0.8rem; color: var(--dis-text-3); margin-bottom: 5px; font-family: monospace;">> set_difficulty()</div>
+                            <div style="font-size: 0.8rem; color: var(--dis-text-3); margin-bottom: 5px; font-family: var(--dis-font-mono);">> set_difficulty()</div>
                             <div class="mode-toggle-group" style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 20px;">
                                 <button id="diff-auto" class="mode-btn active" style="flex: 1;">⚡ Auto-Adaptiv</button>
                                 <div style="display: flex; gap: 5px; width: 100%;">
@@ -111,7 +111,7 @@
                                 </div>
                             </div>
 
-                            <div style="font-size: 0.8rem; color: var(--dis-text-3); margin-bottom: 5px; font-family: monospace;">> load_modules()</div>
+                            <div style="font-size: 0.8rem; color: var(--dis-text-3); margin-bottom: 5px; font-family: var(--dis-font-mono);">> load_modules()</div>
                             <div style="font-size: 0.8rem; color: var(--dis-text-3); margin-bottom: 5px;">
                                 <label class="category-item" style="padding: 2px 6px;">
                                     <input type="checkbox" id="cat-all" checked>
@@ -288,11 +288,14 @@
                                     <span class="dot red"></span>
                                     <span class="dot yellow"></span>
                                     <span class="dot green"></span>
-                                    <span class="terminal-title">user@linux: ~</span>
+                                    <span class="terminal-title">root@kali: ~</span>
                                 </div>
-                                <div class="terminal-body" style="position: relative;">
-                                    <span class="terminal-prompt">user@linux:~$ </span>
-                                    <textarea id="user-answer" placeholder="Befehl oder Erklärung eingeben..." rows="2" style="padding-right: 40px;"></textarea>
+                                <div class="terminal-body kali-shell" style="position: relative;">
+                                    <div class="kali-line" aria-hidden="true">┌──(<span class="kali-user">root㉿kali</span>)-[<span class="kali-path">~</span>]</div>
+                                    <div class="kali-input">
+                                        <span class="terminal-prompt" aria-hidden="true">└─<span class="kali-hash">#</span></span>
+                                        <textarea id="user-answer" placeholder="Befehl oder Erklärung eingeben..." rows="2"></textarea>
+                                    </div>
                                     <button id="btn-dictate" title="Spracheingabe starten" style="position: absolute; right: 10px; bottom: 10px; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--dis-text-3); transition: color 0.3s;">🎙️</button>
                                 </div>
                             </div>
