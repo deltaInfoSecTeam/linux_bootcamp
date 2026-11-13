@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             modalExams.style.display = 'flex';
             const list = document.getElementById('exams-list');
-            list.innerHTML = '<p style="text-align: center; color: #9ca3af;">Lade Klausuren...</p>';
+            list.innerHTML = '<p style="text-align: center; color: var(--dis-text-2);">Lade Klausuren...</p>';
             
             try {
                 const res = await fetch(API_URL + '/api/exams', {
@@ -193,14 +193,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = await res.json();
                 if (data.success) {
                     if (data.exams.length === 0) {
-                        list.innerHTML = '<p style="text-align: center; color: #9ca3af;">Noch keine Klausuren geschrieben.</p>';
+                        list.innerHTML = '<p style="text-align: center; color: var(--dis-text-2);">Noch keine Klausuren geschrieben.</p>';
                         return;
                     }
                     
                     list.innerHTML = '';
                     data.exams.forEach((ex, index) => {
                         const div = document.createElement('div');
-                        div.style.background = 'rgba(255,255,255,0.05)';
+                        div.style.background = 'var(--dis-surface-hover)';
                         div.style.padding = '15px';
                         div.style.borderRadius = '8px';
                         div.style.marginBottom = '10px';
@@ -214,18 +214,18 @@ document.addEventListener("DOMContentLoaded", () => {
                         
                         div.innerHTML = `
                             <div>
-                                <div style="font-weight: bold; font-size: 1.1em; color: #4ade80;">Klausur Nr.${index + 1} vom ${dateStr}</div>
-                                <div style="color: #9ca3af; font-size: 0.9em; margin-top: 5px;">Punkte: ${Number(ex.score)} / ${Number(ex.max_score)}</div>
+                                <div style="font-weight: bold; font-size: 1.1em; color: var(--dis-matrix);">Klausur Nr.${index + 1} vom ${dateStr}</div>
+                                <div style="color: var(--dis-text-2); font-size: 0.9em; margin-top: 5px;">Punkte: ${Number(ex.score)} / ${Number(ex.max_score)}</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 1.5em; font-weight: bold; color: ${Number(ex.grade) <= 4 ? '#4ade80' : '#ef4444'};">Note: ${Number(ex.grade)}</div>
+                                <div style="font-size: 1.5em; font-weight: bold; color: ${Number(ex.grade) <= 4 ? 'var(--dis-matrix)' : 'var(--dis-danger)'};">Note: ${Number(ex.grade)}</div>
                             </div>
                         `;
                         list.appendChild(div);
                     });
                 }
             } catch (e) {
-                list.innerHTML = '<p style="text-align: center; color: #ef4444;">Fehler beim Laden.</p>';
+                list.innerHTML = '<p style="text-align: center; color: var(--dis-danger);">Fehler beim Laden.</p>';
             }
         });
     }
@@ -390,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.success) {
                 tbody.innerHTML = '';
                 if (data.exams.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9ca3af;">Keine Klausuren vorhanden.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--dis-text-2);">Keine Klausuren vorhanden.</td></tr>';
                     return;
                 }
                 
@@ -401,9 +401,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     row.innerHTML = `
                         <td>${escapeHtml(dateStr)}</td>
-                        <td style="font-weight: bold; color: #60a5fa;">${escapeHtml(ex.username)}</td>
+                        <td style="font-weight: bold; color: var(--dis-info);">${escapeHtml(ex.username)}</td>
                         <td>${Number(ex.score)} / ${Number(ex.max_score)}</td>
-                        <td style="font-weight: bold; color: ${Number(ex.grade) <= 4 ? '#4ade80' : '#ef4444'};">${Number(ex.grade)}</td>
+                        <td style="font-weight: bold; color: ${Number(ex.grade) <= 4 ? 'var(--dis-matrix)' : 'var(--dis-danger)'};">${Number(ex.grade)}</td>
                         <td><button class="mode-btn btn-view-exam" data-id="${Number(ex.id)}" style="padding: 2px 10px; font-size: 0.8em; margin: 0;">Ansehen</button></td>
                     `;
                     tbody.appendChild(row);
@@ -466,9 +466,9 @@ document.addEventListener("DOMContentLoaded", () => {
             tbody.innerHTML = '';
             users.forEach(u => {
                 const tr = document.createElement('tr');
-                tr.style.borderBottom = '1px solid #222';
+                tr.style.borderBottom = '1px solid var(--dis-border-strong)';
                 const status = u.is_banned ? '<span style="color:red;">Gesperrt</span>' : '<span style="color:green;">Aktiv</span>';
-                const role = u.is_admin ? '<span style="color:#4ade80;">Admin</span>' : '<span style="color:#ef4444;">User</span>';
+                const role = u.is_admin ? '<span style="color:var(--dis-matrix);">Admin</span>' : '<span style="color:var(--dis-danger);">User</span>';
                 
                 const banBtnClass = u.is_banned ? 'btn-primary btn-sm' : 'btn-secondary btn-sm';
                 
@@ -575,12 +575,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 data.leaderboard.forEach(u => {
                     const tr = document.createElement('tr');
                     const isMe = currentUser && currentUser.username === u.username;
-                    tr.style.backgroundColor = isMe ? 'rgba(74, 222, 128, 0.1)' : 'transparent';
+                    tr.style.backgroundColor = isMe ? 'color-mix(in srgb, var(--dis-matrix) 10%, transparent)' : 'transparent';
                     tr.innerHTML = `
-                        <td style="padding: 10px; border-bottom: 1px solid #444;">#${Number(u.rank)}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #444; font-weight: ${isMe ? 'bold' : 'normal'}; color: ${u.is_admin ? '#a855f7' : 'inherit'}">${escapeHtml(u.username)} ${isMe ? '(Du)' : ''}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #444;">${Number(u.xp)} XP</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #444;">🔥 ${Number(u.streak)}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid var(--dis-border-strong);">#${Number(u.rank)}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid var(--dis-border-strong); font-weight: ${isMe ? 'bold' : 'normal'}; color: ${u.is_admin ? 'var(--dis-gold)' : 'inherit'}">${escapeHtml(u.username)} ${isMe ? '(Du)' : ''}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid var(--dis-border-strong);">${Number(u.xp)} XP</td>
+                        <td style="padding: 10px; border-bottom: 1px solid var(--dis-border-strong);">🔥 ${Number(u.streak)}</td>
                     `;
                     tbody.appendChild(tr);
                 });

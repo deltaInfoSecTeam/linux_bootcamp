@@ -1,10 +1,17 @@
-const CACHE_NAME = 'linux-bootcamp-v175';
+const CACHE_NAME = 'linux-bootcamp-v176';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './generator.html',
   './manifest.json',
+  './css/brand.css',
   './css/styles.css',
+  './js/theme.js',
+  './js/brand.js',
+  './fonts/jetbrains-mono-latin-var.woff2',
+  './img/brand/wappen.svg',
+  './img/brand/icon-192.png',
+  './img/brand/icon-512.png',
   './js/boot.js',
   './js/auth.js',
   './js/core.js',
@@ -14,13 +21,6 @@ const ASSETS_TO_CACHE = [
   './js/stats.js',
   './js/main.js',
   './js/generator.js',
-  './img/favicon.jpg',
-  './img/wappen.png',
-  './img/tux_army_avatar.png',
-  './img/drill_tutor_tux.jpg',
-  './img/tux_aap_logo.png',
-  './img/tux_passport.jpg',
-  './img/fbi_penguin_logo.jpg',
   './img/ranks/Schuetze.svg',
   './img/ranks/Gefreiter.svg',
   './img/ranks/Obergefreiter.svg',
@@ -79,6 +79,21 @@ self.addEventListener('fetch', (event) => {
   const reqUrl = new URL(event.request.url);
   if (event.request.method !== 'GET' || reqUrl.origin !== self.location.origin || reqUrl.pathname.startsWith('/api/')) {
       return;
+  }
+
+  // Corporate-design assets (crest, brand CSS/JS): network first, so a swapped
+  // crest shows up without a cache version bump; cache stays the offline fallback.
+  if (reqUrl.pathname.includes('/img/brand/') || /\/(css|js)\/brand\.(css|js)$/.test(reqUrl.pathname)) {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
   }
 
   event.respondWith(
