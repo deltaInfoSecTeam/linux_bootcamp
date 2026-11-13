@@ -1609,3 +1609,37 @@ body.is-admin .admin-only { display: block !important; }
     caret-color: var(--dis-text);
 }
 .kali-shell textarea#user-answer:focus { background: transparent; box-shadow: none; border: 0; }
+
+/* --- Header stats: one compact row inside the brand bar --- */
+.app-header .quick-stats { gap: 8px; align-items: center; overflow: hidden; scrollbar-width: none; }
+.app-header .quick-stats::-webkit-scrollbar { display: none; }
+.app-header .stat-bubble,
+.app-header .modern-stat-panel,
+.app-header .player-profile {
+    height: 44px;
+    min-height: 0;
+    padding: 0 12px;
+    border-radius: var(--dis-radius-md);
+    box-shadow: none;
+}
+.app-header .stat-bubble { min-width: 0; align-items: flex-start; }
+.app-header .stat-label,
+.app-header .m-label,
+.app-header .modern-stat-panel .stat-header {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dis-text-3);
+    line-height: 1.2;
+}
+.app-header .stat-number,
+.app-header .m-val { font-size: 0.88rem; font-weight: 600; line-height: 1.3; }
+.app-header .modern-stat-panel { flex-direction: row; align-items: center; gap: 12px; min-width: 0; }
+.app-header .modern-stat-panel .stat-header { border: 0; padding: 0; margin: 0; }
+.app-header .stat-metrics { gap: 12px; }
+.app-header .metric { align-items: flex-start; }
+@media (max-width: 1440px) {
+    /* keep rank, level, streak and today; drop session time and total */
+    .app-header .quick-stats > :nth-child(4),
+    .app-header .quick-stats > :nth-child(5) { display: none; }
+}
