@@ -159,11 +159,11 @@ function updateStatsUI() {
         if (dailyAnswered === 0) {
             elDailyP.style.color = 'var(--text-color)';
         } else if (dailyAccuracy === 100) {
-            elDailyP.style.color = '#4ade80'; // Green
+            elDailyP.style.color = 'var(--dis-matrix)'; // Green
         } else if (dailyAccuracy >= 70) {
-            elDailyP.style.color = '#eab308'; // Yellow
+            elDailyP.style.color = 'var(--dis-warn)'; // Yellow
         } else {
-            elDailyP.style.color = '#ef4444'; // Red
+            elDailyP.style.color = 'var(--dis-danger)'; // Red
         }
     }
     
@@ -204,8 +204,8 @@ function updateDifficultyUI() {
         el.diffBubbleVal.textContent = text;
         
         el.diffBubble.style.borderColor = 
-            state.currentDifficulty === 'leicht' ? '#4ade80' : 
-            state.currentDifficulty === 'mittel' ? '#eab308' : '#ef4444';
+            state.currentDifficulty === 'leicht' ? 'var(--dis-matrix)' : 
+            state.currentDifficulty === 'mittel' ? 'var(--dis-warn)' : 'var(--dis-danger)';
         el.diffBubbleVal.style.color = el.diffBubble.style.borderColor;
     }
 }
@@ -235,7 +235,7 @@ function handleRating(pointsSelf, pointsAI, isFlagged = false) {
     
     if (last !== today) {
         state.stats.streak += 1;
-        showToast(`Tägliche Serie aktiv! ${state.stats.streak} Tage 🔥`, 'success');
+        showToast(`Tägliche Serie aktiv: ${state.stats.streak} Tage`, 'success');
     }
     
     state.stats.lastPlayed = new Date().getTime();
@@ -299,7 +299,7 @@ function handleRating(pointsSelf, pointsAI, isFlagged = false) {
     }
     
     if (isFlagged) {
-        showToast("🚩 Frage zum Nachlernen markiert. (Gewertet mit " + pointsSelf + " Pt)", "warning");
+        showToast("Frage zum Nachlernen markiert. (Gewertet mit " + pointsSelf + " Pt)", "warning");
     } else {
         showToast("Gewertet: Du " + pointsSelf + " | KI " + pointsAI, 'info');
     }

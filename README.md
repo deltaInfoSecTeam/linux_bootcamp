@@ -1,26 +1,40 @@
 <div align="center">
-  <img src="public/img/favicon.jpg" alt="Linux Bootcamp Logo" width="150" style="border-radius: 50%;">
-  
-  # Linux Bootcamp PWA
-  
-  **Eine interaktive, KI-gestützte Lernplattform (Progressive Web App) für angehende Linux-Administratoren.** <br>
-  *Lerne Kommandozeilen, Konfigurationen und Server-Basics spielerisch durch ein XP- und Ränge-System.*
+
+<img src="docs/brand/readme-banner.svg" alt="Linux Bootcamp – deltaInfoSec Training" width="100%">
+
+<br>
+
+**Interaktive, KI-gestützte Lernplattform (PWA) für angehende Linux-Administratoren.**<br>
+<sub>Kommandozeile, Konfiguration und Server-Grundlagen. Mit XP, Rängen und Klausur-Modus.</sub>
+
+<br>
+
+[`Features`](#01-features) · [`Installation`](#02-installation--deployment) · [`Struktur`](#03-projektstruktur) · [`Corporate Design`](#04-corporate-design) · [`Sicherheit`](#05-sicherheit) · [`KI`](#07-ki-integration-einrichten)
+
 </div>
 
----
+<br>
 
-## Features
-
-- **KI-Tutor Integration:** Verknüpfbar mit Google Gemini, OpenAI oder lokalen LLMs (Ollama), um falsch beantwortete Fragen detailliert und verständlich im "Ausbilder-Ton" zu erklären.
-- **Klausur-Modus:** Simuliert eine echte IHK-Prüfungssituation (45 Minuten Timer, 24 Fragen quer durch alle Kategorien, automatische Notenberechnung von 1 bis 6).
-- **Gamification & Ränge:** Sammle XP durch korrekte Antworten, halte deine Streak und steige im Dienstgrad auf (von *Schütze* bis *General* – basierend auf den Bundeswehr-Dienstgraden).
-- **Progressive Web App (PWA):** Kann als native App auf Android, iOS oder dem Desktop installiert werden. Funktioniert auch bei schlechter Internetverbindung dank Service Worker Caching.
-- **Admin-Konsole:** Integriertes Lehrer-Pult zur Verwaltung von Benutzern, Rechten und zur Einsicht aller absolvierten Schüler-Klausuren.
-- **Docker-Ready:** Vollständig isoliertes Setup für sekundenschnelles Deployment auf jedem Linux-Server.
+<p align="center">
+  <img src="docs/brand/screenshot-quiz.png" alt="Quiz-Ansicht im deltaInfoSec Corporate Design" width="100%">
+</p>
 
 ---
 
-## Installation & Deployment
+## `01` Features
+
+| Modul | Beschreibung |
+|---|---|
+| **KI-Tutor** | Erklärt falsch beantwortete Fragen ausführlich im Ausbilder-Ton. Anbindung an Google Gemini, OpenAI, Groq, xAI, Together oder ein lokales Ollama. |
+| **Klausur-Modus** | Simuliert eine IHK-Prüfung: 45 Minuten, 24 Fragen quer durch alle Kategorien, Note 1 bis 6. |
+| **Ränge** | XP für richtige Antworten, Streaks und Dienstgrade von *Schütze* bis *General* (angelehnt an die Bundeswehr). |
+| **PWA** | Installierbar auf Android, iOS und Desktop. Läuft dank Service Worker auch bei schlechter Verbindung. |
+| **Admin-Konsole** | Benutzer und Rechte verwalten, alle abgelegten Klausuren einsehen, Inhalte pflegen. |
+| **Docker** | Isoliertes Setup, das mit einem Skript auf jedem Linux-Server läuft. |
+
+---
+
+## `02` Installation & Deployment
 
 ### Voraussetzungen
 - Ein Linux mit apt (Debian, Ubuntu, Raspberry Pi OS, Kali), `git` und `sudo`
@@ -157,7 +171,7 @@ npm start
 
 ---
 
-## Projektstruktur
+## `03` Projektstruktur
 
 ```
 ├── server/            Backend (Express)
@@ -169,10 +183,13 @@ npm start
 │   ├── middleware/    auth, rateLimit, security (CSP & Header)
 │   └── routes/        auth, admin, user, proxy
 ├── public/            Frontend – nur dieser Ordner wird ausgeliefert
-│   ├── index.html  generator.html  manifest.json  sw.js
-│   ├── css/  img/
-│   └── js/            boot, auth, core, questions, quiz, llm, stats, main, generator
+│   ├── index.html  generator.html  manifest.json  sw.js  BRAND_VERSION
+│   ├── css/           brand.css (Corporate Design), styles.css (App)
+│   ├── fonts/         JetBrains Mono (selbst gehostet, SIL OFL)
+│   ├── img/brand/     wappen.svg (zentrales Wappen), App-Icons
+│   └── js/            theme, brand, boot, auth, core, questions, quiz, llm, stats, main, generator
 ├── scripts/           install.sh, tls.sh, create-admin.js, healthcheck.js
+├── docs/brand/        README-Banner, Screenshot
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)
 ├── data/              Laufzeitdaten (gitignored)
 ├── Dockerfile  docker-compose.yml  .env.example
@@ -180,30 +197,59 @@ npm start
 
 ---
 
-## Sicherheit
+## `04` Corporate Design
+
+Das Bootcamp nutzt das einheitliche deltaInfoSec Corporate Design. Die Designschicht wird zentral gepflegt und unverändert übernommen; welcher Stand eingebaut ist, steht in `public/BRAND_VERSION`. Die dort aufgeführten Dateien werden in diesem Projekt **nicht** bearbeitet. Änderungen am Design passieren zentral und werden danach neu eingespielt.
+
+| Element | Vorgabe |
+|---|---|
+| Wappen | immer sichtbar oben links in der Kopfleiste, gezeichnet aus `public/img/brand/wappen.svg` |
+| Wortmarke | `delta`**`InfoSec`** mit goldenem Delta-Dreieck davor |
+| Schrift | JetBrains Mono für alles, selbst gehostet |
+| Layout | volle Fensterbreite: Kopfleiste mit Kennzahlen, Seitenleiste, Arbeitsbereich |
+| Hintergrund | Graphit `#0a0c10`, feines Raster, langsam drehender Netzglobus mit Lichtbögen, Wappen als Wasserzeichen |
+| Farben | Wappen-Gold `#d69926`, UI-Gold `#e2a83a`, Matrix-Grün `#3fd68a` für Technik und Status |
+| Status | Statusmarken `[ OK ]` `[ !! ]` `[ FAIL ]` statt Emojis |
+| Terminal | Root-Shell-Prompt `┌──(root㉿kali)-[~]` / `└─#` |
+| Modus | Dunkel ist Standard, Hell nur per Knopf; alle Animationen entfallen bei „Bewegung reduzieren“ |
+| Ton | ruhig und technisch; keine Maskottchen, keine Effekthascherei |
+
+| Datei | Inhalt |
+|---|---|
+| `public/css/brand.css` | Farben, Schrift, Layout und alle `dis-*`-Bausteine |
+| `public/js/brand.js` | Netzglobus, Seitenleisten-Knopf, Einpassen der Kennzahlen, Text-Effekte |
+| `public/js/theme.js` | Umschalter Hell/Dunkel |
+| `public/fonts/`, `public/img/brand/` | Schrift, Wappen, App-Icons |
+| `public/css/styles.css` | nur die app-eigenen Teile des Bootcamps |
+
+Der Service Worker lädt Wappen und Design-Dateien immer zuerst aus dem Netz, ein neuer Design-Stand kommt also ohne Versionssprung an.
+
+---
+
+## `05` Sicherheit
 
 - Ausgeliefert wird nur `public/`. Datenbank, Secrets und Server-Code sind nicht über HTTP erreichbar.
 - Passwörter werden mit bcrypt gehasht, Recovery-Codes mit HMAC. Gespeicherte LLM-API-Keys sind mit AES-256-GCM verschlüsselt.
 - Nach Passwortwechsel, Sperre oder Rechteänderung werden alle JWTs des Nutzers ungültig.
-- Eine strikte Content-Security-Policy (`script-src 'self'`) verhindert Inline-Skripte.
+- Eine strikte Content-Security-Policy (`script-src 'self'`, Schriften nur vom eigenen Server) verhindert Inline-Skripte und Fremdeinbindungen.
 - Der LLM-Proxy erreicht nur Gemini, OpenAI und die in `OLLAMA_URL` eingetragene Adresse.
 - Der Container läuft ohne root, mit schreibgeschütztem Dateisystem und ohne Capabilities.
 
 ---
 
-## Technologie-Stack
+## `06` Technologie-Stack
 
-- **Frontend:** Vanilla JavaScript, HTML5, CSS3 (Kein Framework-Overhead!)
+- **Frontend:** Vanilla JavaScript, HTML5, CSS3, ohne Framework
 - **Backend:** Node.js, Express
-- **Datenbank:** SQLite (`bootcamp.db` – extrem portabel und leichtgewichtig)
+- **Datenbank:** SQLite (`bootcamp.db`, portabel und leichtgewichtig)
 - **Authentifizierung:** JWT (JSON Web Tokens) & Bcrypt
 - **Architektur:** Client-Server, PWA (Manifest & Service Worker)
 
 ---
 
-## KI-Integration einrichten
+## `07` KI-Integration einrichten
 
-Im Menü unter **"Einstellungen"** kannst du deinen bevorzugten LLM-Anbieter auswählen:
+In der Seitenleiste unter **KI-Bewertung (API)** wählst du den LLM-Anbieter:
 1. **Google Gemini (Empfohlen):** Füge deinen Gemini API Key ein.
 2. **OpenAI:** Nutze `gpt-6-luna` oder ähnliche Modelle mit deinem OpenAI Key.
 3. **Groq Cloud:** Kostenloser Zugang mit Rate-Limits, Schlüssel unter console.groq.com. Voreingestellt ist `openai/gpt-oss-120b`.
@@ -211,6 +257,13 @@ Im Menü unter **"Einstellungen"** kannst du deinen bevorzugten LLM-Anbieter aus
 
 ---
 
-## Lizenz
+## `08` Lizenz
 
 Dieses Projekt ist Open-Source und für Bildungszwecke konzipiert.
+
+<br>
+
+<div align="center">
+  <img src="public/img/brand/wappen.svg" alt="Wappen" width="44"><br>
+  <sub><code>&gt; deltaInfoSec · Linux Bootcamp</code></sub>
+</div>

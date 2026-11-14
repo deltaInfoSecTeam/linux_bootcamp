@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" role="img" aria-label="deltaInfoSec Wappen">
+  <defs><clipPath id="dis-crest-clip"><path d="M30 26 Q150 4 270 26 Q290 30 288 52 C286 190 236 306 150 392 C64 306 14 190 12 52 Q10 30 30 26Z"/></clipPath></defs>
+  <path d="M30 26 Q150 4 270 26 Q290 30 288 52 C286 190 236 306 150 392 C64 306 14 190 12 52 Q10 30 30 26Z" fill="#d69926"/>
+  <g clip-path="url(#dis-crest-clip)"><path d="M-20 -45 L330 347 L300 398 L-60 -5Z" fill="#1a1919"/><g transform="translate(-4 -5)"><path d="M146 129 L138 124 L151 119 L140 106 L154 101 L145 88 L159 84 L152 72 C166 52 190 42 214 42 C236 42 248 48 254 54 C266 54 278 62 282 76 C285 90 280 102 271 110 L271 100 L265 96 C257 100 248 104 238 106 C236 130 240 160 254 186 C266 206 284 214 300 220 L300 301 Z" fill="#1a1919"/></g></g>
+  <path d="M30 26 Q150 4 270 26 Q290 30 288 52 C286 190 236 306 150 392 C64 306 14 190 12 52 Q10 30 30 26Z" fill="none" stroke="#1a1919" stroke-width="10" stroke-linejoin="round"/>
+</svg>

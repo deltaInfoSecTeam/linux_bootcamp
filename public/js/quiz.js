@@ -55,12 +55,12 @@ function initCategories() {
         const summary = document.createElement('summary');
         summary.style.cursor = 'pointer';
         summary.style.padding = '8px';
-        summary.style.background = 'rgba(0,0,0,0.2)';
+        summary.style.background = 'var(--dis-bg-elev)';
         summary.style.borderRadius = '4px';
         summary.style.marginBottom = '4px';
         summary.style.fontWeight = 'bold';
-        summary.style.fontFamily = 'monospace';
-        summary.style.color = '#4ade80';
+        summary.style.fontFamily = 'var(--dis-font-mono)';
+        summary.style.color = 'var(--dis-matrix)';
 
         const groupCheckbox = document.createElement('input');
         groupCheckbox.type = 'checkbox';
@@ -78,7 +78,7 @@ function initCategories() {
         childrenContainer.style.display = 'flex';
         childrenContainer.style.flexDirection = 'column';
         childrenContainer.style.gap = '2px';
-        childrenContainer.style.borderLeft = '2px solid #1f3a1f';
+        childrenContainer.style.borderLeft = '2px solid var(--dis-border)';
         childrenContainer.style.marginLeft = '12px';
         childrenContainer.style.marginTop = '4px';
         groupElement.appendChild(childrenContainer);
@@ -271,7 +271,7 @@ function validateAnswer(q, input) {
     if (!input) {
         return {
             rating: 'wrong',
-            text: '⚠️ **Keine Antwort eingegeben.** Du hast das Textfeld leer gelassen.'
+            text: '<span class="dis-mark dis-mark--warn">!!</span> <strong>Keine Antwort eingegeben.</strong> Du hast das Textfeld leer gelassen.'
         };
     }
 
@@ -293,7 +293,7 @@ function validateAnswer(q, input) {
         if (isCorrect) {
             return {
                 rating: 'correct',
-                text: '🎯 **Hervorragend!** Dein Befehl stimmt exakt mit der Lösung überein.'
+                text: '<span class="dis-mark dis-mark--ok">OK</span> <strong>Hervorragend.</strong> Dein Befehl stimmt exakt mit der Lösung überein.'
             };
         } else {
             // Finde den ersten Befehlsnamen
@@ -304,12 +304,12 @@ function validateAnswer(q, input) {
             if (hasCommandName) {
                 return {
                     rating: 'partial',
-                    text: `⚠️ **Teilweise korrekt.** Du hast den richtigen Befehl (\`${cmdName}\`) verwendet, aber die Parameter oder Pfade weichen ab. Vergleiche deine Eingabe mit der Musterlösung.`
+                    text: `<span class="dis-mark dis-mark--warn">!!</span> <strong>Teilweise korrekt.</strong> Du hast den richtigen Befehl (\`${cmdName}\`) verwendet, aber die Parameter oder Pfade weichen ab. Vergleiche deine Eingabe mit der Musterlösung.`
                 };
             } else {
                 return {
                     rating: 'wrong',
-                    text: '❌ **Nicht korrekt.** Dein Befehl unterscheidet sich deutlich von der empfohlenen Syntax.'
+                    text: '<span class="dis-mark dis-mark--fail">FAIL</span> <strong>Nicht korrekt.</strong> Dein Befehl unterscheidet sich deutlich von der empfohlenen Syntax.'
                 };
             }
         }
@@ -348,21 +348,21 @@ function validateAnswer(q, input) {
         
         if (matchedCount >= 3 || (totalCount < 3 && matchedCount >= totalCount)) {
             rating = 'correct';
-            ratingText = '🎯 **Super!** Du hast die wichtigsten Kernbegriffe in deiner Erklärung genannt.';
+            ratingText = '<span class="dis-mark dis-mark--ok">OK</span> <strong>Super.</strong> Du hast die wichtigsten Kernbegriffe in deiner Erklärung genannt.';
         } else if (matchedCount >= 1) {
             rating = 'partial';
-            ratingText = '⚠️ **Guter Ansatz.** Du hast einige wichtige Aspekte genannt, aber es fehlen noch wichtige Details.';
+            ratingText = '<span class="dis-mark dis-mark--warn">!!</span> <strong>Guter Ansatz.</strong> Du hast einige wichtige Aspekte genannt, aber es fehlen noch wichtige Details.';
         } else {
             rating = 'wrong';
-            ratingText = '❌ **Wiederholen.** Deine Antwort enthält leider keinen der erwarteten Kernbegriffe.';
+            ratingText = '<span class="dis-mark dis-mark--fail">FAIL</span> <strong>Wiederholen.</strong> Deine Antwort enthält leider keinen der erwarteten Kernbegriffe.';
         }
         
         let tagsHtml = '<div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">';
         matched.forEach(kw => {
-            tagsHtml += `<span class="keyword-tag matched">✓ ${escapeHtml(kw)}</span>`;
+            tagsHtml += `<span class="keyword-tag matched">+ ${escapeHtml(kw)}</span>`;
         });
         unmatched.forEach(kw => {
-            tagsHtml += `<span class="keyword-tag unmatched">✗ ${escapeHtml(kw)}</span>`;
+            tagsHtml += `<span class="keyword-tag unmatched">- ${escapeHtml(kw)}</span>`;
         });
         tagsHtml += '</div>';
         
