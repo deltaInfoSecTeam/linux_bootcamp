@@ -48,15 +48,7 @@ body {
     overflow-x: hidden;
 }
 
-.app-container {
-    width: 100%;
-    max-width: 1280px;
-    margin: 0 auto;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-}
+/* Page width: .dis-shell / .dis-layout from css/brand.css (full window width) */
 
 /* Header: layout comes from .dis-bar (css/brand.css) */
 .app-header .quick-stats { min-width: 0; }
@@ -148,13 +140,8 @@ body {
     transition: color 0.3s;
 }
 
-/* Layout Grid */
-.app-layout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 24px;
-    flex-grow: 1;
-}
+/* Layout grid comes from .dis-layout (css/brand.css) */
+.app-layout { flex-grow: 1; }
 
 /* Sidebar */
 .app-sidebar {

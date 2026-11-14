@@ -182,7 +182,7 @@ async function revealAnswer(e) {
             el.feedbackContainer.classList.add('info');
             el.feedbackBadge.className = 'feedback-badge info';
             el.feedbackBadge.textContent = isIdk ? 'KI erklärt...' : 'KI analysiert...';
-            el.feedbackDetails.innerHTML = '<span class="loading-spinner">🔄</span> Bitte warten, LLM verarbeitet...';
+            el.feedbackDetails.innerHTML = '<span class="dis-mark dis-mark--info">..</span> Bitte warten, LLM verarbeitet<span class="dis-cursor"></span>';
             
             try {
                 const apiResponse = await callLLMAPI(q.question, q.answer, input, state.llmConfig, isIdk);
@@ -199,7 +199,7 @@ async function revealAnswer(e) {
         } else {
             result = validateAnswer(q, input);
             if (state.llmConfig.url !== 'offline') {
-                result.text += `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; border-top: 1px dashed var(--bg-card-border); padding-top: 8px;">💡 Tipp: Trage ein LLM in der Sidebar ein, um eine detaillierte KI-Auswertung deiner Antworten zu erhalten.</p>`;
+                result.text += `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; border-top: 1px dashed var(--bg-card-border); padding-top: 8px;"><span class="dis-mark dis-mark--info">ii</span> Tipp: Trage ein LLM in der Sidebar ein, um eine detaillierte KI-Auswertung deiner Antworten zu erhalten.</p>`;
             }
         }
         

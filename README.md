@@ -183,13 +183,13 @@ npm start
 │   ├── middleware/    auth, rateLimit, security (CSP & Header)
 │   └── routes/        auth, admin, user, proxy
 ├── public/            Frontend – nur dieser Ordner wird ausgeliefert
-│   ├── index.html  generator.html  manifest.json  sw.js
+│   ├── index.html  generator.html  manifest.json  sw.js  BRAND_VERSION
 │   ├── css/           brand.css (Corporate Design), styles.css (App)
 │   ├── fonts/         JetBrains Mono (selbst gehostet, SIL OFL)
 │   ├── img/brand/     wappen.svg (zentrales Wappen), App-Icons
 │   └── js/            theme, brand, boot, auth, core, questions, quiz, llm, stats, main, generator
-├── scripts/           install.sh, tls.sh, brand-icons.sh, create-admin.js, healthcheck.js
-├── docs/brand/        README-Banner (Vorlage + erzeugt), Screenshot
+├── scripts/           install.sh, tls.sh, create-admin.js, healthcheck.js
+├── docs/brand/        README-Banner, Screenshot
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)
 ├── data/              Laufzeitdaten (gitignored)
 ├── Dockerfile  docker-compose.yml  .env.example
@@ -199,51 +199,30 @@ npm start
 
 ## `04` Corporate Design
 
-Alle Seiten nutzen dieselbe Designschicht aus `public/css/brand.css` (Farben, Schriften, Kopfleiste, Hintergrund, Animationen) und `public/js/brand.js` (Matrix-Hintergrund, Text-Effekte). Standard ist das dunkle Design, unabhängig von der Systemeinstellung; ein helles lässt sich per Knopf wählen und wird gemerkt (`public/js/theme.js`). Alle Animationen entfallen bei „Bewegung reduzieren“.
+Das Bootcamp nutzt das einheitliche deltaInfoSec Corporate Design. Die Designschicht wird zentral gepflegt und unverändert übernommen; welcher Stand eingebaut ist, steht in `public/BRAND_VERSION`. Die dort aufgeführten Dateien werden in diesem Projekt **nicht** bearbeitet. Änderungen am Design passieren zentral und werden danach neu eingespielt.
 
 | Element | Vorgabe |
 |---|---|
-| Wappen | `public/img/brand/wappen.svg`, immer sichtbar oben links in der Kopfleiste |
+| Wappen | immer sichtbar oben links in der Kopfleiste, gezeichnet aus `public/img/brand/wappen.svg` |
+| Wortmarke | `delta`**`InfoSec`** mit goldenem Delta-Dreieck davor |
 | Schrift | JetBrains Mono für alles, selbst gehostet |
-| Hintergrund | Graphit `#0a0c10`, feines Raster, Matrix-Regen nur am Rand |
-| Akzent | Wappen-Gold `#e2a83a` |
-| Technik | Matrix-Grün `#3fd68a` für Labels (`> …`), Prompts und Status |
+| Layout | volle Fensterbreite: Kopfleiste mit Kennzahlen, Seitenleiste, Arbeitsbereich |
+| Hintergrund | Graphit `#0a0c10`, feines Raster, langsam drehender Netzglobus mit Lichtbögen, Wappen als Wasserzeichen |
+| Farben | Wappen-Gold `#d69926`, UI-Gold `#e2a83a`, Matrix-Grün `#3fd68a` für Technik und Status |
+| Status | Statusmarken `[ OK ]` `[ !! ]` `[ FAIL ]` statt Emojis |
 | Terminal | Root-Shell-Prompt `┌──(root㉿kali)-[~]` / `└─#` |
+| Modus | Dunkel ist Standard, Hell nur per Knopf; alle Animationen entfallen bei „Bewegung reduzieren“ |
 | Ton | ruhig und technisch; keine Maskottchen, keine Effekthascherei |
 
-### Wappen austauschen
+| Datei | Inhalt |
+|---|---|
+| `public/css/brand.css` | Farben, Schrift, Layout und alle `dis-*`-Bausteine |
+| `public/js/brand.js` | Netzglobus, Seitenleisten-Knopf, Einpassen der Kennzahlen, Text-Effekte |
+| `public/js/theme.js` | Umschalter Hell/Dunkel |
+| `public/fonts/`, `public/img/brand/` | Schrift, Wappen, App-Icons |
+| `public/css/styles.css` | nur die app-eigenen Teile des Bootcamps |
 
-Das Wappen liegt an genau einer Stelle: `public/img/brand/wappen.svg`. Alle Seiten zeichnen es über CSS daraus (Kopfleiste, Seitenleiste, Dialoge, Wasserzeichen, Glanzeffekt).
-
-1. `public/img/brand/wappen.svg` durch das neue Wappen ersetzen (SVG, transparenter Hintergrund).
-2. Hat es andere Proportionen, in `public/css/brand.css` den Wert `--dis-crest-ratio` (Breite / Höhe) anpassen.
-3. App-Icons und README-Banner neu erzeugen: `./scripts/brand-icons.sh`
-
-Der Service Worker lädt Wappen und Design-Dateien immer zuerst aus dem Netz, installierte Apps sehen das neue Wappen also ohne Versionssprung.
-
-### Design in einer neuen Seite nutzen
-
-Eine neue Seite bekommt das Corporate Design mit diesen Zeilen:
-
-```html
-<head>
-  <script src="js/theme.js"></script>
-  <link rel="stylesheet" href="css/brand.css">
-  <script src="js/brand.js" defer></script>
-</head>
-<body class="dis">
-  <div class="dis-backdrop" aria-hidden="true"></div>
-  <canvas class="dis-rain" aria-hidden="true"></canvas>
-  <header class="dis-bar">
-    <a class="dis-brand" href="./">
-      <span class="dis-crest" role="img" aria-label="Wappen"></span>
-      <span class="dis-brand-text"><span class="dis-brand-title">Titel</span></span>
-    </a>
-  </header>
-</body>
-```
-
-Farben und Schriften stehen als CSS-Variablen (`--dis-*`) in `brand.css` bereit.
+Der Service Worker lädt Wappen und Design-Dateien immer zuerst aus dem Netz, ein neuer Design-Stand kommt also ohne Versionssprung an.
 
 ---
 

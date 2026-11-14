@@ -580,7 +580,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <td style="padding: 10px; border-bottom: 1px solid var(--dis-border-strong);">#${Number(u.rank)}</td>
                         <td style="padding: 10px; border-bottom: 1px solid var(--dis-border-strong); font-weight: ${isMe ? 'bold' : 'normal'}; color: ${u.is_admin ? 'var(--dis-gold)' : 'inherit'}">${escapeHtml(u.username)} ${isMe ? '(Du)' : ''}</td>
                         <td style="padding: 10px; border-bottom: 1px solid var(--dis-border-strong);">${Number(u.xp)} XP</td>
-                        <td style="padding: 10px; border-bottom: 1px solid var(--dis-border-strong);">🔥 ${Number(u.streak)}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid var(--dis-border-strong);">${Number(u.streak)}</td>
                     `;
                     tbody.appendChild(tr);
                 });

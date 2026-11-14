@@ -235,7 +235,7 @@ function handleRating(pointsSelf, pointsAI, isFlagged = false) {
     
     if (last !== today) {
         state.stats.streak += 1;
-        showToast(`Tägliche Serie aktiv! ${state.stats.streak} Tage 🔥`, 'success');
+        showToast(`Tägliche Serie aktiv: ${state.stats.streak} Tage`, 'success');
     }
     
     state.stats.lastPlayed = new Date().getTime();
@@ -299,7 +299,7 @@ function handleRating(pointsSelf, pointsAI, isFlagged = false) {
     }
     
     if (isFlagged) {
-        showToast("🚩 Frage zum Nachlernen markiert. (Gewertet mit " + pointsSelf + " Pt)", "warning");
+        showToast("Frage zum Nachlernen markiert. (Gewertet mit " + pointsSelf + " Pt)", "warning");
     } else {
         showToast("Gewertet: Du " + pointsSelf + " | KI " + pointsAI, 'info');
     }

@@ -15,7 +15,7 @@
 </head>
 <body class="dis">
     <div class="dis-backdrop" aria-hidden="true"></div>
-    <canvas class="dis-rain" aria-hidden="true"></canvas>
+    <canvas class="dis-globe" aria-hidden="true"></canvas>
     <div class="dis-scanlines" aria-hidden="true"></div>
 
     <header class="app-header dis-bar">
@@ -33,10 +33,10 @@
         </div>
     </header>
 
-    <div class="app-container">
+    <div class="dis-shell">
         <!-- Main Layout -->
-        <div class="app-layout" style="display: block;">
-            <main class="app-main" style="max-width: 800px; margin: 0 auto; padding-top: 20px;">
+        <div class="app-layout dis-layout dis-layout--no-sidebar">
+            <main class="app-main dis-main">
                 <div class="quiz-card">
                     <div class="card-inner">
                         <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--bg-card-border); padding-bottom: 15px; margin-bottom: 20px;">
@@ -61,7 +61,7 @@
                         <div class="form-group" style="margin-bottom: 30px;">
                             <label style="display: block; font-weight: 600; color: var(--dis-text); margin-bottom: 8px;">Kategorie für neue Fragen</label>
                             <select id="gen-category-select" style="width: 100%; padding: 12px; border-radius: 4px; background: var(--dis-bg); color: var(--dis-text); border: 1px solid var(--bg-card-border); margin-bottom: 10px;">
-                                <option value="new">-- ✨ Neues Modul erstellen --</option>
+                                <option value="new">-- Neues Modul erstellen --</option>
                             </select>
                             <div id="gen-new-category-container" style="display: flex; flex-direction: column; gap: 10px;">
                                 <input type="text" id="gen-new-category-name" placeholder="Modul (z.B. linux.security)" style="width: 100%; padding: 12px; border-radius: 4px; background: var(--dis-bg); color: var(--dis-text); border: 1px solid var(--bg-card-border);">
@@ -81,7 +81,7 @@
     </div>
     
     <footer class="dis-footer">
-        <span class="dis-wordmark"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M16 4 29 27H3Z"/><path d="M16 13.5 22.2 24H9.8Z" stroke-width="1.6" opacity=".55"/></svg><span class="dis-cursor">delta<b>InfoSec</b></span></span>
+        <span class="dis-wordmark"><span class="dis-cursor">delta<b>InfoSec</b></span></span>
         <span>Linux Bootcamp · Training für Administratoren</span>
     </footer>
 

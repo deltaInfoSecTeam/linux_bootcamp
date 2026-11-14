@@ -192,14 +192,15 @@ function parseMarkdown(text) {
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    let icon = 'ℹ️';
-    if (type === 'success') icon = '✅';
-    if (type === 'warning') icon = '⚠️';
-    if (type === 'danger' || type === 'error') icon = '❌';
-    
+    // Status mark instead of an emoji (deltaInfoSec CD: .dis-mark)
+    let mark = ['info', 'ii'];
+    if (type === 'success') mark = ['ok', 'OK'];
+    if (type === 'warning') mark = ['warn', '!!'];
+    if (type === 'danger' || type === 'error') mark = ['fail', 'FAIL'];
+
     const iconEl = document.createElement('span');
-    iconEl.className = 'toast-icon';
-    iconEl.textContent = icon;
+    iconEl.className = `toast-icon dis-mark dis-mark--${mark[0]}`;
+    iconEl.textContent = mark[1];
     const msgEl = document.createElement('span');
     msgEl.textContent = message;
     toast.append(iconEl, ' ', msgEl);

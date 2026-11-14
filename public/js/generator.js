@@ -134,7 +134,7 @@ function initGenerator() {
 
         try {
             btnGenerate.disabled = true;
-            btnGenerate.textContent = "⏳ Analysiere und Generiere...";
+            btnGenerate.textContent = "Analysiere und generiere ...";
             statusEl.style.display = 'block';
             statusEl.style.color = 'var(--dis-warn)';
             statusEl.textContent = "Bereite Daten vor...";
@@ -258,7 +258,7 @@ ${fileContentText ? "\nInhalt der Datei:\n" + fileContentText : ""}`;
             statusEl.style.color = 'var(--dis-danger)';
             statusEl.textContent = "Fehler: " + e.message;
             btnGenerate.disabled = false;
-            btnGenerate.textContent = "🚀 Fragen jetzt generieren";
+            btnGenerate.textContent = "Fragen jetzt generieren";
         }
     });
 }

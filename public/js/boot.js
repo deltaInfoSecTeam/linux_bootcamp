@@ -1,11 +1,11 @@
 // Globale Fehleranzeige und Service-Worker-Registrierung
 // Globaler Fehler-Fänger, damit kein Fehler mehr stumm verschluckt wird!
 window.onerror = function(msg, url, line, col, error) {
-    alert("💥 KRITISCHER FEHLER:\n" + msg + "\nZeile: " + line + " Spalte: " + col);
+    alert("[FAIL] KRITISCHER FEHLER:\n" + msg + "\nZeile: " + line + " Spalte: " + col);
     return false;
 };
 window.addEventListener("unhandledrejection", function(event) {
-    alert("💥 HINTERGRUND-FEHLER:\n" + (event.reason ? event.reason.stack || event.reason : event));
+    alert("[FAIL] HINTERGRUND-FEHLER:\n" + (event.reason ? event.reason.stack || event.reason : event));
 });
 
 // Service Worker Registrierung für PWA / Offline
