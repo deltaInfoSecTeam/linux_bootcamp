@@ -1,12 +1,15 @@
 // deltaInfoSec brand effects: network globe backdrop, text decode, boot log.
-// External file (CSP: script-src 'self'). With prefers-reduced-motion the globe
-// is drawn once as a still image and all other effects are skipped. Everything
+// External file (CSP: script-src 'self'). With prefers-reduced-motion or the
+// motion switch turned off (<html data-motion="off">, see theme.js) the globe is
+// drawn once as a still image and all other effects are skipped. Everything
 // pauses while the tab is hidden.
 (function () {
     'use strict';
 
     var mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
     var reduce = !!(mq && mq.matches);
+    // still = system "reduce motion" or the user's motion switch
+    function still() { return reduce || document.documentElement.getAttribute('data-motion') === 'off'; }
     // Latin-only glyphs: guaranteed to exist in the bundled mono font (no tofu boxes)
     var GLYPHS = '0123456789ABCDEF0123456789abcdef$#/~|<>{}[]_=+*:;.';
 
@@ -74,7 +77,7 @@
             // Large sphere on the right edge, partly outside the window
             if (w < 700) { R = w * 0.62; cx = w * 0.62; cy = h * 0.98; }
             else { R = Math.min(h * 0.52, w * 0.34); cx = w - R * 0.62; cy = h * 0.56; }
-            if (reduce) draw(0);
+            if (still()) draw(last);
         }
 
         // rotate around Y, then tilt around X; returns [screenX, screenY, depth]
@@ -199,14 +202,18 @@
         resize();
         window.addEventListener('resize', resize);
         // Theme switch: re-read the colours
-        new MutationObserver(function () { readColors(); if (reduce) draw(0); })
+        new MutationObserver(function () { readColors(); if (still()) draw(last); })
             .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        function stop() { cancelAnimationFrame(raf); raf = 0; arcs = []; draw(last); }
+        function run() { if (!raf && !still() && !document.hidden) { prev = 0; raf = requestAnimationFrame(frame); } }
+        // Motion switch (theme.js): stop on the current frame, restart where it left off
+        document.addEventListener('dis:motion', function () { if (still()) stop(); else run(); });
         if (reduce) return;
         document.addEventListener('visibilitychange', function () {
             if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
-            else if (!raf) { prev = 0; raf = requestAnimationFrame(frame); }
+            else run();
         });
-        raf = requestAnimationFrame(frame);
+        if (still()) draw(last); else run();
     }
 
     /* ---------- Text decode: <span data-decode>text</span> ---------- */
@@ -279,7 +286,7 @@
         fitStats();
         var canvas = document.querySelector('.dis-globe');
         if (canvas) startGlobe(canvas);
-        if (reduce) return;
+        if (still()) return;
         document.querySelectorAll('[data-decode]').forEach(function (el, i) { decode(el, 120 + i * 150); });
         document.querySelectorAll('[data-bootlog]').forEach(bootlog);
     });
