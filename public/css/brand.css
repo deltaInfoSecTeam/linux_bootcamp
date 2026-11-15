@@ -147,6 +147,10 @@ body.dis {
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
 }
+/* widths include padding and border everywhere (inputs at width:100% must not overflow) */
+.dis, .dis *, .dis *::before, .dis *::after { box-sizing: border-box; }
+/* hidden must win over component display rules (flex/grid panels) */
+.dis [hidden] { display: none !important; }
 .dis ::selection { background: var(--dis-gold-soft); color: var(--dis-text); }
 .dis :focus-visible { outline: 2px solid var(--dis-gold); outline-offset: 2px; }
 /* Form controls do not inherit the font by default (browsers fall back to Arial) */
@@ -520,6 +524,8 @@ body.dis {
 .dis-term-user, .dis-term-hash { color: var(--dis-danger); font-weight: 700; }
 .dis-term-path { color: var(--dis-text); font-weight: 700; }
 .dis-term-cmd  { color: var(--dis-text); }
+/* command lines wrap instead of being cut off; the ┌──(…) line stays on one row */
+.dis-term-line:has(> .dis-term-cmd) { white-space: pre-wrap; overflow-wrap: anywhere; text-overflow: clip; }
 .dis-term-out  { color: var(--dis-text-2); white-space: pre-wrap; }
 .dis-term-input { display: flex; align-items: flex-start; gap: 8px; }
 .dis-term-input textarea, .dis-term-input input {
@@ -647,7 +653,9 @@ body.dis { min-height: 100vh; display: flex; flex-direction: column; margin: 0; 
     transition: background 0.2s var(--dis-ease), border-color 0.2s var(--dis-ease), color 0.2s var(--dis-ease);
 }
 .dis-option:hover { border-color: var(--dis-border-strong); color: var(--dis-text); }
-.dis-option.is-active, .dis-option[aria-pressed="true"] {
+.dis-option > .dis-count { margin-left: auto; font-family: var(--dis-font-mono); font-size: 0.75rem; color: var(--dis-text-3); }
+.dis-option.is-active > .dis-count, .dis-option[aria-selected="true"] > .dis-count { color: inherit; opacity: 0.8; }
+.dis-option.is-active, .dis-option[aria-pressed="true"], .dis-option[aria-selected="true"] {
     background: color-mix(in srgb, var(--dis-matrix) 10%, transparent);
     border-color: var(--dis-matrix-dim);
     color: var(--dis-matrix);
@@ -726,6 +734,24 @@ body.dis { min-height: 100vh; display: flex; flex-direction: column; margin: 0; 
 @media (max-width: 1440px) { .dis-stat--optional { display: none; } }
 @media (max-width: 1100px) { .dis-stats > .dis-stat:not(.dis-stat--keep) { display: none; } }
 @media (max-width: 760px)  { .dis-stats { display: none; } }
+
+/* ---------- Fold: collapsible block for long explanations ----------
+   <details class="dis-fold"><summary>Mehr zur Bewertung</summary>…</details>
+   Keeps pages calm: the essentials stay visible, details open on demand. */
+.dis-fold > summary {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    list-style: none;
+    cursor: pointer;
+    color: var(--dis-matrix);
+    font-size: 0.85rem;
+}
+.dis-fold > summary::-webkit-details-marker { display: none; }
+.dis-fold > summary::before { content: '\25B8'; display: inline-block; transition: transform 0.2s var(--dis-ease); }
+.dis-fold[open] > summary::before { transform: rotate(90deg); }
+.dis-fold[open] > summary { margin-bottom: 10px; }
+.dis-fold > summary:hover { color: var(--dis-text); }
 
 /* ---------- Window (title bar with three dots) ----------
    <div class="dis-window">
