@@ -419,6 +419,21 @@ body.dis {
         transition: none !important;
     }
 }
+/* Motion switch (<button data-motion-toggle>, theme.js): same calm state on request */
+:root[data-motion="off"] .dis *, :root[data-motion="off"] .dis *::before, :root[data-motion="off"] .dis *::after,
+:root[data-motion="off"] .dis-backdrop::before, :root[data-motion="off"] .dis-bar::after, :root[data-motion="off"] .dis-crest::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* Motion toggle icon: pause while animations run, play when they are off.
+   <button class="dis-btn dis-btn--icon" type="button" data-motion-toggle>
+     <svg class="dis-ico-pause">…</svg><svg class="dis-ico-play">…</svg>
+   </button> */
+[data-motion-toggle] .dis-ico-play { display: none; }
+[data-motion-toggle][aria-pressed="true"] .dis-ico-play { display: block; }
+[data-motion-toggle][aria-pressed="true"] .dis-ico-pause { display: none; }
+[data-motion-toggle][aria-pressed="true"] { color: var(--dis-gold); border-color: var(--dis-gold); }
 
 
 /* ---------- Globe layer ----------
