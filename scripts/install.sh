@@ -185,6 +185,7 @@ if [ "$TLS_ACTIVE" -eq 1 ]; then
     $SUDO env SUDO_USER="$OWNER" bash "$REPO_DIR/scripts/tls.sh" trust
     env_set TLS_CERT_PATH /app/tls/server.crt
     env_set TLS_KEY_PATH /app/tls/server.key
+    env_set TLS_CA_PATH /app/tls/ca.crt
 fi
 
 # --- 5. Bauen und starten -------------------------------------------------
@@ -222,8 +223,22 @@ PROTO=http; [ "$TLS_ACTIVE" -eq 1 ] && PROTO=https
 if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then SHOW_HOST=localhost; else SHOW_HOST="$(hostname -s)"; fi
 ok "Linux Bootcamp ist bereit: $PROTO://$SHOW_HOST:$HOST_PORT"
 if [ "$TLS_ACTIVE" -eq 1 ]; then
-    echo "   Andere Geräte (Handy, Laptop): Datei tls/linux-bootcamp-ca.crt dort als"
-    echo "   vertrauenswürdige Zertifizierungsstelle importieren (siehe README)."
+    CA_FP="$($SUDO openssl x509 -in "$REPO_DIR/tls/linux-bootcamp-ca.crt" -noout -fingerprint -sha256 | cut -d= -f2)"
+    # Name, unter dem andere Geräte den Server erreichen: erster TLS_HOSTNAMES-Eintrag, sonst Hostname
+    CLIENT_HOST="$(env_value TLS_HOSTNAMES | cut -d, -f1 | tr -d ' ')"; CLIENT_HOST="${CLIENT_HOST:-$(hostname -s)}"
+    CLIENT_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<NF;i++) if($i=="src") print $(i+1)}' | head -1)"
+    port_opt=""; [ "$HOST_PORT" != 443 ] && port_opt=" --port $HOST_PORT"
+    ip_opt=""; [ -n "$CLIENT_IP" ] && ip_opt=" --ip $CLIENT_IP"
+    # Raw-URL des Client-Skripts aus dem Git-Remote ableiten (funktioniert auch für Forks)
+    origin="$(git -C "$REPO_DIR" remote get-url origin 2>/dev/null || true)"
+    origin="${origin%.git}"; origin="${origin#git@github.com:}"; origin="${origin#https://github.com/}"
+    echo "   CA-Fingerabdruck: $CA_FP"
+    if [ "$BIND_ADDRESS" != 127.0.0.1 ] && [[ "$origin" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+        echo "   Andere Linux-Rechner (System, Firefox, Chromium) – dort ausführen:"
+        echo "     curl -fsSL https://raw.githubusercontent.com/$origin/main/scripts/trust-ca.sh | bash -s -- --server $CLIENT_HOST$port_opt$ip_opt --fingerprint $CA_FP"
+    fi
+    echo "   Handy/Windows/macOS: https://$CLIENT_HOST:$HOST_PORT/ca.crt laden, Fingerabdruck"
+    echo "   vergleichen und als vertrauenswürdige Zertifizierungsstelle importieren (siehe README)."
 fi
 if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then
     echo "   Nur lokal erreichbar. Für Zugriff von außen einen Reverse Proxy mit HTTPS"

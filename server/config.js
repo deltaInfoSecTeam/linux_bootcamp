@@ -67,6 +67,8 @@ const config = {
     // (so richtet es "scripts/install.sh --tls" ein) oder eine PFX-Datei.
     TLS_CERT_PATH: process.env.TLS_CERT_PATH || '',
     TLS_KEY_PATH: process.env.TLS_KEY_PATH || '',
+    // Öffentliches CA-Zertifikat, wird unter /ca.crt zum Import auf Clients angeboten
+    TLS_CA_PATH: process.env.TLS_CA_PATH || '',
     TLS_PFX_PATH: process.env.TLS_PFX_PATH || '',
     TLS_PFX_PASSPHRASE: process.env.TLS_PFX_PASSPHRASE || '',
 };
