@@ -26,7 +26,7 @@
 | Modul | Beschreibung |
 |---|---|
 | **KI-Tutor** | Erklärt falsch beantwortete Fragen ausführlich im Ausbilder-Ton. Anbindung an Google Gemini, OpenAI, Groq, xAI, Together oder ein lokales Ollama. |
-| **Klausur-Modus** | Simuliert eine IHK-Prüfung: 45 Minuten, 24 Fragen quer durch alle Kategorien, Note 1 bis 6. |
+| **Prüfungssimulation** | Simuliert eine schriftliche Abschlussprüfung: 45 Minuten, 24 Fragen quer durch alle Kategorien, Note 1 bis 6. |
 | **Ränge** | XP für richtige Antworten, Streaks und Dienstgrade von *Schütze* bis *General* (angelehnt an die Bundeswehr). |
 | **PWA** | Installierbar auf Android, iOS und Desktop. Läuft dank Service Worker auch bei schlechter Verbindung. |
 | **Admin-Konsole** | Benutzer und Rechte verwalten, alle abgelegten Klausuren einsehen, Inhalte pflegen. |
@@ -266,7 +266,7 @@ Der Service Worker lädt Wappen und Design-Dateien immer zuerst aus dem Netz, ei
 - Passwörter werden mit bcrypt gehasht, Recovery-Codes mit HMAC. Gespeicherte LLM-API-Keys sind mit AES-256-GCM verschlüsselt.
 - Nach Passwortwechsel, Sperre oder Rechteänderung werden alle JWTs des Nutzers ungültig.
 - Eine strikte Content-Security-Policy (`script-src 'self'`, Schriften nur vom eigenen Server) verhindert Inline-Skripte und Fremdeinbindungen.
-- Der LLM-Proxy erreicht nur Gemini, OpenAI und die in `OLLAMA_URL` eingetragene Adresse.
+- Der LLM-Proxy erreicht nur Gemini, OpenAI, Groq und die in `OLLAMA_URL` eingetragene Adresse.
 - Der Container läuft ohne root, mit schreibgeschütztem Dateisystem und ohne Capabilities.
 
 ---
@@ -283,7 +283,9 @@ Der Service Worker lädt Wappen und Design-Dateien immer zuerst aus dem Netz, ei
 
 ## `07` KI-Integration einrichten
 
-In der Seitenleiste unter **KI-Bewertung (API)** wählst du den LLM-Anbieter:
+Solange keine KI eingerichtet ist, öffnet sich nach der ersten beantworteten Frage ein Hinweisfeld **KI-Tutor**. Es verlinkt auf die Groq-Konsole, wo man mit einem kostenlosen Groq-Cloud-Konto einen API-Schlüssel erstellt; der Schlüssel lässt sich direkt dort einfügen, wird gespeichert und sofort getestet. „Später“ blendet den Hinweis bis zum Neuladen aus, „Nicht mehr anzeigen“ dauerhaft.
+
+Alle Anbieter stellst du in der Seitenleiste unter **KI-Bewertung (API)** ein:
 1. **Google Gemini (Empfohlen):** Füge deinen Gemini API Key ein.
 2. **OpenAI:** Nutze `gpt-6-luna` oder ähnliche Modelle mit deinem OpenAI Key.
 3. **Groq Cloud:** Kostenloser Zugang mit Rate-Limits, Schlüssel unter console.groq.com. Voreingestellt ist `openai/gpt-oss-120b`.

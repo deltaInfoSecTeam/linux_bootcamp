@@ -92,7 +92,7 @@
                                 Lernkarten
                             </button>
                             <button id="mode-exam" class="mode-btn" style="margin-top: 5px; width: 100%;">
-                                IHK-Klausur
+                                Prüfungssimulation
                             </button>
                         </div>
                     </details>
@@ -241,7 +241,7 @@
                         Dein Ergebnis: <strong id="exam-result-percent" style="color: var(--dis-matrix);">0%</strong> (<span id="exam-result-points">0</span> / 24 Punkte)
                     </div>
                     <div style="background: var(--dis-bg-elev); padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid var(--dis-border-strong);">
-                        <div style="font-size: 1.2rem; color: var(--dis-gold); margin-bottom: 10px;">IHK-Note:</div>
+                        <div style="font-size: 1.2rem; color: var(--dis-gold); margin-bottom: 10px;">Note:</div>
                         <div id="exam-result-grade" style="font-size: 3rem; font-weight: bold; color: var(--dis-text);">-</div>
                         <div id="exam-result-grade-text" style="font-size: 1.2rem; color: var(--dis-text-2); margin-top: 10px;">-</div>
                     </div>
@@ -312,6 +312,32 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- AI tutor hint: chat message from Tux, shown after an answer while no AI provider is set up -->
+                        <section id="ai-promo" class="tux-chat hidden" aria-label="Nachricht von Tux">
+                            <div class="tux-chat-head">
+                                <div class="tux-chat-avatar" aria-hidden="true">TX</div>
+                                <div class="tux-chat-who">
+                                    <div class="tux-chat-name">Tux</div>
+                                    <div class="tux-chat-status" id="tux-chat-status">Ausbilder · online</div>
+                                </div>
+                                <div class="tux-chat-menu">
+                                    <button type="button" id="btn-ai-promo-later">Später</button>
+                                    <button type="button" id="btn-ai-promo-never">Nicht mehr anzeigen</button>
+                                </div>
+                            </div>
+                            <div class="tux-chat-body" id="tux-chat-body" aria-live="polite">
+                                <div class="tux-chat-day">Heute</div>
+                                <div class="tux-msg">Rekrut, kurze Ansage!</div>
+                                <div class="tux-msg">Deine Antwort habe ich gerade nur nach <b>Stichwörtern</b> abgeklopft. Das ist, als würde ich deine Uniform nur auf Knöpfe prüfen.</div>
+                                <div class="tux-msg">Gib mir einen <b>KI-Schlüssel</b>, dann lese ich, was du wirklich meinst, sage dir, was gefehlt hat, und schicke dir zu jedem Thema einen Deep Dive.</div>
+                                <div class="tux-msg"><a class="tux-chat-link" href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer"><span>GroqCloud – API Keys<small>console.groq.com/keys</small></span></a>Leg dort ein kostenloses Konto an, erstell einen Schlüssel und schick ihn mir hier unten.</div>
+                            </div>
+                            <form id="ai-promo-form" class="tux-chat-foot">
+                                <input type="password" id="ai-promo-key" placeholder="Schlüssel einfügen (gsk_...)" autocomplete="off" spellcheck="false" aria-label="Groq API-Schlüssel">
+                                <button type="submit" id="btn-ai-promo-save" class="tux-chat-send" aria-label="Schlüssel speichern und testen"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 20.5 21 12 3 3.5l.01 6.6L15 12 3.01 13.9z"/></svg></button>
+                            </form>
+                        </section>
 
                         <!-- Divider -->
                         <hr class="card-divider">
