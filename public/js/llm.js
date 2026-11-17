@@ -175,6 +175,7 @@ async function revealAnswer(e) {
         el.userAnswer.disabled = true;
         
         let result = null;
+        let source = 'keyword'; // wer bewertet hat: 'ai' oder 'keyword'
         
         if (state.llmConfig.model && state.llmConfig.url && state.llmConfig.url !== 'offline') {
             // Show loading state
@@ -186,6 +187,7 @@ async function revealAnswer(e) {
             
             try {
                 const apiResponse = await callLLMAPI(q.question, q.answer, input, state.llmConfig, isIdk);
+                source = 'ai';
                 result = {
                     rating: apiResponse.rating,
                     // LLM-Ausgabe ist nicht vertrauenswürdig: escapen + Markdown
@@ -218,6 +220,21 @@ async function revealAnswer(e) {
         }
         
         el.feedbackDetails.innerHTML = result.text;
+
+        // Quelle der Bewertung rechts in der Bewertungszeile: KI-Tux mit Modell oder Stichwortprüfung
+        const sourceEl = document.createElement('span');
+        sourceEl.className = source === 'ai' ? 'feedback-source' : 'feedback-source keyword';
+        sourceEl.textContent = source === 'ai' ? 'KI-TUX' : 'STICHWORTPRÜFUNG';
+        if (source === 'ai' && state.llmConfig.model) {
+            const model = document.createElement('small');
+            model.textContent = String(state.llmConfig.model).split('/').pop();
+            sourceEl.appendChild(model);
+        }
+        sourceEl.title = source === 'ai'
+            ? 'Diese Bewertung stammt von der KI. KI kann sich irren, vergleiche mit der Musterlösung.'
+            : 'Automatische Prüfung nach Kernbegriffen, ohne KI.';
+        el.feedbackBadge.classList.add('has-source');
+        el.feedbackBadge.appendChild(sourceEl);
         
         // Reveal correct answer
         el.answerText.innerHTML = parseMarkdown(q.answer);
