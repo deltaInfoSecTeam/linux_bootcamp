@@ -1059,7 +1059,8 @@ select.dis-input { color: var(--dis-matrix); }
 .dis-prose li { margin-bottom: 6px; }
 .dis-prose a { color: var(--dis-gold); }
 .dis-prose code { padding: 2px 5px; border-radius: 3px; background: var(--dis-bg-elev); color: var(--dis-text-2); font-family: var(--dis-font-mono); }
-.dis-prose pre { margin: 10px 0; padding: 12px; overflow-x: auto; border: 1px solid var(--dis-border-strong); border-radius: 4px; background: var(--dis-bg-elev); }
+/* width 0 + min-width 100%: long code lines scroll inside the block instead of widening the page */
+.dis-prose pre { width: 0; min-width: 100%; margin: 10px 0; padding: 12px; overflow-x: auto; border: 1px solid var(--dis-border-strong); border-radius: 4px; background: var(--dis-bg-elev); }
 .dis-prose pre code { padding: 0; background: transparent; color: var(--dis-matrix); }
 .dis-prose blockquote { margin: 15px 0; padding: 12px 15px; border-left: 4px solid var(--dis-gold); border-radius: 0 4px 4px 0; background: var(--dis-gold-soft); color: var(--dis-text); }
 .dis-prose table { border-collapse: collapse; margin: 0 0 1em; }
@@ -1070,8 +1071,9 @@ select.dis-input { color: var(--dis-matrix); }
    <div class="dis-prose dis-prose--read">…</div>
    For explanations of several paragraphs (deep dives, lessons, docs). Sans-serif
    body text, larger size, shorter lines and an opaque surface so the globe and
-   scanlines do not run through the text. Code stays JetBrains Mono. Not for UI,
-   buttons, labels or short status texts. */
+   scanlines do not run through the text. Long code lines wrap, so the text only
+   grows downwards and never needs a horizontal scrollbar. Code stays JetBrains
+   Mono. Not for UI, buttons, labels or short status texts. */
 .dis-prose--read {
     max-width: 72ch;
     padding: 22px 26px;
@@ -1111,7 +1113,7 @@ select.dis-input { color: var(--dis-matrix); }
 .dis-prose--read li::marker { color: var(--dis-gold); }
 .dis-prose--read li > ul, .dis-prose--read li > ol { margin: 0.45em 0 0; }
 .dis-prose--read code { font-size: 0.88em; padding: 0.12em 0.4em; color: var(--dis-text); border: 1px solid var(--dis-border); }
-.dis-prose--read pre { margin: 0.4em 0 1.2em; padding: 14px 16px; border-radius: var(--dis-radius-sm); line-height: 1.55; }
+.dis-prose--read pre { margin: 0.4em 0 1.2em; padding: 14px 16px; border-radius: var(--dis-radius-sm); line-height: 1.55; overflow-x: visible; white-space: pre-wrap; overflow-wrap: anywhere; }
 .dis-prose--read pre code { font-size: 0.9em; border: 0; color: var(--dis-matrix); }
 .dis-prose--read blockquote { margin: 1.2em 0; padding: 12px 16px; font-style: normal; }
 .dis-prose--read hr { margin: 1.6em 0; border: 0; border-top: 1px solid var(--dis-border-strong); }
