@@ -53,7 +53,7 @@ Das Skript
 2. korrigiert die Dateirechte (`data/` muss UID 1000 gehören, dem Nutzer im Container),
 3. legt `.env` aus `.env.example` an,
 4. baut und startet den Container und wartet auf den Healthcheck,
-5. legt mit `--admin` den ersten Admin an. Passwort und Recovery-Token erscheinen **einmalig**.
+5. legt mit `--admin` den ersten Admin an. Passwort und Recovery-Token erscheinen **einmalig**. Ohne `--admin` zeigt es stattdessen einen Setup-Code für die Einrichtung im Browser (siehe unten).
 
 Mehrfaches Ausführen schadet nicht, dasselbe Skript dient auch für Updates (`git pull && ./scripts/install.sh`). Weitere Optionen zeigt `./scripts/install.sh --help`.
 
@@ -67,13 +67,31 @@ Wer Docker selbst verwaltet (Compose v2 nötig):
 cp .env.example .env && sudo chown -R 1000:1000 data && docker compose up -d --build
 ```
 
-### Weitere Admins
+### Ersten Admin im Browser einrichten
+
+Gibt es noch keinen Admin, erzeugt der Server bei jedem Start einen einmaligen **Setup-Code**. `install.sh` zeigt ihn am Ende an, außerdem steht er im Container-Log (`docker compose logs bootcamp`) und in `data/setup-code`. Beim ersten Aufruf der Seite öffnet sich automatisch der Dialog „Ersten Admin einrichten“: Setup-Code, Benutzername und Passwort eingeben, fertig.
+
+- Ohne den Code kann niemand Admin werden, auch nicht, wer die Seite zufällig als Erster öffnet.
+- Sobald ein Admin existiert, ist die Einrichtung dauerhaft geschlossen und der Code gelöscht.
+- Der Endpunkt ist streng begrenzt (10 Versuche in 15 Minuten), der Code hat 60 Bit Zufall.
+
+### Recovery-Token
+
+Nach der Registrierung oder Einrichtung erscheint der Recovery-Token **einmalig** in einem Dialog. Dort lässt er sich als Textdatei herunterladen oder kopieren; weiter geht es erst nach der Bestätigung, dass er gespeichert ist. Auf dem Server liegt nur ein Hash, der Token selbst wird nirgends gespeichert. Mit ihm setzt man unter „Passwort vergessen?“ ein neues Passwort.
+
+### Weitere Admins und Notfall-Reset
 
 ```bash
 sudo docker compose exec bootcamp node scripts/create-admin.js <username>
 ```
 
 Existiert der Nutzer schon, wird er zum Admin. Sonst wird er neu angelegt, und Passwort plus Recovery-Token werden **einmalig** ausgegeben.
+
+Hat ein Nutzer Passwort und Recovery-Token verloren, setzt ein Admin mit Zugriff auf den Server beides neu. Alle Sitzungen des Nutzers werden dabei abgemeldet:
+
+```bash
+sudo docker compose exec bootcamp node scripts/create-admin.js <username> --reset
+```
 
 ### Zugriff von außen (Server / LAN)
 
@@ -195,8 +213,9 @@ npm start
 │   ├── db.js          SQLite-Zugriff und Migrationen
 │   ├── crypto.js      Recovery-Code-Hashing, Verschlüsselung der API-Keys
 │   ├── validation.js  Eingabeprüfung
+│   ├── setup.js       Setup-Code der Erst-Einrichtung
 │   ├── middleware/    auth, rateLimit, security (CSP & Header)
-│   └── routes/        auth, admin, user, proxy
+│   └── routes/        auth, admin, user, proxy, setup
 ├── public/            Frontend – nur dieser Ordner wird ausgeliefert
 │   ├── index.html  generator.html  manifest.json  sw.js  BRAND_VERSION
 │   ├── css/           brand.css (Corporate Design), styles.css (App)

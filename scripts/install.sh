@@ -212,9 +212,13 @@ fi
 ok "Container läuft und ist gesund"
 
 # --- 6. Optional: Admin ---------------------------------------------------
+SETUP_CODE=""
 if [ -n "$ADMIN_NAME" ]; then
     info "Lege Admin \"$ADMIN_NAME\" an"
     $DOCKER compose exec -T bootcamp node scripts/create-admin.js "$ADMIN_NAME"
+else
+    # Ohne Admin erzeugt der Server beim Start einen Setup-Code für die Einrichtung im Browser
+    SETUP_CODE="$($DOCKER compose exec -T bootcamp cat /app/data/setup-code 2>/dev/null | tr -d '[:space:]' || true)"
 fi
 
 # --- Zusammenfassung ------------------------------------------------------
@@ -244,6 +248,13 @@ if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then
     echo "   Nur lokal erreichbar. Für Zugriff von außen einen Reverse Proxy mit HTTPS"
     echo "   davorsetzen (siehe README) oder für das Heimnetz BIND_ADDRESS=0.0.0.0 in .env."
 fi
-if [ -z "$ADMIN_NAME" ]; then
-    echo "   Ersten Admin anlegen:  $DOCKER compose exec bootcamp node scripts/create-admin.js <name>"
+if [ -n "$SETUP_CODE" ]; then
+    echo
+    echo "   Ersten Admin einrichten: Seite im Browser öffnen, der Einrichtungsdialog"
+    echo "   erscheint automatisch. Dort diesen Setup-Code eingeben:"
+    echo
+    echo "       $SETUP_CODE"
+    echo
+    echo "   Der Code gilt nur bis zum ersten Admin und wird bei jedem Neustart neu erzeugt."
+    echo "   Alternativ per Skript:  $DOCKER compose exec bootcamp node scripts/create-admin.js <name>"
 fi

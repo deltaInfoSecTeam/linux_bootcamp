@@ -539,6 +539,67 @@
         </div>
     </div>
 
+    <!-- First-run setup: create the first admin with the setup code -->
+    <div id="setup-modal" class="auth-fullscreen-overlay" style="display: none;">
+        <div class="auth-terminal-box" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+            <button type="button" class="btn-close-modal" id="btn-close-setup" title="Später" aria-label="Schließen">&#10005;</button>
+            <div class="auth-header">
+                <span class="dis-crest" aria-hidden="true"></span>
+                <div class="auth-title">
+                    <div class="dis-eyebrow">erst-einrichtung</div>
+                    <h2 id="setup-title">Ersten Admin einrichten</h2>
+                </div>
+            </div>
+            <div class="auth-body">
+                <p>Den Setup-Code zeigt <code>install.sh</code> am Ende an. Er steht auch im Container-Log und in <code>data/setup-code</code> auf dem Server.</p>
+                <form id="setup-form">
+                    <div class="auth-field">
+                        <label for="setup-code">Setup-Code</label>
+                        <input type="text" id="setup-code" class="hacker-input" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
+                    </div>
+                    <div class="auth-field">
+                        <label for="setup-username">Benutzername</label>
+                        <input type="text" id="setup-username" class="hacker-input" autocomplete="username" required>
+                    </div>
+                    <div class="auth-field">
+                        <label for="setup-password">Passwort</label>
+                        <input type="password" id="setup-password" class="hacker-input" autocomplete="new-password" minlength="8" required>
+                    </div>
+                    <div id="setup-error" class="auth-error-log" style="display: none;"></div>
+                    <div class="auth-actions">
+                        <button type="submit" id="btn-setup" class="hacker-btn action-login">Admin anlegen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recovery token: shown once after registration or setup -->
+    <div id="recovery-modal" class="auth-fullscreen-overlay" style="display: none;">
+        <div class="auth-terminal-box" role="dialog" aria-modal="true" aria-labelledby="recovery-title">
+            <div class="auth-header">
+                <span class="dis-crest" aria-hidden="true"></span>
+                <div class="auth-title">
+                    <div class="dis-eyebrow">root recovery</div>
+                    <h2 id="recovery-title">Dein Recovery-Token</h2>
+                </div>
+            </div>
+            <div class="auth-body">
+                <p>Damit setzt du dein Passwort zurück, falls du es vergisst. Er wird nur dieses eine Mal angezeigt.</p>
+                <div class="recovery-code" id="recovery-code-value"></div>
+                <div class="recovery-actions">
+                    <button type="button" id="btn-recovery-download" class="hacker-btn">Als Textdatei</button>
+                    <button type="button" id="btn-recovery-copy" class="hacker-btn">Kopieren</button>
+                </div>
+                <label class="recovery-confirm"><input type="checkbox" id="recovery-saved"> Ich habe den Token sicher gespeichert</label>
+                <div id="recovery-error" class="auth-error-log" style="display: none;"></div>
+                <div class="auth-actions">
+                    <button type="button" id="btn-recovery-done" class="hacker-btn action-login">Weiter zum Bootcamp</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="dis-footer">
         <span class="dis-wordmark"><span class="dis-cursor">delta<b>InfoSec</b></span></span>
         <span>Linux Bootcamp · Training für Administratoren</span>
