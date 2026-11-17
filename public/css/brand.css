@@ -1070,12 +1070,13 @@ select.dis-input { color: var(--dis-matrix); }
 /* ---------- Reading mode for long learning texts ----------
    <div class="dis-prose dis-prose--read">…</div>
    For explanations of several paragraphs (deep dives, lessons, docs). Sans-serif
-   body text, larger size, shorter lines and an opaque surface so the globe and
-   scanlines do not run through the text. Long code lines wrap, so the text only
-   grows downwards and never needs a horizontal scrollbar. Code stays JetBrains
-   Mono. Not for UI, buttons, labels or short status texts. */
+   body text, larger size and an opaque surface so the globe and scanlines do not
+   run through the text. Fills the full width of its container like the other
+   panels; long code lines wrap, so the text only grows downwards and never
+   needs a horizontal scrollbar. Code stays JetBrains Mono. Not for UI, buttons,
+   labels or short status texts. */
 .dis-prose--read {
-    max-width: 72ch;
+    max-width: none;
     padding: 22px 26px;
     border: 1px solid var(--dis-border);
     border-left: 3px solid var(--dis-gold);
