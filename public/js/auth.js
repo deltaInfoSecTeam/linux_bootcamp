@@ -170,6 +170,80 @@ async function checkAuth() {
     }
 }
 
+// --- Recovery-Token: einmalig anzeigen, als Datei oder per Zwischenablage sichern ---
+function showRecoveryDialog(username, code) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('recovery-modal');
+        const saved = document.getElementById('recovery-saved');
+        const err = document.getElementById('recovery-error');
+        const btnCopy = document.getElementById('btn-recovery-copy');
+        document.getElementById('recovery-code-value').textContent = code;
+        saved.checked = false;
+        err.style.display = 'none';
+        btnCopy.textContent = 'Kopieren';
+
+        const onDownload = () => {
+            const text = 'Linux Bootcamp – Recovery-Token\n'
+                + `Benutzer: ${username}\n`
+                + `Token:    ${code}\n\n`
+                + 'Damit setzt du unter "Passwort vergessen?" ein neues Passwort.\n'
+                + 'Sicher aufbewahren, z.B. im Passwort-Manager, und diese Datei danach löschen.\n';
+            const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `linux-bootcamp-recovery-${username}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        };
+        const onCopy = async () => {
+            try {
+                await navigator.clipboard.writeText(code);
+                btnCopy.textContent = 'Kopiert';
+            } catch {
+                // Ohne Clipboard-Recht (z.B. ohne HTTPS): Token markieren, Strg+C reicht dann
+                window.getSelection().selectAllChildren(document.getElementById('recovery-code-value'));
+                btnCopy.textContent = 'Markiert – Strg+C';
+            }
+        };
+        const onSaved = () => { err.style.display = 'none'; };
+        const onDone = () => {
+            if (!saved.checked) {
+                err.textContent = 'Bestätige zuerst, dass du den Token gespeichert hast.';
+                err.style.display = 'block';
+                return;
+            }
+            document.getElementById('btn-recovery-download').removeEventListener('click', onDownload);
+            btnCopy.removeEventListener('click', onCopy);
+            saved.removeEventListener('change', onSaved);
+            document.getElementById('btn-recovery-done').removeEventListener('click', onDone);
+            document.getElementById('recovery-code-value').textContent = '';
+            modal.style.display = 'none';
+            resolve();
+        };
+
+        document.getElementById('btn-recovery-download').addEventListener('click', onDownload);
+        btnCopy.addEventListener('click', onCopy);
+        saved.addEventListener('change', onSaved);
+        document.getElementById('btn-recovery-done').addEventListener('click', onDone);
+        modal.style.display = 'flex';
+    });
+}
+
+// --- Erst-Einrichtung: Dialog öffnen, solange es noch keinen Admin gibt ---
+async function checkSetup() {
+    if (currentToken) return;
+    try {
+        const res = await fetch(`${API_URL}/api/setup`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.needed) document.getElementById('setup-modal').style.display = 'flex';
+    } catch {
+        // Offline: keine Einrichtung möglich
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const modalExams = document.getElementById('exams-modal');
@@ -270,7 +344,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.setItem('bootcamp_token', data.token);
                 document.getElementById('login-modal').style.display = 'none';
                 updateUserUI(data.user, data.user.xp);
-                if (data.recovery_code) alert("WICHTIG: Dein Root-Recovery-Token lautet:\n\n" + data.recovery_code + "\n\nBitte speichere diesen Token! Du brauchst ihn, um dein Passwort zurückzusetzen.");
+                if (data.recovery_code) await showRecoveryDialog(data.user.username, data.recovery_code);
             } else errEl.style.display = 'block', errEl.textContent = data.error;
         } catch (e) {
             errEl.style.display = 'block', errEl.textContent = "Netzwerkfehler";
@@ -618,5 +692,50 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // --- Erst-Einrichtung ---
+    document.getElementById('btn-close-setup').addEventListener('click', () => {
+        document.getElementById('setup-modal').style.display = 'none';
+    });
+
+    document.getElementById('setup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById('setup-error');
+        const btn = document.getElementById('btn-setup');
+        errEl.style.display = 'none';
+        btn.disabled = true;
+        try {
+            const res = await fetch(`${API_URL}/api/setup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    setup_code: document.getElementById('setup-code').value,
+                    username: document.getElementById('setup-username').value,
+                    password: document.getElementById('setup-password').value,
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                errEl.textContent = data.error || 'Einrichtung fehlgeschlagen';
+                errEl.style.display = 'block';
+                if (res.status === 410) setTimeout(() => { document.getElementById('setup-modal').style.display = 'none'; }, 2000);
+                return;
+            }
+            currentToken = data.token;
+            localStorage.setItem('bootcamp_token', data.token);
+            localStorage.setItem('bootcamp_offline_user', JSON.stringify(data.user));
+            document.getElementById('setup-form').reset();
+            document.getElementById('setup-modal').style.display = 'none';
+            updateUserUI(data.user, data.user.xp);
+            await showRecoveryDialog(data.user.username, data.recovery_code);
+            showToast(`Admin "${data.user.username}" eingerichtet`, 'success');
+        } catch {
+            errEl.textContent = 'Netzwerkfehler';
+            errEl.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
     checkAuth();
+    checkSetup();
 });

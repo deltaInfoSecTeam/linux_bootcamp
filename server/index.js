@@ -9,6 +9,8 @@ const { router: authRouter } = require('./routes/auth');
 const adminRouter = require('./routes/admin');
 const proxyRouter = require('./routes/proxy');
 const userRouter = require('./routes/user');
+const setupRouter = require('./routes/setup');
+const setup = require('./setup');
 
 const app = express();
 app.disable('x-powered-by');
@@ -27,6 +29,7 @@ if (config.ALLOWED_ORIGINS.length > 0) {
 app.use(express.json({ limit: '300kb' }));
 
 // --- API ---
+app.use('/api/setup', setupRouter); // Erst-Einrichtung, vor allen Routen mit Login-Pflicht
 app.use('/api', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api', proxyRouter);
@@ -88,6 +91,7 @@ function tlsOptions() {
 
 function start() {
     const tls = tlsOptions();
+    setup.init();
     const server = tls ? https.createServer(tls, app) : http.createServer(app);
     server.listen(config.PORT, config.HOST, () => {
         const proto = tls ? 'https' : 'http';

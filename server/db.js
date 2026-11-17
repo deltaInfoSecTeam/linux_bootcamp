@@ -95,6 +95,17 @@ module.exports = {
 
     verifyRecoveryCode: (user, code) => verifyRecoveryCode(code, user.recovery_code),
 
+    hasAdmin: () => !!db.prepare('SELECT 1 FROM users WHERE is_admin = 1 LIMIT 1').get(),
+
+    // Notfall-Reset (CLI): neues Passwort und neuer Recovery-Code, alle Sitzungen ungültig
+    resetCredentials: (userId, passwordHash) => {
+        const code = generateRecoveryCode();
+        db.prepare(
+            'UPDATE users SET password_hash = ?, recovery_code = ?, token_version = token_version + 1 WHERE id = ?'
+        ).run(passwordHash, hashRecoveryCode(code), userId);
+        return code;
+    },
+
     // Neues Passwort setzen und alle bestehenden Sitzungen (JWTs) ungültig machen
     updatePassword: (userId, newHash) => {
         db.prepare('UPDATE users SET password_hash = ?, token_version = token_version + 1 WHERE id = ?').run(newHash, userId);

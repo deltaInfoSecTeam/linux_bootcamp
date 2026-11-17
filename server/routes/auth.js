@@ -101,4 +101,4 @@ router.post('/reset_password', authLimiter, async (req, res) => {
     }
 });
 
-module.exports = { router, BCRYPT_ROUNDS };
+module.exports = { router, BCRYPT_ROUNDS, publicUser };

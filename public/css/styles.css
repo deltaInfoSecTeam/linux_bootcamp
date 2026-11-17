@@ -1397,6 +1397,32 @@ body.is-admin .admin-only-btn {
 }
 .action-login:hover { background: var(--dis-gold-strong); border-color: transparent; }
 
+.auth-body code { font-family: var(--dis-font-mono); font-size: 0.85em; color: var(--dis-text); }
+.recovery-code {
+    margin-bottom: 12px;
+    padding: 12px;
+    background: var(--dis-bg);
+    border: 1px solid var(--dis-border-strong);
+    border-radius: var(--dis-radius-md);
+    color: var(--dis-gold);
+    font: 600 1.05rem var(--dis-font-mono);
+    letter-spacing: 0.06em;
+    text-align: center;
+    user-select: all;
+    overflow-wrap: anywhere;
+}
+.recovery-actions { display: flex; gap: 10px; margin-bottom: 14px; }
+.recovery-confirm {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    color: var(--dis-text);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.recovery-confirm input { width: 18px; height: 18px; accent-color: var(--dis-gold); }
+
 .auth-error-log {
     padding: 10px 12px;
     border-radius: var(--dis-radius-sm);
