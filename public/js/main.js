@@ -11,6 +11,19 @@ function bindEvents() {
         });
     }
 
+    // KI-Status: öffnet die KI-Einstellungen in der Seitenleiste
+    const btnAiStatus = document.getElementById('btn-ai-status');
+    if (btnAiStatus) {
+        btnAiStatus.addEventListener('click', () => {
+            const layout = document.querySelector('.app-layout');
+            if (layout.classList.contains('sidebar-hidden')) el.btnToggleSidebar.click();
+            const section = el.inputProvider.closest('details');
+            if (section) section.open = true;
+            el.inputProvider.scrollIntoView({ block: 'center' });
+            el.inputProvider.focus({ preventScroll: true });
+        });
+    }
+
     // Toggle Mode
     el.btnQuiz.addEventListener('click', () => {
         document.getElementById('exam-result-card').style.display = 'none';
@@ -211,6 +224,41 @@ function bindEvents() {
     el.inputApiKey.addEventListener('input', resetApiUI);
 }
 
+// --- KI-Tutor-Status in der Kopfleiste (>_ mit Statuspunkt und Hover-Feld) ---
+// Grün nur bei bestätigter Verbindung, sonst rot (nicht verbunden); gelb pulsierend beim Prüfen.
+let aiStatusState = 'off';
+
+function aiProviderLabel() {
+    const opt = el.inputProvider && el.inputProvider.selectedOptions[0];
+    return opt ? opt.textContent.replace(/\s*\(.*\)\s*$/, '').trim() : 'KI';
+}
+
+function setAiStatus(status) {
+    aiStatusState = status;
+    const btn = document.getElementById('btn-ai-status');
+    if (!btn) return;
+    const cfg = state.llmConfig || {};
+    const tips = {
+        online: `KI-Tutor aktiv · ${aiProviderLabel()}${cfg.model ? ' · ' + cfg.model : ''}`,
+        checking: 'KI-Tutor: Verbindung wird geprüft …',
+        error: 'KI-Tutor nicht verbunden · Verbindung fehlgeschlagen. Klicken zum Prüfen',
+        offline: 'KI-Tutor nicht verbunden · Offline-Prüfer aktiv. Klicken zum Einrichten',
+        off: 'KI-Tutor nicht verbunden · Klicken zum Einrichten',
+    };
+    btn.dataset.state = status === 'online' ? 'online' : status === 'checking' ? 'checking' : 'disconnected';
+    btn.dataset.tip = tips[status] || tips.off;
+    btn.setAttribute('aria-label', btn.dataset.tip);
+    btn.removeAttribute('title'); // eigenes Hover-Feld statt Browser-Tooltip
+}
+
+// Nach dem Laden einer Konfiguration: Status setzen und eine KI einmal prüfen
+function refreshAiStatus() {
+    const cfg = state.llmConfig || {};
+    if (!cfg.url) return setAiStatus('off');
+    if (cfg.url === 'offline') return setAiStatus('offline');
+    if (aiStatusState !== 'online' && aiStatusState !== 'checking') testApiConnection();
+}
+
 // Speichert die Felder der Seitenleiste als LLM-Konfiguration (Browser + Konto) und testet sie.
 // Liefert true, wenn die Verbindung steht.
 function saveLlmConfigFromSidebar() {
@@ -236,6 +284,7 @@ function saveLlmConfigFromSidebar() {
 
 // API Test Function (true = verbunden)
 async function testApiConnection() {
+    setAiStatus('checking');
     el.apiStatusLight.style.backgroundColor = 'gray';
     el.apiStatusText.textContent = "Prüfe...";
     el.apiStatusText.style.color = 'var(--text-muted)';
@@ -309,6 +358,7 @@ async function testApiConnection() {
             
             // Button ausblenden, da nicht mehr benötigt
             el.btnTestApi.style.display = 'none';
+            setAiStatus('online');
             return true;
         } else {
             throw new Error("Unerwartete Antwort vom Modell: " + text);
@@ -341,6 +391,9 @@ async function testApiConnection() {
         } catch(ignore) {}
         
         showToast("Verbindung fehlgeschlagen: " + errorMsg, "error");
+        // Offline-Prüfer oder unvollständige Konfiguration ist kein Verbindungsfehler
+        const cfg = state.llmConfig || {};
+        setAiStatus(!cfg.url ? 'off' : cfg.url === 'offline' ? 'offline' : 'error');
         return false;
     } finally {
         el.btnTestApi.disabled = false;
@@ -537,6 +590,7 @@ function init() {
     updateDifficultyUI();
     updateFilteredQuestions();
     loadStats();
+    refreshAiStatus();
     
     // Restore Sidebar State
     if (safeStorage.getItem('sidebar_hidden') === 'true') {

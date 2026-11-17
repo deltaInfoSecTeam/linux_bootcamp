@@ -186,6 +186,7 @@ async function revealAnswer(e) {
             
             try {
                 const apiResponse = await callLLMAPI(q.question, q.answer, input, state.llmConfig, isIdk);
+                setAiStatus('online');
                 result = {
                     rating: apiResponse.rating,
                     // LLM-Ausgabe ist nicht vertrauenswürdig: escapen + Markdown
@@ -193,6 +194,7 @@ async function revealAnswer(e) {
                 };
             } catch (e) {
                 console.error("LLM API Call failed:", e);
+                setAiStatus('error');
                 showToast("KI-Bewertung fehlgeschlagen. Lokale Auswertung geladen.", "danger");
                 result = validateAnswer(q, input);
             }
@@ -423,11 +425,13 @@ KEIN JSON-Format.`;
         safeStorage.setItem(cacheKey, rawText);
         
         el.moreInfoText.innerHTML = parseMarkdown(rawText);
+        setAiStatus('online');
         el.btnMoreInfo.textContent = "[+] THEMA VERTIEFEN / ERKLÄRUNG ANFORDERN";
         el.btnMoreInfo.disabled = false;
 
     } catch (error) {
         console.error("More Info API failed:", error);
+        setAiStatus('error');
         el.moreInfoText.innerHTML = `<span style="color: var(--dis-danger);">Fehler beim Abrufen der Zusatzinformationen: ${escapeHtml(error.message)}</span>`;
         el.btnMoreInfo.textContent = "Fehler - Erneut versuchen";
         el.btnMoreInfo.disabled = false;

@@ -60,6 +60,7 @@ function loadStats() {
                         el.inputApiUrl.style.display = 'block';
                     }
                 }
+                if (typeof refreshAiStatus === 'function') refreshAiStatus();
                 resetApiUI();
             } catch(e){}
         }
