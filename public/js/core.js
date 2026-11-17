@@ -117,74 +117,116 @@ const el = {
 
 function parseMarkdown(text) {
     if (!text) return '';
-    
-    // Escape HTML first
-    let html = text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
 
-    // Code blocks ```code```
-    html = html.replace(/```([\s\S]+?)```/g, '<pre><code>$1</code></pre>');
+    const escapeHtml = (str) => str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
 
-    // Blockquotes (starts with &gt; because of HTML escaping above)
-    // We group multiple consecutive blockquote lines into one blockquote tag
+    // Platzhalter mit Steuerzeichen, die im Text selbst nicht vorkommen dürfen
+    const PH = '\u0000';
+    let src = String(text).replace(/\u0000/g, '').replace(/\r\n?/g, '\n');
+
+    // 1) Codeblöcke ```sprache ... ``` zuerst herausnehmen: Sie dürfen weder von
+    //    Fett/Kursiv noch von der Listenlogik verändert werden. Auch eingerückte
+    //    Blöcke (innerhalb von Aufzählungen) werden erkannt, die Sprachkennung
+    //    ("bash", "python" …) wird nicht als Code angezeigt.
+    const blocks = [];
+    src = src.replace(/^([ \t]*)```[ \t]*([\w+#.-]*)[^\n]*\n([\s\S]*?)^[ \t]*```[ \t]*$/gm, (m, indent, lang, code) => {
+        let lines = code.replace(/\n$/, '').split('\n');
+        if (indent) lines = lines.map(l => (l.startsWith(indent) ? l.slice(indent.length) : l));
+        const langAttr = lang ? ` data-lang="${escapeHtml(lang)}"` : '';
+        blocks.push(`<pre><code${langAttr}>${escapeHtml(lines.join('\n'))}</code></pre>`);
+        return `\n\n${PH}B${blocks.length - 1}${PH}\n\n`;
+    });
+    // Einzeilige ```code``` ohne Zeilenumbruch
+    src = src.replace(/```([^`\n]+)```/g, (m, code) => {
+        blocks.push(`<pre><code>${escapeHtml(code.trim())}</code></pre>`);
+        return `\n\n${PH}B${blocks.length - 1}${PH}\n\n`;
+    });
+
+    // 2) Inline-Code `...` ebenfalls schützen (z.B. -name "*.log")
+    const inlines = [];
+    src = src.replace(/`([^`\n]+)`/g, (m, code) => {
+        inlines.push(`<code>${escapeHtml(code)}</code>`);
+        return `${PH}I${inlines.length - 1}${PH}`;
+    });
+
+    // 3) Restlichen Text escapen, danach die Markdown-Regeln
+    let html = escapeHtml(src);
+
+    // Blockquotes (beginnen mit &gt; wegen des Escapings)
     html = html.replace(/(?:^|\n)&gt;[ \t]*(.*(?:\n&gt;[ \t]*.*)*)/g, (match, p1) => {
         const cleanContent = p1.replace(/\n&gt;[ \t]*/g, '<br>');
         return `\n<blockquote>${cleanContent}</blockquote>\n`;
     });
 
-    // Bold text **text**
-    html = html.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
-    
-    // Italic text *text* or _text_
-    html = html.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
+    // Fett **text** und kursiv *text* / _text_ – nur innerhalb einer Zeile und nicht
+    // an Leerzeichen angrenzend, damit Aufzählungen ("* Punkt") nicht kaputtgehen
+    html = html.replace(/\*\*(?=\S)([^\n]*?\S)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/(^|[^\w*])\*(?=[^\s*])([^*\n]*?[^\s*])\*(?!\w)/g, '$1<em>$2</em>');
+    html = html.replace(/(^|[^\w])_(?=\S)([^_\n]*?\S)_(?!\w)/g, '$1<em>$2</em>');
 
-    // Headers
+    // Überschriften
+    html = html.replace(/^#### (.*$)/gm, '<h5>$1</h5>');
     html = html.replace(/^### (.*$)/gm, '<h4>$1</h4>');
     html = html.replace(/^## (.*$)/gm, '<h3>$1</h3>');
     html = html.replace(/^# (.*$)/gm, '<h2>$1</h2>');
 
-    // Inline code `code`
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Trennlinien
+    html = html.replace(/^[ \t]*(?:---|\*\*\*)[ \t]*$/gm, '<hr>');
 
-    // Lists (bullet points starting with "* " or "- ")
+    // Listen ("* ", "- ", "1. ")
+    const isBlockPlaceholder = (line) => new RegExp(`^${PH}B\\d+${PH}$`).test(line.trim());
     const lines = html.split('\n');
     let inList = false;
     for (let i = 0; i < lines.length; i++) {
-        // Skip list processing inside pre/code or blockquotes
-        if (lines[i].includes('<pre>') || lines[i].includes('<blockquote>')) continue;
-        
         const trimmed = lines[i].trim();
-        if (trimmed.startsWith('* ') || trimmed.startsWith('- ') || /^\d+\.\s/.test(trimmed)) {
-            let itemContent = trimmed.replace(/^(\* |- |\d+\.\s)/, '');
-            if (!inList) {
-                lines[i] = '<ul><li>' + itemContent + '</li>';
-                inList = true;
-            } else {
-                lines[i] = '<li>' + itemContent + '</li>';
-            }
-        } else {
-            if (inList) {
-                // If line is empty, close list. If not empty, maybe it's a new paragraph?
-                lines[i] = '</ul>\n' + lines[i];
-                inList = false;
-            }
+        if (lines[i].includes('<blockquote>')) continue;
+        if (isBlockPlaceholder(lines[i])) {
+            // Codeblock unterbricht die Liste sauber (kein </ul> mitten im Code)
+            if (inList) { lines[i] = '</ul>\n' + trimmed; inList = false; }
+            continue;
+        }
+        if (/^(\* |- |\d+\.\s)/.test(trimmed)) {
+            const itemContent = trimmed.replace(/^(\* |- |\d+\.\s)/, '');
+            lines[i] = (inList ? '' : '<ul>') + '<li>' + itemContent + '</li>';
+            inList = true;
+        } else if (inList && trimmed !== '') {
+            lines[i] = '</ul>\n' + lines[i];
+            inList = false;
+        } else if (inList && trimmed === '') {
+            // Leerzeile zwischen Listenpunkten: Liste offen lassen, Zeile entfernen
+            const next = lines.slice(i + 1).find(l => l.trim() !== '');
+            if (next && /^(\* |- |\d+\.\s)/.test(next.trim())) { lines[i] = ''; continue; }
+            lines[i] = '</ul>';
+            inList = false;
         }
     }
-    
-    if (inList) {
-        lines.push('</ul>');
-    }
-    
+    if (inList) lines.push('</ul>');
     html = lines.join('\n');
-    
-    // Convert double newlines to paragraphs (very basic)
-    html = html.split(/\n\s*\n/).map(p => {
-        if (p.trim().startsWith('<') && !p.trim().startsWith('<strong>') && !p.trim().startsWith('<em>')) return p; // Don't wrap existing block elements
-        return p.trim() ? `<p>${p.trim().replace(/\n/g, '<br>')}</p>` : '';
-    }).join('\n');
 
+    // Absätze: Leerzeilen trennen; Zeilen mit Blockelementen (Listen, Überschriften,
+    // Zitate, Codeblöcke) stehen für sich, nur reiner Text wird in <p> gepackt
+    const isBlockLine = (t) => t.startsWith(PH + 'B')
+        || /^<\/?(ul|ol|li|h[2-5]|blockquote|hr|pre)\b/.test(t);
+    html = html.split(/\n\s*\n/).map(p => {
+        const out = [];
+        let buf = [];
+        const flush = () => { if (buf.length) out.push(`<p>${buf.join('<br>')}</p>`); buf = []; };
+        for (const line of p.split('\n')) {
+            const t = line.trim();
+            if (!t) continue;
+            if (isBlockLine(t)) { flush(); out.push(t); } else { buf.push(t); }
+        }
+        flush();
+        return out.join('\n');
+    }).filter(Boolean).join('\n');
+
+    // 4) Geschützte Teile wieder einsetzen
+    html = html.replace(new RegExp(`${PH}I(\\d+)${PH}`, 'g'), (m, i) => inlines[Number(i)] || '');
+    html = html.replace(new RegExp(`${PH}B(\\d+)${PH}`, 'g'), (m, i) => blocks[Number(i)] || '');
     return html;
 }
 
