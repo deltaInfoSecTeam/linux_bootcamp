@@ -1059,7 +1059,8 @@ select.dis-input { color: var(--dis-matrix); }
 .dis-prose li { margin-bottom: 6px; }
 .dis-prose a { color: var(--dis-gold); }
 .dis-prose code { padding: 2px 5px; border-radius: 3px; background: var(--dis-bg-elev); color: var(--dis-text-2); font-family: var(--dis-font-mono); }
-.dis-prose pre { margin: 10px 0; padding: 12px; overflow-x: auto; border: 1px solid var(--dis-border-strong); border-radius: 4px; background: var(--dis-bg-elev); }
+/* width 0 + min-width 100%: long code lines scroll inside the block instead of widening the page */
+.dis-prose pre { width: 0; min-width: 100%; margin: 10px 0; padding: 12px; overflow-x: auto; border: 1px solid var(--dis-border-strong); border-radius: 4px; background: var(--dis-bg-elev); }
 .dis-prose pre code { padding: 0; background: transparent; color: var(--dis-matrix); }
 .dis-prose blockquote { margin: 15px 0; padding: 12px 15px; border-left: 4px solid var(--dis-gold); border-radius: 0 4px 4px 0; background: var(--dis-gold-soft); color: var(--dis-text); }
 .dis-prose table { border-collapse: collapse; margin: 0 0 1em; }
@@ -1069,11 +1070,12 @@ select.dis-input { color: var(--dis-matrix); }
 /* ---------- Reading mode for long learning texts ----------
    <div class="dis-prose dis-prose--read">…</div>
    For explanations of several paragraphs (deep dives, lessons, docs). Sans-serif
-   body text, larger size, shorter lines and an opaque surface so the globe and
-   scanlines do not run through the text. Code stays JetBrains Mono. Not for UI,
-   buttons, labels or short status texts. */
+   body text, larger size and an opaque surface so the globe and scanlines do not
+   run through the text. Fills the full width of its container like the other
+   panels. Code stays JetBrains Mono. Not for UI, buttons, labels or short
+   status texts. */
 .dis-prose--read {
-    max-width: 72ch;
+    max-width: none;
     padding: 22px 26px;
     border: 1px solid var(--dis-border);
     border-left: 3px solid var(--dis-gold);
