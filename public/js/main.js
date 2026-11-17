@@ -56,7 +56,7 @@ function bindEvents() {
         state.filteredQuestions = shuffled.slice(0, Math.min(24, shuffled.length));
         state.currentIndex = 0;
         
-        showToast("IHK-Klausur gestartet: " + state.filteredQuestions.length + " Fragen.", 'success');
+        showToast("Prüfungssimulation gestartet: " + state.filteredQuestions.length + " Fragen.", 'success');
         if (typeof updateSessionStatsUI === 'function') {
             sessionAnswered = 0;
             sessionCorrect = 0;
@@ -186,26 +186,7 @@ function bindEvents() {
     });
 
     // Save API Key -> Save LLM Config
-    el.btnSaveKey.addEventListener('click', () => {
-        state.llmConfig = {
-            provider: el.inputProvider.value,
-            url: el.inputApiUrl.value.trim(),
-            model: el.inputModel.value.trim(),
-            key: el.inputApiKey.value.trim()
-        };
-        safeStorage.setItem('llm_config', JSON.stringify(state.llmConfig));
-        // Sync to backend if logged in
-        const token = safeStorage.getItem('bootcamp_token') || localStorage.getItem('bootcamp_token');
-        if (token) {
-            fetch(`${API_URL}/api/settings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ llmConfig: state.llmConfig })
-            }).catch(e => console.error("Failed to sync config:", e));
-        }
-        showToast("LLM-Konfiguration gespeichert!", "success");
-        testApiConnection();
-    });
+    el.btnSaveKey.addEventListener('click', () => { saveLlmConfigFromSidebar(); });
 
     // Test API Button
     el.btnTestApi.addEventListener('click', testApiConnection);
@@ -230,7 +211,30 @@ function bindEvents() {
     el.inputApiKey.addEventListener('input', resetApiUI);
 }
 
-// API Test Function
+// Speichert die Felder der Seitenleiste als LLM-Konfiguration (Browser + Konto) und testet sie.
+// Liefert true, wenn die Verbindung steht.
+function saveLlmConfigFromSidebar() {
+    state.llmConfig = {
+        provider: el.inputProvider.value,
+        url: el.inputApiUrl.value.trim(),
+        model: el.inputModel.value.trim(),
+        key: el.inputApiKey.value.trim()
+    };
+    safeStorage.setItem('llm_config', JSON.stringify(state.llmConfig));
+    // Sync to backend if logged in (dort verschlüsselt gespeichert)
+    const token = safeStorage.getItem('bootcamp_token') || localStorage.getItem('bootcamp_token');
+    if (token) {
+        fetch(`${API_URL}/api/settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ llmConfig: state.llmConfig })
+        }).catch(e => console.error("Failed to sync config:", e));
+    }
+    showToast("LLM-Konfiguration gespeichert!", "success");
+    return testApiConnection();
+}
+
+// API Test Function (true = verbunden)
 async function testApiConnection() {
     el.apiStatusLight.style.backgroundColor = 'gray';
     el.apiStatusText.textContent = "Prüfe...";
@@ -305,6 +309,7 @@ async function testApiConnection() {
             
             // Button ausblenden, da nicht mehr benötigt
             el.btnTestApi.style.display = 'none';
+            return true;
         } else {
             throw new Error("Unerwartete Antwort vom Modell: " + text);
         }
@@ -336,6 +341,7 @@ async function testApiConnection() {
         } catch(ignore) {}
         
         showToast("Verbindung fehlgeschlagen: " + errorMsg, "error");
+        return false;
     } finally {
         el.btnTestApi.disabled = false;
     }
@@ -901,7 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            let text = "--- IHK-Klausur Auswertung ---\n\n";
+            let text = "--- Auswertung Prüfungssimulation ---\n\n";
             text += "Note: " + document.getElementById('exam-result-grade').textContent + " (" + document.getElementById('exam-result-grade-text').textContent + ")\n";
             text += "Punkte: " + document.getElementById('exam-result-points').textContent + " / 24\n\n";
             text += "--- Alle Antworten der Klausur ---\n\n";

@@ -11,6 +11,7 @@ const router = express.Router();
 const ALLOWED_ORIGINS = new Set([
     'https://generativelanguage.googleapis.com',
     'https://api.openai.com',
+    'https://api.groq.com', // Groq Cloud: wird im KI-Tutor-Hinweis als Beispiel empfohlen
 ]);
 if (OLLAMA_ORIGIN) ALLOWED_ORIGINS.add(OLLAMA_ORIGIN);
 

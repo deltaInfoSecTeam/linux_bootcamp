@@ -198,7 +198,8 @@ async function revealAnswer(e) {
             }
         } else {
             result = validateAnswer(q, input);
-            if (state.llmConfig.url !== 'offline') {
+            // Ohne KI-Anbieter: Hinweisfeld zeigen, sonst (wenn weggeklickt) den kurzen Tipp
+            if (state.llmConfig.url !== 'offline' && !showAiPromo()) {
                 result.text += `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; border-top: 1px dashed var(--bg-card-border); padding-top: 8px;"><span class="dis-mark dis-mark--info">ii</span> Tipp: Trage ein LLM in der Sidebar ein, um eine detaillierte KI-Auswertung deiner Antworten zu erhalten.</p>`;
             }
         }
@@ -433,3 +434,169 @@ KEIN JSON-Format.`;
     }
 }
 
+
+// --- KI-Tutor-Hinweis: Chat-Nachricht von Tux, solange kein KI-Anbieter eingerichtet ist ---
+const AI_PROMO_NEVER = 'ai_promo_dismissed';
+let aiPromoLater = false;      // "Später": bis zum Neuladen der Seite nicht mehr zeigen
+let aiPromoInitialHtml = null; // Ausgangszustand des Chats (Nachrichten von Tux)
+let aiPromoTimers = [];
+
+// Animationen nur, wenn weder System noch Pause-Knopf sie abschalten
+function aiPromoStill() {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return reduce || document.documentElement.getAttribute('data-motion') === 'off';
+}
+
+function aiPromoTime() {
+    return new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+
+function aiPromoClearTimers() {
+    aiPromoTimers.forEach(clearTimeout);
+    aiPromoTimers = [];
+}
+
+function aiPromoSetTyping(on) {
+    const body = document.getElementById('tux-chat-body');
+    const status = document.getElementById('tux-chat-status');
+    let typing = body.querySelector('.tux-typing');
+    if (on && !typing) {
+        typing = document.createElement('div');
+        typing.className = 'tux-typing';
+        typing.setAttribute('aria-hidden', 'true');
+        typing.innerHTML = '<i></i><i></i><i></i>';
+        body.appendChild(typing);
+    } else if (!on && typing) {
+        typing.remove();
+    }
+    status.textContent = on ? 'schreibt…' : 'Ausbilder · online';
+}
+
+// Hängt eine Zeitangabe an eine Nachricht (Textknoten, kein HTML aus Variablen)
+function aiPromoStamp(msg, withTicks) {
+    const time = document.createElement('span');
+    time.className = 'tux-msg-time';
+    time.textContent = aiPromoTime();
+    if (withTicks) {
+        const ticks = document.createElement('span');
+        ticks.className = 'tux-msg-ticks';
+        ticks.setAttribute('aria-label', 'gesendet');
+        ticks.innerHTML = '<svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M1 6l3 3 6-7M6 8.5l.8.5 6-7"/></svg>';
+        time.appendChild(ticks);
+    }
+    msg.appendChild(time);
+    return msg;
+}
+
+// Neue Nachricht von Tux, auf Wunsch mit kurzer Tipp-Anzeige davor
+function aiPromoTuxSays(text, delay = 900) {
+    return new Promise((resolve) => {
+        const body = document.getElementById('tux-chat-body');
+        const post = () => {
+            aiPromoSetTyping(false);
+            const msg = document.createElement('div');
+            msg.className = 'tux-msg';
+            msg.textContent = text;
+            body.appendChild(aiPromoStamp(msg, false));
+            resolve();
+        };
+        if (aiPromoStill()) return post();
+        aiPromoSetTyping(true);
+        aiPromoTimers.push(setTimeout(post, delay));
+    });
+}
+
+function hideAiPromo() {
+    aiPromoClearTimers();
+    const box = document.getElementById('ai-promo');
+    if (box) box.classList.add('hidden');
+}
+
+// Zeigt den Chat; false, wenn er weggeklickt wurde oder nicht passt
+function showAiPromo() {
+    const box = document.getElementById('ai-promo');
+    if (!box || state.mode === 'exam' || aiPromoLater) return false;
+    if (safeStorage.getItem(AI_PROMO_NEVER) === '1') return false;
+    if (state.llmConfig && state.llmConfig.url) return false;
+
+    aiPromoClearTimers();
+    const body = document.getElementById('tux-chat-body');
+    body.innerHTML = aiPromoInitialHtml;
+    document.getElementById('ai-promo-key').value = '';
+    const msgs = [...body.querySelectorAll('.tux-msg')];
+    msgs.forEach(m => aiPromoStamp(m, false));
+    box.classList.remove('hidden');
+
+    // Nachrichten nacheinander "eintippen", ohne Animation sofort alle zeigen
+    if (!aiPromoStill()) {
+        msgs.slice(1).forEach(m => { m.hidden = true; });
+        let delay = 500;
+        msgs.slice(1).forEach((m) => {
+            aiPromoTimers.push(setTimeout(() => aiPromoSetTyping(true), delay));
+            delay += 700;
+            aiPromoTimers.push(setTimeout(() => {
+                aiPromoSetTyping(false);
+                m.hidden = false;
+                body.appendChild(m); // hinter eine evtl. vorhandene Tipp-Anzeige
+            }, delay));
+            delay += 300;
+        });
+    }
+    aiPromoSetTyping(false);
+    return true;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('ai-promo-form');
+    if (!form) return;
+    const body = document.getElementById('tux-chat-body');
+    aiPromoInitialHtml = body.innerHTML;
+    const keyInput = document.getElementById('ai-promo-key');
+    const btnSave = document.getElementById('btn-ai-promo-save');
+
+    document.getElementById('btn-ai-promo-later').addEventListener('click', () => {
+        aiPromoLater = true;
+        hideAiPromo();
+    });
+    document.getElementById('btn-ai-promo-never').addEventListener('click', () => {
+        safeStorage.setItem(AI_PROMO_NEVER, '1');
+        hideAiPromo();
+        showToast('Hinweis ausgeblendet. Die KI richtest du jederzeit in der Seitenleiste ein.', 'info');
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const key = keyInput.value.trim();
+        if (!key) {
+            await aiPromoTuxSays('Da kam nichts an, Rekrut. Füg deinen Schlüssel ins Feld unten ein.', 500);
+            keyInput.focus();
+            return;
+        }
+        // Eigene Nachricht: Schlüssel nur maskiert anzeigen
+        const out = document.createElement('div');
+        out.className = 'tux-msg out';
+        out.textContent = key.slice(0, 4) + '•'.repeat(8);
+        body.appendChild(aiPromoStamp(out, true));
+        keyInput.value = '';
+
+        // Groq in der Seitenleiste vorwählen (setzt URL und Modell), Schlüssel übernehmen
+        el.inputProvider.value = 'groq';
+        el.inputProvider.dispatchEvent(new Event('change'));
+        el.inputApiKey.value = key;
+        btnSave.disabled = true;
+        aiPromoSetTyping(true);
+        try {
+            const ok = await saveLlmConfigFromSidebar();
+            out.classList.add('read');
+            if (ok) {
+                await aiPromoTuxSays('Verbunden. Ab der nächsten Antwort bewerte ich dich richtig, Rekrut.', 400);
+                aiPromoTimers.push(setTimeout(hideAiPromo, 5000));
+            } else {
+                await aiPromoTuxSays('Der Schlüssel funktioniert nicht. Prüf ihn nochmal und schick ihn mir erneut.', 400);
+            }
+        } finally {
+            aiPromoSetTyping(false);
+            btnSave.disabled = false;
+        }
+    });
+});

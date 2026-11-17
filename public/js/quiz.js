@@ -258,6 +258,7 @@ function renderCurrentQuestion() {
     // Hide more info wrapper
     if (el.moreInfoWrapper) el.moreInfoWrapper.classList.add('hidden');
     if (el.moreInfoContent) el.moreInfoContent.classList.add('hidden');
+    if (typeof hideAiPromo === 'function') hideAiPromo();
     if (el.btnMoreInfo) el.btnMoreInfo.disabled = false;
     if (el.btnSkip) el.btnSkip.classList.remove('hidden');
     document.getElementById('btn-confirm-rating').classList.add('hidden');
@@ -267,6 +268,32 @@ function renderCurrentQuestion() {
 }
 
 // Validator for user answers
+// Kernbegriffe aus der Musterlösung ableiten, wenn keine hinterlegt sind:
+// zuerst fett oder als Code markierte Begriffe, dann die längsten Fachwörter.
+const KEYWORD_LABELS = new Set(['problem', 'lösung', 'befehl', 'befehle', 'erklärung', 'beispiel', 'datei', 'warum', 'was passiert', 'hinweis', 'tipp', 'achtung', 'ergebnis', 'modern', 'klassisch']);
+const KEYWORD_STOPWORDS = new Set(['dieser', 'diese', 'dieses', 'welche', 'welcher', 'welches', 'einen', 'einem', 'einer', 'eines', 'sowie', 'durch', 'unter', 'ueber', 'über', 'nicht', 'keine', 'keinen', 'haben', 'werden', 'wurde', 'kannst', 'damit', 'dabei', 'deren', 'dessen', 'diesem', 'diesen', 'zwischen', 'beispiel', 'beispielsweise', 'werden', 'können', 'müssen', 'sollte', 'immer', 'jeder', 'jedes', 'jeden', 'andere', 'anderen', 'wichtig', 'direkt', 'zusätzlich', 'nämlich', 'typischerweise', 'normalerweise']);
+
+function deriveKeywords(q) {
+    const answer = String(q.answer || '');
+    const terms = [];
+    const add = (t) => {
+        t = t.toLowerCase().replace(/\([^)]*\)/g, '').replace(/[:.,;]+$/, '').replace(/\s+/g, ' ').trim();
+        // Lange Befehle in ihre Bestandteile (Befehl, Pfade, Optionen) zerlegen
+        if (t.length > 40) { t.split(' ').forEach(part => { if (part.length <= 40) add(part); }); return; }
+        if (t.length < 3 || KEYWORD_LABELS.has(t) || !/[a-zäöüß]/.test(t)) return;
+        if (!terms.includes(t)) terms.push(t);
+    };
+    for (const m of answer.matchAll(/\*\*([^*]+)\*\*|`([^`]+)`/g)) add(m[1] || m[2]);
+    if (terms.length > 5) terms.length = 5;
+    if (terms.length < 3) {
+        const words = (answer.toLowerCase().match(/[a-zäöüß]{6,}/g) || [])
+            .filter(w => !KEYWORD_STOPWORDS.has(w) && !terms.includes(w));
+        [...new Set(words)].sort((a, b) => b.length - a.length)
+            .slice(0, 5 - terms.length).forEach(w => terms.push(w));
+    }
+    return terms;
+}
+
 function validateAnswer(q, input) {
     if (!input) {
         return {
@@ -314,35 +341,32 @@ function validateAnswer(q, input) {
             }
         }
     } else {
-        // Begriffsanalyse
+        // Begriffsanalyse: hinterlegte Kernbegriffe (Regex) oder aus der Musterlösung abgeleitete
         const matched = [];
         const unmatched = [];
-        
-        let keywords = q.keywords;
-        if (!keywords && q.validationType === 'concept') {
-            const textToAnalyze = (q.answer + " " + (q.moreInfo || "")).toLowerCase();
-            const words = textToAnalyze.match(/[a-zäöüß]{5,}/g) || [];
-            const stopwords = ['dieser','diese','dieses','welche','welcher','welches','einen','einem','einer','sowie','durch','unter','ueber','nicht','keine','haben','werden','kannst','dass','wird','kann','auch','sind','oder','nach','dann','mehr','wenn','aber','sein'];
-            const filtered = words.filter(w => !stopwords.includes(w));
-            const uniqueWords = [...new Set(filtered)];
-            uniqueWords.sort((a,b) => b.length - a.length);
-            keywords = uniqueWords.slice(0, 5);
-        }
-        
-        if (keywords) {
-            keywords.forEach(kw => {
-                const regex = new RegExp(kw, 'i');
-                if (regex.test(input)) {
-                    matched.push(kw);
-                } else {
-                    unmatched.push(kw);
-                }
+        const normInput = input.toLowerCase().replace(/\s+/g, ' ');
+
+        if (q.keywords && q.keywords.length) {
+            q.keywords.forEach(kw => {
+                (new RegExp(kw, 'i').test(input) ? matched : unmatched).push(kw);
+            });
+        } else {
+            deriveKeywords(q).forEach(kw => {
+                (normInput.includes(kw) ? matched : unmatched).push(kw);
             });
         }
-        
+
         const matchedCount = matched.length;
-        const totalCount = keywords ? keywords.length : 0;
-        
+        const totalCount = matched.length + unmatched.length;
+
+        // Ohne prüfbare Begriffe keine automatische Bewertung (früher: 0 von 0 = "richtig")
+        if (totalCount === 0) {
+            return {
+                rating: 'partial',
+                text: '<span class="dis-mark dis-mark--info">ii</span> <strong>Keine automatische Prüfung möglich.</strong> Für diese Frage sind keine Kernbegriffe hinterlegt. Vergleiche deine Antwort mit der Musterlösung und bewerte dich selbst.'
+            };
+        }
+
         let rating = 'wrong';
         let ratingText = '';
         
