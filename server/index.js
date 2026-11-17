@@ -34,6 +34,26 @@ app.use('/api', userRouter); // enthält authenticateToken für alle übrigen /a
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Unbekannter API-Endpunkt' }));
 
+// --- Öffentliches CA-Zertifikat für Clients (scripts/trust-ca.sh) ---
+// Nur das Zertifikat der lokalen CA, nie ein Schlüssel. Der Pfad kommt
+// ausschließlich aus der Konfiguration, nicht aus der Anfrage.
+app.get('/ca.crt', (req, res) => {
+    if (!config.TLS_CA_PATH) return res.status(404).end();
+    let pem;
+    try {
+        pem = fs.readFileSync(config.TLS_CA_PATH, 'utf8');
+    } catch {
+        return res.status(404).end();
+    }
+    if (!/^-----BEGIN CERTIFICATE-----/.test(pem) || /PRIVATE KEY/.test(pem)) {
+        return res.status(404).end();
+    }
+    res.setHeader('Content-Type', 'application/x-x509-ca-cert');
+    res.setHeader('Content-Disposition', 'attachment; filename="linux-bootcamp-ca.crt"');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(pem);
+});
+
 // --- Frontend: ausschließlich der public/-Ordner wird ausgeliefert ---
 app.use(express.static(config.PUBLIC_DIR, {
     dotfiles: 'deny',

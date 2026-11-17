@@ -112,11 +112,26 @@ TLS_HOSTNAMES=bootcamp.intern.example.org,schule.lan
 
 **Erneuerung:** Das Serverzertifikat gilt 825 Tage. Jeder weitere Lauf von `./scripts/install.sh` prüft es und stellt es neu aus, wenn es bald abläuft oder sich IP-Adresse oder Hostname geändert haben.
 
-**Andere Geräte** (Handy, Laptop) vertrauen der CA erst, wenn du `tls/linux-bootcamp-ca.crt` dort importierst:
+**Andere Geräte** (Handy, Laptop) vertrauen der CA erst, wenn sie dort importiert ist. Der Server bietet das öffentliche CA-Zertifikat dafür unter `https://<server>/ca.crt` an. Das ist nur das Zertifikat, der private Schlüssel verlässt den Server nie. `./scripts/install.sh` zeigt am Ende den Fingerabdruck und einen fertigen Befehl für Linux-Rechner an.
+
+**Linux-Rechner per Skript:** `scripts/trust-ca.sh` läuft auf dem Client:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/trust-ca.sh | bash -s -- --server <name> --fingerprint <SHA-256>
+```
+
+- lädt `ca.crt` vom Server und **bricht ab, wenn der Fingerabdruck nicht exakt passt**,
+- installiert nur eine echte CA **mit kritischen Name Constraints**,
+- trägt sie ins System ein (Debian/Ubuntu/Kali, Fedora/RHEL, Arch) und in **jedes Firefox-Profil** sowie **Chromium/Chrome**, jeweils als vertrauenswürdig für Webseiten (installiert dafür bei Bedarf `certutil`),
+- `--ip <adresse>` legt einen `/etc/hosts`-Eintrag an, falls der Name nicht auflösbar ist, `--port` für einen anderen Port als 443,
+- `--replace-old` entfernt ältere Bootcamp-CAs (z. B. nach einem Neuaufsetzen des Servers), `--dry-run` zeigt nur an, `--uninstall` macht alles rückgängig.
+
+**Andere Systeme manuell** (`https://<server>/ca.crt` laden, Fingerabdruck vergleichen):
 - **Android:** Einstellungen → Sicherheit → Verschlüsselung & Anmeldedaten → Zertifikat installieren → CA-Zertifikat
 - **iOS/iPadOS:** Datei öffnen, Profil installieren, dann unter Einstellungen → Allgemein → Info → Zertifikatsvertrauenseinstellungen aktivieren
 - **Windows:** Datei doppelklicken → Zertifikat installieren → „Vertrauenswürdige Stammzertifizierungsstellen“
-- **Linux/macOS:** wie oben mit `sudo ./scripts/tls.sh trust` bzw. über die Schlüsselbundverwaltung
+- **macOS:** Schlüsselbundverwaltung → System → Zertifikat öffnen → Vertrauen → „Immer vertrauen“
+- **Firefox** (eigener Speicher): Einstellungen → Zertifikate anzeigen → Zertifizierungsstellen → Importieren → „Dieser CA vertrauen, um Websites zu identifizieren“ **anhaken**
 
 **Ohne Portnummer (Port 443):** Ist Port 443 frei, in `.env` einfach `HOST_PORT=443` setzen und das Skript erneut ausführen. Läuft auf dem Rechner schon ein nginx auf 443, kann er Bootcamp anhand des Namens weiterreichen (SNI), mit demselben Zertifikat:
 

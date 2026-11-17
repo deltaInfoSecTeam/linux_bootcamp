@@ -183,7 +183,8 @@ server_cert_ok() {
 no_symlinks() {
     local p
     for p in "$TLS_DIR" "$CA_DIR" "$SRV_DIR" "$TLS_DIR/linux-bootcamp-ca.crt" \
-             "$CA_DIR/ca.key" "$CA_DIR/ca.crt" "$SRV_DIR/server.key" "$SRV_DIR/server.crt"; do
+             "$CA_DIR/ca.key" "$CA_DIR/ca.crt" "$SRV_DIR/server.key" "$SRV_DIR/server.crt" \
+             "$SRV_DIR/ca.crt"; do
         [ -L "$p" ] && die "$p ist ein symbolischer Link – aus Sicherheitsgründen abgebrochen."
     done
     return 0
@@ -200,8 +201,10 @@ cmd_setup() {
     else
         create_server_cert
     fi
-    # Öffentliches CA-Zertifikat zum Verteilen auf andere Geräte (Handy, Laptop)
+    # Öffentliches CA-Zertifikat zum Verteilen auf andere Geräte (Handy, Laptop).
+    # Die Kopie in tls/server/ sieht der Container und liefert sie unter /ca.crt aus.
     install -m 644 "$CA_DIR/ca.crt" "$TLS_DIR/linux-bootcamp-ca.crt"
+    install -m 644 "$CA_DIR/ca.crt" "$SRV_DIR/ca.crt"
     # Der Container läuft als UID 1000 und muss den Serverschlüssel lesen können
     chown -R -h "$CONTAINER_UID:$CONTAINER_UID" "$SRV_DIR"
     # Nutzt ein vorgeschalteter nginx dasselbe Zertifikat, neu laden
