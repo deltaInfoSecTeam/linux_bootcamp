@@ -633,8 +633,16 @@ textarea#user-answer {
     box-shadow: 0 0 15px color-mix(in srgb, var(--dis-gold) 10%, transparent);
 }
 
+/* Source of the evaluation, right-aligned in the rating badge:
+   AI tutor (gold, with model) or keyword check (grey) */
+.feedback-badge.has-source { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.feedback-source { color: var(--dis-gold); font-weight: 600; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feedback-source small { margin-left: 6px; color: var(--dis-text-3); font-weight: 400; letter-spacing: 0; text-transform: none; }
+.feedback-source.keyword { color: var(--dis-text-3); }
+
 .feedback-badge {
     align-self: flex-start;
+    margin-bottom: 10px; /* space between the rating badge and the feedback text */
     padding: 4px 10px;
     border-radius: 20px;
     font-size: 0.75rem;
