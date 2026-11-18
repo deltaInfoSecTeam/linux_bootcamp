@@ -1129,6 +1129,14 @@ body.is-admin .admin-only-btn {
         order: 2;
         height: auto;
     }
+
+    /* The brand layout aligns items to the start; in one column both areas must
+       take the screen width instead of the width of their widest content. */
+    .app-layout > .app-main,
+    .app-layout > .app-sidebar {
+        align-self: stretch;
+        min-width: 0;
+    }
     
     .category-list {
         max-height: 180px;
@@ -1138,6 +1146,22 @@ body.is-admin .admin-only-btn {
         min-height: 250px;
         font-size: 1.1rem;
     }
+}
+
+/* Phones: the three action buttons wrap (primary action on its own row) */
+@media (max-width: 560px) {
+    .terminal-action-bar { flex-wrap: wrap; }
+    .terminal-action-bar .term-btn-action {
+        flex: 1 1 calc(50% - 5px);
+        min-width: 0;
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+    .terminal-action-bar .term-btn-action.primary { flex-basis: 100%; }
+}
+/* Very narrow phones: one button per row, so labels never break inside a word */
+@media (max-width: 380px) {
+    .terminal-action-bar .term-btn-action { flex-basis: 100%; }
 }
 
 @media (max-width: 500px) {
