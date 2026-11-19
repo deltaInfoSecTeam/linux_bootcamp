@@ -420,6 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('quiz-main').style.display = 'none';
             document.getElementById('admin-content-main').style.display = 'none';
             document.getElementById('admin-main').style.display = 'flex';
+            showAdminArea('users');
             loadAdminUsers();
             loadAdminExams();
         });
@@ -432,6 +433,17 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('admin-main').style.display = 'none';
             document.getElementById('admin-content-main').style.display = 'flex';
             if(window.renderAdminContentTree) window.renderAdminContentTree();
+        });
+    }
+
+    // Systemmanagement: eigene Ansicht im selben Bereich, ohne die Reiter des Usermanagements
+    const btnAdminSystemView = document.getElementById('btn-admin-system');
+    if (btnAdminSystemView) {
+        btnAdminSystemView.addEventListener('click', () => {
+            document.getElementById('quiz-main').style.display = 'none';
+            document.getElementById('admin-content-main').style.display = 'none';
+            document.getElementById('admin-main').style.display = 'flex';
+            showAdminArea('system');
         });
     }
 
@@ -677,18 +689,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const secAdminUsers = document.getElementById('admin-section-users');
     const secAdminExams = document.getElementById('admin-section-exams');
 
-    const btnAdminSystem = document.getElementById('btn-admin-view-system');
     const secAdminSystem = document.getElementById('admin-section-system');
-    const adminTabs = [[btnAdminUsers, secAdminUsers], [btnAdminExams, secAdminExams], [btnAdminSystem, secAdminSystem]];
+    const adminTabs = [[btnAdminUsers, secAdminUsers], [btnAdminExams, secAdminExams]];
     function showAdminTab(btn) {
         adminTabs.forEach(([b, s]) => {
             if (!b || !s) return;
             b.classList.toggle('active', b === btn);
             s.style.display = b === btn ? 'block' : 'none';
         });
-        if (btn === btnAdminSystem) loadUpdateStatus(); else stopUpdatePolling();
+        if (secAdminSystem) secAdminSystem.style.display = 'none';
+        stopUpdatePolling();
     }
     adminTabs.forEach(([b]) => b && b.addEventListener('click', () => showAdminTab(b)));
+    // Bereich der Admin-Ansicht: 'users' (Benutzer, Klausuren) oder 'system' (Programmstand, Update)
+    function showAdminArea(area) {
+        const sys = area === 'system';
+        document.getElementById('admin-main-title').textContent = sys ? 'Systemmanagement' : 'Usermanagement';
+        adminTabs.forEach(([b]) => { if (b) b.style.display = sys ? 'none' : ''; });
+        if (sys) {
+            adminTabs.forEach(([, s]) => { if (s) s.style.display = 'none'; });
+            secAdminSystem.style.display = 'flex';
+            loadUpdateStatus();
+        } else {
+            showAdminTab(btnAdminUsers);
+        }
+    }
 
     // --- System: Update über den Host-Agenten ---
     let updTimer = null, updWasRunning = false;
