@@ -83,8 +83,8 @@ do_check() {
     put status.json "{\"agent\":1,\"checked_at\":$(jstr "$(now)"),\"branch\":$(jstr "$branch"),\"current\":$(jstr "$cur"),\"remote\":$(jstr "$remote"),\"behind\":${behind:-0},\"commits\":[${commits}],\"error\":$(jstr "$err")}"
 }
 
-run_state() {   # state message by started finished
-    put run.json "{\"state\":$(jstr "$1"),\"message\":$(jstr "$2"),\"by\":$(jstr "$3"),\"started_at\":$(jstr "$4"),\"finished_at\":$(jstr "${5:-}")}"
+run_state() {   # state message by started finished step(1 holen, 2 bauen/neu starten, 3 fertig)
+    put run.json "{\"state\":$(jstr "$1"),\"message\":$(jstr "$2"),\"by\":$(jstr "$3"),\"started_at\":$(jstr "$4"),\"finished_at\":$(jstr "${5:-}"),\"step\":${6:-0}}"
 }
 
 do_apply() {
@@ -96,7 +96,7 @@ do_apply() {
         return 0
     fi
     put .last-apply "$(date +%s)"
-    run_state running "Update läuft: Programm holen, Container neu bauen und starten. Das Bootcamp ist dabei kurz nicht erreichbar." "$by" "$started"
+    run_state running "Neue Version wird geholt." "$by" "$started" "" 1
     log="$(mktemp)"
     (   # Subshell: ein Abbruch beendet nur diesen Block, der Status wird danach trotzdem geschrieben
         set -e
@@ -107,6 +107,7 @@ do_apply() {
         fi
         as_owner git -C "$REPO_DIR" pull --ff-only
         as_owner git -C "$REPO_DIR" log -1 --format='Neuer Stand: %h %s'
+        run_state running "Container wird neu gebaut und gestartet. Das Bootcamp ist dabei kurz nicht erreichbar." "$by" "$started" "" 2
         SUDO_USER="$OWNER" bash "$REPO_DIR/scripts/install.sh" --yes
         echo "== $(now) fertig"
     ) > "$log" 2>&1 || rc=$?
@@ -114,7 +115,7 @@ do_apply() {
     put log.txt "$(tail -n 60 "$log" | sed 's/\x1b\[[0-9;]*m//g')"
     rm -f "$log"
     if [ "$rc" -eq 0 ]; then
-        run_state ok "Update erfolgreich. Neuer Stand ist aktiv." "$by" "$started" "$(now)"
+        run_state ok "Update erfolgreich. Neuer Stand ist aktiv." "$by" "$started" "$(now)" 3
     else
         run_state failed "Update fehlgeschlagen (Code $rc). Der bisherige Stand läuft weiter, Details im Protokoll." "$by" "$started" "$(now)"
         rm -f "$UPD/.last-apply"   # nach einem Fehler sofort erneut versuchen dürfen
