@@ -10,6 +10,7 @@ const adminRouter = require('./routes/admin');
 const proxyRouter = require('./routes/proxy');
 const userRouter = require('./routes/user');
 const setupRouter = require('./routes/setup');
+const content = require('./routes/content');
 const setup = require('./setup');
 
 const app = express();
@@ -26,11 +27,15 @@ if (config.ALLOWED_ORIGINS.length > 0) {
     app.use('/api', cors({ origin: config.ALLOWED_ORIGINS }));
 }
 
+// Import vieler Fragen auf einmal: nur für die Admin-Content-Routen ein größeres Limit
+app.use('/api/admin/content', express.json({ limit: '5mb' }));
 app.use(express.json({ limit: '300kb' }));
 
 // --- API ---
 app.use('/api/setup', setupRouter); // Erst-Einrichtung, vor allen Routen mit Login-Pflicht
 app.use('/api', authRouter);
+app.use('/api/content', content.publicRouter); // öffentlich lesbar, vor den Routen mit Login-Pflicht
+app.use('/api/admin/content', content.adminRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api', proxyRouter);
 app.use('/api', userRouter); // enthält authenticateToken für alle übrigen /api-Routen

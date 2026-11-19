@@ -1,4 +1,4 @@
-const CACHE_NAME = 'linux-bootcamp-v194';
+const CACHE_NAME = 'linux-bootcamp-v195';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -21,6 +21,7 @@ const ASSETS_TO_CACHE = [
   './js/stats.js',
   './js/main.js',
   './js/generator.js',
+  './js/content.js',
   './img/ranks/Schuetze.svg',
   './img/ranks/Gefreiter.svg',
   './img/ranks/Obergefreiter.svg',

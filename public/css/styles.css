@@ -1881,3 +1881,21 @@ body.is-admin .admin-only { display: block !important; }
 @media (prefers-reduced-motion: reduce) { .upd-steps li .upd-dot, .upd-bar i::after { animation: none; } .upd-bar i, .upd-steps::after { transition: none; } }
 @media (max-width: 600px) { .upd-steps li { font-size: .7rem; } }
 
+/* Management / Content */
+.content-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-left: 12px; }
+.content-tabs .mode-btn { margin: 0; padding: 4px 10px; width: auto; }
+.content-hint { color: var(--dis-text-2); font-size: .85rem; margin: 0 0 12px; }
+.content-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.content-card { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.content-card p { margin: 0; color: var(--dis-text-2); font-size: .88rem; line-height: 1.5; }
+.content-card .dis-btn { width: auto; align-self: flex-start; margin: 0; }
+.content-card .dis-btn:disabled { opacity: .45; cursor: not-allowed; }
+.content-label { font-size: .8rem; color: var(--dis-text-2); margin-top: 4px; }
+.content-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.content-row .dis-input { flex: 1; min-width: 180px; }
+.content-msg:empty { display: none; }
+.content-msg { font-size: .88rem; }
+#content-io-msg { margin-top: 14px; }
+.content-del-btn { background: none; border: 1px solid color-mix(in srgb, var(--dis-danger) 45%, transparent); color: var(--dis-danger); border-radius: 4px; padding: 1px 8px; font-size: .75rem; cursor: pointer; width: auto; }
+.content-del-btn:hover { background: color-mix(in srgb, var(--dis-danger) 12%, transparent); }
+

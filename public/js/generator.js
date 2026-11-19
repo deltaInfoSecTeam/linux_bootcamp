@@ -1,5 +1,8 @@
-// LocalStorage Wrapper (aus app.js übernommen für sicheren Zugriff)
-const safeStorage = {
+// Generator unter Management / Content: erzeugt Fragen mit der KI und speichert sie zentral
+// (für alle Lernenden). In eine Funktion gekapselt, weil index.html core.js mit eigenem safeStorage lädt.
+(function () {
+'use strict';
+const store = {
     getItem: function(key) {
         try { return localStorage.getItem(key); } catch (e) { return null; }
     },
@@ -16,7 +19,7 @@ async function fetchWithProxyFallback(url, options) {
         console.warn("Direct fetch failed (CORS/Network Error), using local proxy...", e);
         return await fetch('/api/proxy', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + safeStorage.getItem('bootcamp_token') },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + store.getItem('bootcamp_token') },
             body: JSON.stringify({
                 url: url,
                 method: options.method || 'GET',
@@ -37,28 +40,21 @@ function initGenerator() {
 
     if (!btnGenerate) return;
 
-    const defaultCats = ["1. Aufbau von Linux", "1. Verzeichnisstruktur", "2. Textverarbeitung", "2. Rechtesystem", "3. Systemverwaltung"];
-    
-    const custom = safeStorage.getItem('custom_questions');
-    let customCats = [];
-    if (custom) {
-        try {
-            const parsed = JSON.parse(custom);
-            if (Array.isArray(parsed)) {
-                customCats = parsed.map(q => q.category);
-            }
-        } catch(e) {}
-    }
-
-    // Only show unique base modules in the select dropdown for simplicity
-    const allCats = Array.from(new Set([...defaultCats, ...customCats]));
-    
-    allCats.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        selectCat.appendChild(opt);
-    });
+    // Kategorien aus dem aktuell geladenen Katalog (eingebaut + zentral); beim Öffnen des Reiters neu füllen
+    let allCats = [];
+    window.refreshGeneratorCategories = function () {
+        allCats = typeof QUESTIONS !== 'undefined' ? Array.from(new Set(QUESTIONS.map(q => q.category))).sort() : [];
+        const keep = selectCat.value;
+        selectCat.querySelectorAll('option:not([value="new"])').forEach(o => o.remove());
+        allCats.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            selectCat.appendChild(opt);
+        });
+        if ([...selectCat.options].some(o => o.value === keep)) selectCat.value = keep;
+        inputNewCatContainer.style.display = selectCat.value === 'new' ? 'flex' : 'none';
+    };
 
     selectCat.addEventListener('change', () => {
         if (selectCat.value === 'new') {
@@ -121,21 +117,23 @@ function initGenerator() {
         }
         
         // Load llmConfig
-        const configData = safeStorage.getItem('llm_config');
+        // KI-Einstellungen wie im Quiz (angemeldet: vom Server geladen), sonst aus dem Browser
         let llmConfig = { url: '', model: '', key: '' };
-        if (configData) {
-            try { llmConfig = JSON.parse(configData); } catch(e){}
+        if (typeof state !== 'undefined' && state.llmConfig && state.llmConfig.key) {
+            llmConfig = state.llmConfig;
+        } else {
+            const configData = store.getItem('llm_config');
+            if (configData) { try { llmConfig = JSON.parse(configData); } catch (e) { /* ungültig */ } }
         }
 
         if (!llmConfig.key) {
-            alert("Du musst zuerst im Quiz in den Einstellungen deinen API-Key hinterlegen!");
+            alert("Bitte zuerst unter „KI-Bewertung (API)“ einen KI-Schlüssel hinterlegen.");
             return;
         }
 
         try {
             btnGenerate.disabled = true;
             btnGenerate.textContent = "Analysiere und generiere ...";
-            statusEl.style.display = 'block';
             statusEl.style.color = 'var(--dis-warn)';
             statusEl.textContent = "Bereite Daten vor...";
 
@@ -241,26 +239,29 @@ ${fileContentText ? "\nInhalt der Datei:\n" + fileContentText : ""}`;
                 throw new Error("KI hat kein Array zurückgegeben.");
             }
 
-            // Speichern in localStorage
-            const existingCustom = JSON.parse(safeStorage.getItem('custom_questions') || '[]');
-            existingCustom.push(...newQuestions);
-            safeStorage.setItem('custom_questions', JSON.stringify(existingCustom));
+            // Zentral speichern (für alle Lernenden)
+            newQuestions.forEach(q => { if (q && typeof q === 'object') q.category = category; });
+            const saveRes = await fetch('/api/admin/content/questions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + store.getItem('bootcamp_token') },
+                body: JSON.stringify({ questions: newQuestions })
+            });
+            const saved = await saveRes.json().catch(() => ({}));
+            if (!saveRes.ok) throw new Error(saved.error || ('Speichern fehlgeschlagen (' + saveRes.status + ')'));
 
             statusEl.style.color = 'var(--dis-matrix)';
-            statusEl.textContent = `Erfolg! ${newQuestions.length} neue Fragen generiert und gespeichert.`;
-            
-            setTimeout(() => {
-                window.location.href = 'index.html'; // Zurück zum Quiz
-            }, 2000);
+            statusEl.textContent = `${saved.added} neue Fragen erzeugt und für alle gespeichert${saved.skipped ? `, ${saved.skipped} unvollständige verworfen` : ''}. Die Seite lädt gleich neu.`;
+            setTimeout(() => location.reload(), 2000);
 
         } catch (e) {
             console.error("Generator Fehler:", e);
             statusEl.style.color = 'var(--dis-danger)';
             statusEl.textContent = "Fehler: " + e.message;
             btnGenerate.disabled = false;
-            btnGenerate.textContent = "Fragen jetzt generieren";
+            btnGenerate.textContent = "Fragen generieren";
         }
     });
 }
 
 window.addEventListener('DOMContentLoaded', initGenerator);
+}());
