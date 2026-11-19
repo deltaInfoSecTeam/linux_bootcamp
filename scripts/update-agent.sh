@@ -108,7 +108,10 @@ do_apply() {
         as_owner git -C "$REPO_DIR" pull --ff-only
         as_owner git -C "$REPO_DIR" log -1 --format='Neuer Stand: %h %s'
         run_state running "Container wird neu gebaut und gestartet. Das Bootcamp ist dabei kurz nicht erreichbar." "$by" "$started" "" 2
-        SUDO_USER="$OWNER" bash "$REPO_DIR/scripts/install.sh" --yes
+        # Der Build läuft als root im Ordner des Besitzers. Git (in docker compose build) verweigert dort
+        # sonst die Commit-Info ("dubious ownership"). Nur für diesen Aufruf als vertrauenswürdig angeben.
+        SUDO_USER="$OWNER" GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$REPO_DIR" \
+            bash "$REPO_DIR/scripts/install.sh" --yes
         echo "== $(now) fertig"
     ) > "$log" 2>&1 || rc=$?
     ensure_dir
