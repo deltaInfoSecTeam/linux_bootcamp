@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Linux Bootcamp – Update-Agent für den Knopf „Jetzt aktualisieren“ in der Admin-Konsole
+# Linux Bootcamp – Update-Agent für den Knopf „Jetzt aktualisieren“ unter Management / System
 #
 # Der Container darf sich nicht selbst aktualisieren (dafür bräuchte er Zugriff auf Docker,
-# das wäre root auf dem ganzen Server). Die Admin-Konsole legt deshalb nur einen Auftrag in
+# das wäre root auf dem ganzen Server). Der Knopf legt deshalb nur einen Auftrag in
 # data/update/ ab. Dieser Agent läuft auf dem Host (systemd), erledigt den Auftrag mit festen
-# Befehlen und schreibt den Stand zurück, den die Admin-Konsole anzeigt.
+# Befehlen und schreibt den Stand zurück, den Management / System anzeigt.
 #
 #   sudo ./scripts/update-agent.sh install     Agent einrichten (systemd-Units, einmalig)
 #   sudo ./scripts/update-agent.sh uninstall   Agent entfernen
@@ -143,7 +143,7 @@ do_install() {
     chown root:root "$AGENT_DEST.part"; chmod 755 "$AGENT_DEST.part"; mv -f "$AGENT_DEST.part" "$AGENT_DEST"
     cat > "$UNIT_DIR/bootcamp-update.service" <<EOF
 [Unit]
-Description=Linux Bootcamp: Auftrag aus der Admin-Konsole ausführen
+Description=Linux Bootcamp: Update-Auftrag aus Management / System ausführen
 After=docker.service network-online.target
 
 [Service]
@@ -152,7 +152,7 @@ ExecStart=$AGENT_DEST run
 EOF
     cat > "$UNIT_DIR/bootcamp-update.path" <<EOF
 [Unit]
-Description=Linux Bootcamp: auf Aufträge der Admin-Konsole warten
+Description=Linux Bootcamp: auf Update-Aufträge aus Management / System warten
 
 [Path]
 PathExistsGlob=$UPD/*.req
@@ -185,7 +185,7 @@ EOF
     systemctl daemon-reload
     systemctl enable --now bootcamp-update.path bootcamp-update-check.timer
     "$AGENT_DEST" check
-    echo "Update-Agent eingerichtet. In der Admin-Konsole unter „System“ steht jetzt der Programmstand."
+    echo "Update-Agent eingerichtet. Unter Management / System steht jetzt der Programmstand."
     echo "Nach Änderungen an diesem Skript erneut ausführen: sudo $0 install"
 }
 
