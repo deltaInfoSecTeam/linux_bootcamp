@@ -187,6 +187,24 @@ sudo ./scripts/tls.sh untrust     # CA aus System und Browsern entfernen
 - **Backup:** den Ordner `./data` sichern. Ohne `.encryption_secret` sind die gespeicherten API-Keys nicht mehr lesbar.
 - Der Container läuft als Nutzer `node` (UID 1000). Gehört `./data` einem anderen Nutzer: `sudo chown -R 1000:1000 data`
 
+### Aktualisieren per Knopf (Admin-Konsole)
+
+In der Admin-Konsole zeigt der Reiter **„System“** den laufenden Programmstand, ob es im Repo neue Änderungen gibt, und bietet **„Jetzt aktualisieren“**.
+
+Der Container aktualisiert sich dabei nicht selbst; dafür bräuchte er Zugriff auf Docker, und das wäre root auf dem ganzen Server. Stattdessen legt der Knopf nur einen Auftrag in `data/update/` ab. Ein kleiner **Update-Agent** auf dem Server führt ihn mit festen Befehlen aus (`git pull --ff-only`, dann `./scripts/install.sh --yes`) und meldet das Ergebnis zurück. Einmalig einrichten, im Projektordner auf dem Server:
+
+```bash
+sudo ./scripts/update-agent.sh install
+```
+
+- Der Agent sucht zusätzlich alle 6 Stunden nach neuen Versionen (systemd-Timer).
+- Git läuft als Besitzer des Projektordners, nicht als root. Aus dem Auftrag wird nur der Benutzername fürs Protokoll gelesen.
+- Höchstens ein Update je 10 Minuten. Gibt es im Projektordner lokale Änderungen, bricht das Update ab und der bisherige Stand läuft weiter.
+- Während des Updates ist das Bootcamp etwa 1 bis 2 Minuten nicht erreichbar; die Admin-Konsole verbindet sich danach selbst wieder.
+- Ändert sich `scripts/update-agent.sh`, den Agenten mit demselben Befehl neu einrichten. Entfernen: `sudo ./scripts/update-agent.sh uninstall`.
+
+Ohne Agent geht es wie bisher von Hand: `git pull --ff-only && ./scripts/install.sh`.
+
 ### Update von v1.0.0
 
 ```bash
@@ -222,7 +240,7 @@ npm start
 │   ├── fonts/         JetBrains Mono (selbst gehostet, SIL OFL)
 │   ├── img/brand/     wappen.svg (zentrales Wappen), App-Icons
 │   └── js/            theme, brand, boot, auth, core, questions, quiz, llm, stats, main, generator
-├── scripts/           install.sh, tls.sh, create-admin.js, healthcheck.js
+├── scripts/           install.sh, update-agent.sh, tls.sh, create-admin.js, healthcheck.js
 ├── docs/brand/        README-Banner, Screenshot
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)
 ├── data/              Laufzeitdaten (gitignored)
