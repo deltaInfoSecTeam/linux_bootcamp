@@ -161,17 +161,6 @@
                     </details>
                 </div>
 
-                <div class="sidebar-section">
-                    <details class="collapsible-section">
-                        <summary><h2>Fragen Import / Export</h2></summary>
-                        <div style="margin-top: 10px;">
-                            <a href="generator.html" class="btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; box-sizing: border-box;">
-                                Import / Export
-                            </a>
-                        </div>
-                    </details>
-                </div>
-
                 <div class="sidebar-section stats-section">
                     <details class="collapsible-section">
                         <summary><h2>Deine Statistik</h2></summary>
@@ -473,10 +462,63 @@
                 <div class="quiz-card" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; max-height: 100%;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--dis-border-strong); padding-bottom: 10px; margin-bottom: 15px;">
                         <div><span style="display: block; color: var(--dis-text-2); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase;">Management /</span><h2 style="color: var(--dis-matrix); margin: 0; white-space: nowrap;">Content</h2></div>
+                        <div class="content-tabs" role="tablist" aria-label="Content">
+                            <button id="btn-content-tab-questions" class="mode-btn active" type="button" data-ctab="questions">Questions</button>
+                            <button id="btn-content-tab-io" class="mode-btn" type="button" data-ctab="io">Import / Export</button>
+                            <button id="btn-content-tab-generator" class="mode-btn" type="button" data-ctab="generator">Generator</button>
+                        </div>
+                        <span style="flex: 1;"></span>
                         <button id="btn-close-content-view" class="btn-secondary" style="width: auto; padding: 4px 12px; font-weight: bold;" title="Schliessen">X</button>
                     </div>
-                    <div id="admin-content-tree" style="overflow-y: auto; flex: 1; text-align: left;">
-                        <!-- Content tree goes here -->
+                    <div class="content-pane" data-cpane="questions" style="overflow-y: auto; flex: 1; text-align: left;">
+                        <p class="content-hint">Alle Module und Kapitel, die die Lernenden sehen. „Entfernen“ gilt für alle: eigene Fragen werden gelöscht, eingebaute ausgeblendet (unter Import / Export wieder einblendbar).</p>
+                        <div id="admin-content-tree"></div>
+                    </div>
+                    <div class="content-pane" data-cpane="io" hidden style="overflow-y: auto; flex: 1; text-align: left;">
+                        <div class="content-grid">
+                            <section class="dis-card content-card">
+                                <span class="dis-eyebrow">Import</span>
+                                <p>JSON-Datei mit Fragen einlesen. Die Fragen stehen danach allen Lernenden zur Verfügung.</p>
+                                <input type="file" id="content-import-file" accept=".json,application/json">
+                                <div id="content-import-preview" class="content-msg"></div>
+                                <button id="btn-content-import" class="dis-btn dis-btn--primary" type="button" disabled>Importieren</button>
+                            </section>
+                            <section class="dis-card content-card">
+                                <span class="dis-eyebrow">Export</span>
+                                <p>Alle eigenen Fragen und die ausgeblendeten Module/Kapitel als JSON-Datei sichern, z. B. als Backup oder für ein anderes Bootcamp.</p>
+                                <div id="content-export-info" class="content-msg"></div>
+                                <button id="btn-content-export" class="dis-btn dis-btn--outline" type="button">Exportieren</button>
+                            </section>
+                            <section class="dis-card content-card" id="content-local-card" hidden>
+                                <span class="dis-eyebrow">Aus diesem Browser übernehmen</span>
+                                <p id="content-local-info"></p>
+                                <button id="btn-content-local" class="dis-btn dis-btn--outline" type="button">Für alle übernehmen</button>
+                            </section>
+                            <section class="dis-card content-card">
+                                <span class="dis-eyebrow">Ausgeblendet</span>
+                                <p id="content-hidden-info">Keine Module oder Kapitel ausgeblendet.</p>
+                                <button id="btn-content-restore" class="dis-btn dis-btn--outline" type="button" disabled>Alle wieder einblenden</button>
+                            </section>
+                        </div>
+                        <div id="content-io-msg" class="content-msg" aria-live="polite"></div>
+                    </div>
+                    <div class="content-pane" data-cpane="generator" hidden style="overflow-y: auto; flex: 1; text-align: left;">
+                        <section class="dis-card content-card">
+                            <span class="dis-eyebrow">Generator</span>
+                            <p>Erzeugt drei neue Fragen mit der KI aus einer Datei (PDF, Markdown, Text) oder zu einem Thema. Nutzt den KI-Schlüssel aus „KI-Bewertung (API)“. Die Fragen stehen danach allen Lernenden zur Verfügung.</p>
+                            <label class="content-label" for="gen-file-upload">Quellmaterial (optional)</label>
+                            <input type="file" id="gen-file-upload" accept=".pdf,.md,.txt">
+                            <label class="content-label" for="gen-topic-input">Thema oder Anweisung</label>
+                            <textarea id="gen-topic-input" class="dis-input" rows="3" placeholder="Z. B.: Drei schwere Fragen zu Docker-Netzwerken"></textarea>
+                            <label class="content-label" for="gen-category-select">Kategorie für neue Fragen</label>
+                            <select id="gen-category-select" class="dis-input"><option value="new">Neues Modul anlegen</option></select>
+                            <div id="gen-new-category-container" class="content-row">
+                                <input type="text" id="gen-new-category-name" class="dis-input" placeholder="Modul, z. B. Linux Security">
+                                <input type="text" id="gen-new-chapter-name" class="dis-input" placeholder="Kapitel (optional)">
+                            </div>
+                            <div id="gen-status" class="content-msg" aria-live="polite"></div>
+                            <button id="btn-generate-questions" class="dis-btn dis-btn--primary" type="button">Fragen generieren</button>
+                        </section>
                     </div>
                 </div>
             </main>
@@ -671,5 +713,7 @@
     <script src="js/llm.js"></script>
     <script src="js/stats.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/generator.js"></script>
+    <script src="js/content.js"></script>
 </body>
 </html>

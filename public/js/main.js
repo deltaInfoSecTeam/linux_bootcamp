@@ -400,7 +400,50 @@ async function testApiConnection() {
     }
 }
 
-// Load Custom Questions from localStorage
+// Zentral gepflegte Inhalte (Management / Content) vom Server laden. Ohne Verbindung (offline,
+// PWA) gilt die zuletzt geladene Kopie aus dem Browser.
+let CONTENT_HIDDEN = { modules: [], chapters: [] };
+async function loadServerContent() {
+    let content = null;
+    try {
+        // Höchstens 4 Sekunden warten: bei schlechter Verbindung lieber mit der Kopie starten
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 4000);
+        const res = await fetch('/api/content', { cache: 'no-store', signal: ctrl.signal }).finally(() => clearTimeout(timer));
+        if (res.ok) {
+            content = await res.json();
+            safeStorage.setItem('content_cache', JSON.stringify({ questions: content.questions, hidden: content.hidden }));
+        }
+    } catch (e) { /* offline: Kopie verwenden */ }
+    if (!content) {
+        try { content = JSON.parse(safeStorage.getItem('content_cache') || 'null'); } catch (e) { content = null; }
+    }
+    if (!content) return;
+    CONTENT_HIDDEN = {
+        modules: Array.isArray(content.hidden?.modules) ? content.hidden.modules : [],
+        chapters: Array.isArray(content.hidden?.chapters) ? content.hidden.chapters : [],
+    };
+    (Array.isArray(content.questions) ? content.questions : []).forEach(q => {
+        if (!q || typeof q.question !== 'string' || typeof q.category !== 'string') return;
+        // Stabile ID je zentraler Frage, damit Statistik und Wiederholung über Neuladen hinweg passen
+        q.id = 100000 + (Number(q.contentId) || 0);
+        if (!q.moreInfo) q.moreInfo = q.answer;
+        if (!q.moreInfo.toLowerCase().includes('tl;dr')) {
+            q.moreInfo = `### 1. tl;dr\n${q.answer}\n---\n### 3. Deep Dive\n${q.moreInfo}`;
+        }
+        QUESTIONS.push(q);
+    });
+}
+
+// Gruppenname eines Kategorie-Namens (wie im Quiz-Setup)
+function groupNameOf(cat) {
+    if (/^\d/.test(cat)) return 'linux.basic()';
+    const base = cat.includes('::') ? cat.split('::')[0] : cat;
+    const name = base.trim().toLowerCase().replace(/\s+/g, '.');
+    return name.endsWith('()') ? name : name + '()';
+}
+
+// Load Custom Questions from localStorage (älterer Weg: nur in diesem Browser)
 function loadCustomQuestions() {
     const custom = safeStorage.getItem('custom_questions');
     if (custom) {
@@ -567,21 +610,17 @@ function initSpeechRecognition() {
 }
 
 // Init App
-function init() {
+async function init() {
+    await loadServerContent();
     loadCustomQuestions();
     
-    const deletedModules = JSON.parse(safeStorage.getItem('deleted_modules') || '[]');
-    const deletedChapters = JSON.parse(safeStorage.getItem('deleted_chapters') || '[]');
+    const deletedModules = JSON.parse(safeStorage.getItem('deleted_modules') || '[]').concat(CONTENT_HIDDEN.modules);
+    const deletedChapters = JSON.parse(safeStorage.getItem('deleted_chapters') || '[]').concat(CONTENT_HIDDEN.chapters);
     
     if (deletedModules.length > 0 || deletedChapters.length > 0) {
         QUESTIONS = QUESTIONS.filter(q => {
             if (deletedChapters.includes(q.category)) return false;
-            let groupName = '';
-            if (/^\d/.test(q.category)) groupName = 'linux.basic()';
-            else if (q.category.includes('::')) groupName = q.category.split('::')[0].trim().toLowerCase().replace(/\s+/g, '.') + '()';
-            else groupName = q.category.trim().toLowerCase().replace(/\s+/g, '.') + '()';
-            
-            if (deletedModules.includes(groupName)) return false;
+            if (deletedModules.includes(groupNameOf(q.category))) return false;
             return true;
         });
     }
@@ -691,7 +730,24 @@ function updateSessionTimer() {
     }
 }
 
-window.deleteModule = function(targetGroupName) {
+// Admin: Modul/Kapitel für alle löschen bzw. ausblenden (Server), sonst wie bisher nur im Browser
+async function hideContentCentral(kind, key) {
+    const res = await fetch('/api/admin/content/hide', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentToken },
+        body: JSON.stringify({ kind, key })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || ('Fehler ' + res.status));
+    return data;
+}
+
+window.deleteModule = async function(targetGroupName) {
+    if (document.body.classList.contains('is-admin') && typeof currentToken !== 'undefined' && currentToken) {
+        try { await hideContentCentral('module', targetGroupName); showToast(`Modul "${targetGroupName}" ist für alle entfernt.`, 'success'); setTimeout(() => location.reload(), 900); }
+        catch (e) { showToast(e.message, 'error'); }
+        return;
+    }
     const custom = safeStorage.getItem('custom_questions');
     let parsed = custom ? JSON.parse(custom) : [];
     if (!Array.isArray(parsed)) parsed = [];
@@ -719,7 +775,12 @@ window.deleteModule = function(targetGroupName) {
     location.reload();
 };
 
-window.deleteChapter = function(targetCatStr, targetGroupName) {
+window.deleteChapter = async function(targetCatStr, targetGroupName) {
+    if (document.body.classList.contains('is-admin') && typeof currentToken !== 'undefined' && currentToken) {
+        try { await hideContentCentral('chapter', targetCatStr); showToast('Kapitel ist für alle entfernt.', 'success'); setTimeout(() => location.reload(), 900); }
+        catch (e) { showToast(e.message, 'error'); }
+        return;
+    }
     const custom = safeStorage.getItem('custom_questions');
     let parsed = custom ? JSON.parse(custom) : [];
     if (!Array.isArray(parsed)) parsed = [];
@@ -800,18 +861,14 @@ window.renderAdminContentTree = function() {
         
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'admin-only-btn';
-        deleteBtn.innerHTML = '&#128465;';
+        deleteBtn.textContent = 'Entfernen';
+        deleteBtn.classList.add('content-del-btn');
         deleteBtn.style.float = 'right';
-        deleteBtn.style.background = 'none';
-        deleteBtn.style.border = 'none';
-        deleteBtn.style.cursor = 'pointer';
-        deleteBtn.style.color = 'var(--dis-danger)';
-        deleteBtn.style.fontSize = '1.1rem';
-        deleteBtn.title = 'Modul und alle Fragen löschen';
+        deleteBtn.title = 'Modul für alle entfernen (eigene Fragen werden gelöscht, eingebaute ausgeblendet)';
         deleteBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (confirm(`Willst du das Modul "${gName}" inkl. aller Fragen unwiderruflich löschen?`)) {
+            if (confirm(`Modul "${gName}" für alle entfernen? Eigene Fragen darin werden gelöscht, eingebaute ausgeblendet (unter Import / Export wiederherstellbar).`)) {
                 if(window.deleteModule) window.deleteModule(gName);
             }
         });
@@ -844,16 +901,13 @@ window.renderAdminContentTree = function() {
             
             const delChapBtn = document.createElement('button');
             delChapBtn.className = 'admin-only-btn';
-            delChapBtn.innerHTML = '&#128465;';
-            delChapBtn.style.background = 'none';
-            delChapBtn.style.border = 'none';
-            delChapBtn.style.cursor = 'pointer';
-            delChapBtn.style.color = 'var(--dis-danger)';
-            delChapBtn.title = 'Kapitel löschen';
+            delChapBtn.textContent = 'Entfernen';
+            delChapBtn.classList.add('content-del-btn');
+            delChapBtn.title = 'Kapitel für alle entfernen';
             delChapBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (confirm(`Willst du das Kapitel "${child.name}" WIRKLICH löschen?`)) {
+                if (confirm(`Kapitel "${child.name}" für alle entfernen? Eigene Fragen darin werden gelöscht, eingebaute ausgeblendet.`)) {
                     if(window.deleteChapter) window.deleteChapter(child.id, gName);
                 }
             });

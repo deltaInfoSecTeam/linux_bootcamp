@@ -28,8 +28,8 @@
 | **KI-Tutor** | Erklärt falsch beantwortete Fragen ausführlich im Ausbilder-Ton. Anbindung an Google Gemini, OpenAI, Groq, xAI, Together oder ein lokales Ollama. |
 | **Prüfungssimulation** | Simuliert eine schriftliche Abschlussprüfung: 45 Minuten, 24 Fragen quer durch alle Kategorien, Note 1 bis 6. |
 | **Ränge** | XP für richtige Antworten, Streaks und Dienstgrade von *Schütze* bis *General* (angelehnt an die Bundeswehr). |
-| **PWA** | Installierbar auf Android, iOS und Desktop. Läuft dank Service Worker auch bei schlechter Verbindung. |
-| **Management** | *Users:* Benutzer und Rechte verwalten, alle abgelegten Klausuren einsehen. *Content:* Inhalte pflegen. *System:* Programmstand und Update per Knopf. |
+| **PWA** | Installierbar auf Android, iOS und Desktop. Spielt auch offline: Programm und Fragenkatalog liegen im Gerät, zentral gepflegte Fragen werden bei jeder Verbindung zwischengespeichert. |
+| **Management** | *Users:* Benutzer und Rechte verwalten, alle abgelegten Klausuren einsehen. *Content:* Fragen für alle pflegen, mit den Reitern Questions (Module/Kapitel entfernen oder wieder einblenden), Import / Export (JSON) und Generator (Fragen per KI aus PDF, Markdown oder Text). *System:* Programmstand und Update per Knopf. |
 | **Docker** | Isoliertes Setup, das mit einem Skript auf jedem Linux-Server läuft. |
 
 ---
@@ -180,6 +180,15 @@ Dazu `TRUST_PROXY=1` in `.env`. Wird das Zertifikat erneuert, lädt `tls.sh` ngi
 sudo ./scripts/tls.sh untrust     # CA aus System und Browsern entfernen
 ```
 
+### Inhalte zentral pflegen (Management / Content)
+
+Eigene Fragen liegen in der Datenbank (`data/bootcamp.db`) und gelten für alle Lernenden. Nur Admins dürfen sie anlegen, importieren oder entfernen; der Server prüft das bei jeder Änderung. Lesen darf jeder (`GET /api/content`), damit das Quiz auch ohne Anmeldung funktioniert.
+
+- **Import / Export:** JSON-Datei im Format des Exports (`{"format": "linux-bootcamp-content", "questions": [...]}`) oder ein reines Array von Fragen mit `category`, `question`, `answer`, optional `moreInfo`, `difficulty` (`leicht`, `mittel`, `schwer`), `validationType` (`concept` oder `command` mit `solutions`). Ungültige Fragen werden übersprungen.
+- **Entfernen** gilt für alle: Eigene Fragen eines Moduls oder Kapitels werden gelöscht, eingebaute ausgeblendet. „Alle wieder einblenden“ unter Import / Export macht das Ausblenden rückgängig.
+- **Offline:** Die App speichert die zentralen Fragen bei jeder Verbindung im Gerät. Ohne Verbindung spielt sie mit diesem Stand weiter; beim nächsten Online-Start wird er aktualisiert.
+- Fragen, die früher nur im Browser eines Admins lagen, übernimmt „Für alle übernehmen“ unter Import / Export einmalig in die Datenbank.
+
 ### Daten & Secrets
 
 - Alles Persistente liegt in `./data/`: `bootcamp.db`, `.jwt_secret`, `.encryption_secret`.
@@ -201,7 +210,7 @@ sudo ./scripts/update-agent.sh install
 - Git läuft als Besitzer des Projektordners, nicht als root. Aus dem Auftrag wird nur der Benutzername fürs Protokoll gelesen.
 - Höchstens ein Update je 10 Minuten. Gibt es im Projektordner lokale Änderungen, bricht das Update ab und der bisherige Stand läuft weiter.
 - Während des Updates ist das Bootcamp etwa 1 bis 2 Minuten nicht erreichbar; die Seite verbindet sich danach selbst wieder.
-- Ändert sich `scripts/update-agent.sh`, den Agenten mit demselben Befehl neu einrichten. Entfernen: `sudo ./scripts/update-agent.sh uninstall`.
+- Bringt ein Update eine geänderte `scripts/update-agent.sh` mit, installiert sich der Agent danach selbst neu (Kopie und systemd-Units). Von Hand ist `sudo ./scripts/update-agent.sh install` nur beim ersten Einrichten nötig. Entfernen: `sudo ./scripts/update-agent.sh uninstall`.
 
 Ohne Agent geht es wie bisher von Hand: `git pull --ff-only && ./scripts/install.sh`.
 
@@ -233,13 +242,13 @@ npm start
 │   ├── validation.js  Eingabeprüfung
 │   ├── setup.js       Setup-Code der Erst-Einrichtung
 │   ├── middleware/    auth, rateLimit, security (CSP & Header)
-│   └── routes/        auth, admin, user, proxy, setup
+│   └── routes/        auth, admin, content, user, proxy, setup
 ├── public/            Frontend – nur dieser Ordner wird ausgeliefert
-│   ├── index.html  generator.html  manifest.json  sw.js  BRAND_VERSION
+│   ├── index.html  generator.html (Weiterleitung)  manifest.json  sw.js  BRAND_VERSION
 │   ├── css/           brand.css (Corporate Design), styles.css (App)
 │   ├── fonts/         JetBrains Mono (selbst gehostet, SIL OFL)
 │   ├── img/brand/     wappen.svg (zentrales Wappen), App-Icons
-│   └── js/            theme, brand, boot, auth, core, questions, quiz, llm, stats, main, generator
+│   └── js/            theme, brand, boot, auth, core, questions, quiz, llm, stats, main, generator, content
 ├── scripts/           install.sh, update-agent.sh, tls.sh, create-admin.js, healthcheck.js
 ├── docs/brand/        README-Banner, Screenshot
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)

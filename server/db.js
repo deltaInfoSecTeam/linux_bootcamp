@@ -49,6 +49,28 @@ db.exec(`
   );
 `);
 
+// Zentral gepflegte Inhalte (Management / Content): eigene Fragen für alle Lernenden und
+// ausgeblendete Module/Kapitel des eingebauten Katalogs. Die Frage selbst liegt als JSON in "data".
+db.exec(`
+  CREATE TABLE IF NOT EXISTS content_questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT NOT NULL,
+    module TEXT NOT NULL,
+    data TEXT NOT NULL,
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_content_questions_category ON content_questions(category);
+  CREATE INDEX IF NOT EXISTS idx_content_questions_module ON content_questions(module);
+  CREATE TABLE IF NOT EXISTS content_hidden (
+    kind TEXT NOT NULL CHECK (kind IN ('module', 'chapter')),
+    key TEXT NOT NULL,
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (kind, key)
+  );
+`);
+
 // Spalten für ältere Datenbanken nachrüsten
 const userColumns = db.prepare('PRAGMA table_info(users)').all().map(c => c.name);
 for (const [col, def] of [['is_admin', 'INTEGER DEFAULT 0'], ['token_version', 'INTEGER DEFAULT 0']]) {
@@ -166,6 +188,34 @@ module.exports = {
         if (!user) return null;
         return db.prepare('SELECT COUNT(*) + 1 AS rank FROM users WHERE xp > ?').get(user.xp).rank;
     },
+
+    // --- Inhalte (Management / Content) ---
+    listContent: () => ({
+        questions: db.prepare('SELECT id, data FROM content_questions ORDER BY id').all()
+            .map(r => { try { return { ...JSON.parse(r.data), contentId: r.id }; } catch { return null; } })
+            .filter(Boolean),
+        hidden: {
+            modules: db.prepare("SELECT key FROM content_hidden WHERE kind = 'module' ORDER BY key").all().map(r => r.key),
+            chapters: db.prepare("SELECT key FROM content_hidden WHERE kind = 'chapter' ORDER BY key").all().map(r => r.key),
+        },
+    }),
+
+    addContentQuestions: (questions, username) => {
+        const ins = db.prepare('INSERT INTO content_questions (category, module, data, created_by) VALUES (?, ?, ?, ?)');
+        db.transaction(() => {
+            for (const q of questions) ins.run(q.category, q.module, JSON.stringify(q.data), username);
+        })();
+        return questions.length;
+    },
+
+    // Löscht eigene Fragen eines Kapitels bzw. Moduls und blendet eingebaute aus
+    hideContent: (kind, key, username) => db.transaction(() => {
+        const removed = db.prepare(`DELETE FROM content_questions WHERE ${kind === 'module' ? 'module' : 'category'} = ?`).run(key).changes;
+        db.prepare('INSERT OR IGNORE INTO content_hidden (kind, key, created_by) VALUES (?, ?, ?)').run(kind, key, username);
+        return removed;
+    })(),
+
+    restoreHiddenContent: () => db.prepare('DELETE FROM content_hidden').run().changes,
 
     close: () => db.close(),
 };
