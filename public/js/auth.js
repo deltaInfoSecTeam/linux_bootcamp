@@ -677,20 +677,97 @@ document.addEventListener("DOMContentLoaded", () => {
     const secAdminUsers = document.getElementById('admin-section-users');
     const secAdminExams = document.getElementById('admin-section-exams');
 
-    if (btnAdminUsers && btnAdminExams) {
-        btnAdminUsers.addEventListener('click', () => {
-            btnAdminUsers.classList.add('active');
-            btnAdminExams.classList.remove('active');
-            secAdminUsers.style.display = 'block';
-            secAdminExams.style.display = 'none';
+    const btnAdminSystem = document.getElementById('btn-admin-view-system');
+    const secAdminSystem = document.getElementById('admin-section-system');
+    const adminTabs = [[btnAdminUsers, secAdminUsers], [btnAdminExams, secAdminExams], [btnAdminSystem, secAdminSystem]];
+    function showAdminTab(btn) {
+        adminTabs.forEach(([b, s]) => {
+            if (!b || !s) return;
+            b.classList.toggle('active', b === btn);
+            s.style.display = b === btn ? 'block' : 'none';
         });
-        btnAdminExams.addEventListener('click', () => {
-            btnAdminExams.classList.add('active');
-            btnAdminUsers.classList.remove('active');
-            secAdminExams.style.display = 'block';
-            secAdminUsers.style.display = 'none';
-        });
+        if (btn === btnAdminSystem) loadUpdateStatus(); else stopUpdatePolling();
     }
+    adminTabs.forEach(([b]) => b && b.addEventListener('click', () => showAdminTab(b)));
+
+    // --- System: Update über den Host-Agenten ---
+    let updTimer = null, updWasRunning = false;
+    const updEsc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const updDate = s => { const d = new Date(s); return isNaN(d) ? '–' : d.toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }); };
+    function stopUpdatePolling() { clearTimeout(updTimer); updTimer = null; }
+    async function updApi(path, post) {
+        const res = await fetch(API_URL + '/api/admin/update' + path, {
+            method: post ? 'POST' : 'GET',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentToken }
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || ('Fehler ' + res.status));
+        return data;
+    }
+    async function loadUpdateStatus() {
+        stopUpdatePolling();
+        const adminMain = document.getElementById('admin-main');
+        if (!secAdminSystem || secAdminSystem.style.display === 'none' || (adminMain && adminMain.style.display === 'none')) return;
+        const run = document.getElementById('upd-run');
+        let d;
+        try {
+            d = await updApi('');
+        } catch (e) {
+            // Während des Updates startet der Container neu: kurz nicht erreichbar
+            run.innerHTML = updWasRunning
+                ? '<div class="dis-alert dis-alert--info">Das Bootcamp startet gerade neu. Die Seite verbindet sich gleich wieder …</div>'
+                : `<div class="dis-alert dis-alert--fail">${updEsc(e.message)}</div>`;
+            updTimer = setTimeout(loadUpdateStatus, 4000);
+            return;
+        }
+        const s = d.status || {}, r = d.run || {};
+        const $u = id => document.getElementById(id);
+        const running = r.state === 'running' || d.pending.includes('apply.req');
+        $u('upd-noagent').hidden = d.agent;
+        const cur = String(s.current || ''), sp = cur.indexOf(' ');
+        $u('upd-sha').textContent = cur ? (sp > 0 ? cur.slice(0, sp) : cur) : '–';
+        $u('upd-subject').textContent = sp > 0 ? cur.slice(sp + 1) : (d.agent ? '' : 'Unbekannt, solange der Update-Agent fehlt.');
+        $u('upd-branch').textContent = s.branch || '–';
+        $u('upd-checked').textContent = s.checked_at ? updDate(s.checked_at) : '–';
+        $u('upd-last').textContent = r.finished_at ? `${updDate(r.finished_at)} · ${r.state === 'ok' ? 'erfolgreich' : 'fehlgeschlagen'}` : '–';
+        const badge = $u('upd-badge');
+        const [bs, bt] = !d.agent ? ['', 'Agent fehlt']
+            : running ? ['run', 'Update läuft']
+            : s.error ? ['fail', 'Repo nicht erreichbar']
+            : s.behind > 0 ? ['warn', 'Update verfügbar']
+            : ['ok', 'Aktuell'];
+        badge.dataset.s = bs; badge.textContent = bt;
+        $u('upd-count').textContent = s.behind > 0 ? `${s.behind} neu` : '';
+        $u('upd-changes').innerHTML = s.behind > 0 ? (s.commits || []).map(c => {
+            const i = String(c).indexOf(' ');
+            return `<li><code>${updEsc(i > 0 ? c.slice(0, i) : c)}</code><span>${updEsc(i > 0 ? c.slice(i + 1) : '')}</span></li>`;
+        }).join('') : '';
+        $u('upd-empty').textContent = !d.agent ? 'Erst den Update-Agenten auf dem Server einrichten (siehe unten).'
+            : s.error ? s.error
+            : s.behind > 0 ? '' : 'Keine neuen Änderungen. Das Bootcamp ist auf dem neuesten Stand.';
+        $u('btn-upd-check').disabled = !d.agent || running || d.pending.includes('check.req');
+        $u('btn-upd-apply').disabled = !d.agent || running || !(s.behind > 0);
+        if (running) run.innerHTML = `<div class="dis-alert dis-alert--info">${updEsc(r.state === 'running' ? r.message : 'Update angefordert. Der Server startet es in wenigen Sekunden.')}</div>`;
+        else if (r.state === 'failed') run.innerHTML = `<div class="dis-alert dis-alert--fail"><strong>Letztes Update fehlgeschlagen.</strong> ${updEsc(r.message)}</div>`;
+        else run.innerHTML = '';
+        document.getElementById('upd-logbox').hidden = !d.log;
+        document.getElementById('upd-log').textContent = d.log || '';
+        if (updWasRunning && !running && r.state === 'ok') {
+            showToast('Update abgeschlossen. Die Seite lädt neu.', 'success');
+            setTimeout(() => location.reload(), 2500);
+        }
+        updWasRunning = running;
+        updTimer = setTimeout(loadUpdateStatus, running || d.pending.length ? 3000 : 30000);
+    }
+    document.getElementById('btn-upd-check')?.addEventListener('click', async () => {
+        try { await updApi('/check', true); showToast('Prüfung angefordert.', 'info'); } catch (e) { showToast(e.message, 'error'); }
+        loadUpdateStatus();
+    });
+    document.getElementById('btn-upd-apply')?.addEventListener('click', async () => {
+        if (!confirm('Bootcamp jetzt aktualisieren? Der Server holt die neue Version und startet das Bootcamp neu. Es ist dabei etwa 1 bis 2 Minuten nicht erreichbar.')) return;
+        try { await updApi('/apply', true); updWasRunning = true; showToast('Update angefordert.', 'info'); } catch (e) { showToast(e.message, 'error'); }
+        loadUpdateStatus();
+    });
 
     // --- Erst-Einrichtung ---
     document.getElementById('btn-close-setup').addEventListener('click', () => {

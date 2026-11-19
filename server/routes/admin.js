@@ -1,4 +1,8 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const config = require('../config');
+const { createRateLimiter } = require('../middleware/rateLimit');
 const bcrypt = require('bcrypt');
 const db = require('../db');
 const { authenticateToken, adminOnly } = require('../middleware/auth');
@@ -63,6 +67,68 @@ router.post('/reset_password', async (req, res) => {
     } catch (err) {
         console.error('Admin-Reset-Fehler:', err);
         res.status(500).json({ error: 'Fehler beim Zurücksetzen des Passworts' });
+    }
+});
+
+
+// --- System: Update über den Host-Agenten (scripts/update-agent.sh) ---
+// Der Container aktualisiert sich nicht selbst. Er legt nur einen Auftrag in data/update/ ab;
+// der Agent auf dem Host führt ihn mit festen Befehlen aus und schreibt den Stand zurück.
+const UPDATE_DIR = path.join(config.DATA_DIR, 'update');
+const updateLimiter = createRateLimiter({ windowMs: 10 * 60 * 1000, max: 5, message: 'Zu viele Update-Anfragen. Bitte etwas warten.' });
+
+function readUpdateFile(name, asJson = true) {
+    try {
+        const file = path.join(UPDATE_DIR, name);
+        const st = fs.lstatSync(file);
+        if (!st.isFile() || st.size > 200 * 1024) return null;
+        const text = fs.readFileSync(file, 'utf8');
+        return asJson ? JSON.parse(text) : text;
+    } catch {
+        return null;
+    }
+}
+
+function placeRequest(name, user) {
+    fs.mkdirSync(UPDATE_DIR, { recursive: true, mode: 0o755 });
+    const file = path.join(UPDATE_DIR, name);
+    try { if (fs.lstatSync(file).isSymbolicLink()) fs.unlinkSync(file); } catch { /* nicht vorhanden */ }
+    fs.writeFileSync(file, String(user || '').replace(/[^A-Za-z0-9._@-]/g, '').slice(0, 40) + '\n', { mode: 0o644 });
+}
+
+router.get('/update', (req, res) => {
+    const status = readUpdateFile('status.json');
+    res.json({
+        success: true,
+        agent: !!(status && status.agent),
+        status,
+        run: readUpdateFile('run.json'),
+        log: readUpdateFile('log.txt', false),
+        pending: ['apply.req', 'check.req'].filter(n => fs.existsSync(path.join(UPDATE_DIR, n)))
+    });
+});
+
+router.post('/update/check', updateLimiter, (req, res) => {
+    try {
+        placeRequest('check.req', req.user.username);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Update-Prüfung konnte nicht angefordert werden:', err.message);
+        res.status(500).json({ error: 'Auftrag konnte nicht abgelegt werden' });
+    }
+});
+
+router.post('/update/apply', updateLimiter, (req, res) => {
+    if (!readUpdateFile('status.json')) {
+        return res.status(409).json({ error: 'Der Update-Agent ist auf dem Server nicht eingerichtet.' });
+    }
+    try {
+        placeRequest('apply.req', req.user.username);
+        console.log(`Update angefordert von ${req.user.username}`);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Update konnte nicht angefordert werden:', err.message);
+        res.status(500).json({ error: 'Auftrag konnte nicht abgelegt werden' });
     }
 });
 

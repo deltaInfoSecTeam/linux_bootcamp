@@ -393,10 +393,11 @@
                 <div class="quiz-card" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; max-height: 100%;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--dis-border-strong); padding-bottom: 10px; margin-bottom: 15px;">
                         
-<div style="display: flex; gap: 10px; align-items: center;">
+<div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
     <h2 style="color: var(--dis-matrix); margin: 0; white-space: nowrap;">Admin Console</h2>
     <button id="btn-admin-view-users" class="mode-btn active" style="margin: 0; padding: 4px 10px;">Benutzer</button>
     <button id="btn-admin-view-exams" class="mode-btn" style="margin: 0; padding: 4px 10px;">Klausuren</button>
+    <button id="btn-admin-view-system" class="mode-btn" style="margin: 0; padding: 4px 10px;">System</button>
 </div>
                         <button id="btn-close-admin-view" class="btn-secondary" style="width: auto; padding: 4px 12px; font-weight: bold;" title="Schliessen">X</button>
                     </div>
@@ -419,6 +420,34 @@
                                 <!-- Users will be injected here -->
                             </tbody>
                         </table>
+</div>
+<div id="admin-section-system" class="upd" style="display: none;">
+    <div class="upd-grid">
+        <section class="dis-card upd-card" aria-labelledby="upd-h1">
+            <header class="upd-head"><span class="dis-eyebrow" id="upd-h1">Programmstand</span><span id="upd-badge" class="upd-badge">Lädt …</span></header>
+            <div class="upd-version"><code id="upd-sha">–</code><span id="upd-subject"></span></div>
+            <dl class="upd-meta">
+                <dt>Branch</dt><dd id="upd-branch">–</dd>
+                <dt>Zuletzt geprüft</dt><dd id="upd-checked">–</dd>
+                <dt>Letztes Update</dt><dd id="upd-last">–</dd>
+            </dl>
+        </section>
+        <section class="dis-card upd-card" aria-labelledby="upd-h2">
+            <header class="upd-head"><span class="dis-eyebrow" id="upd-h2">Neue Änderungen</span><span id="upd-count" class="upd-count"></span></header>
+            <ul id="upd-changes" class="upd-changes"></ul>
+            <p id="upd-empty" class="upd-empty"></p>
+            <div class="upd-actions">
+                <button id="btn-upd-check" class="dis-btn dis-btn--outline" type="button">Auf Updates prüfen</button>
+                <button id="btn-upd-apply" class="dis-btn dis-btn--primary" type="button" disabled>Jetzt aktualisieren</button>
+            </div>
+        </section>
+    </div>
+    <div id="upd-run" aria-live="polite"></div>
+    <details class="dis-fold upd-logbox" id="upd-logbox" hidden><summary>Protokoll des letzten Updates</summary><pre id="upd-log"></pre></details>
+    <div id="upd-noagent" class="dis-alert dis-alert--info upd-noagent" hidden>
+        <strong>Update-Agent noch nicht eingerichtet.</strong> Einmalig im Projektordner auf dem Server ausführen:
+        <pre>sudo ./scripts/update-agent.sh install</pre>
+    </div>
 </div>
 <div id="admin-section-exams" style="display: none; padding-top: 20px;">
     <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.9em;">
