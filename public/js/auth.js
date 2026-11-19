@@ -720,6 +720,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const updEsc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const updDate = s => { const d = new Date(s); return isNaN(d) ? '–' : d.toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }); };
     function stopUpdatePolling() { clearTimeout(updTimer); updTimer = null; }
+    // Fortschritt des Updates: vier Schritte, laufender Balken, Uhr. Wird nur einmal aufgebaut und dann
+    // nur noch aktualisiert, damit die Animation beim Nachladen des Status nicht neu startet.
+    const UPD_STEPS = ['Auftrag übergeben', 'Neue Version holen', 'Bauen und neu starten', 'Fertig'];
+    let updStart = null, updClock = null;
+    function updProgress(run, idx, note, done) {
+        let box = run.querySelector('.upd-progress');
+        if (!box) {
+            run.innerHTML = `<div class="upd-progress" role="status">
+                <ol class="upd-steps">${UPD_STEPS.map(s => `<li><span class="upd-dot" aria-hidden="true"></span><span class="upd-label">${s}</span></li>`).join('')}</ol>
+                <div class="upd-bar" aria-hidden="true"><i></i></div>
+                <div class="upd-foot"><span class="upd-note"></span><span class="upd-time">0:00</span></div></div>`;
+            box = run.querySelector('.upd-progress');
+        }
+        box.classList.toggle('is-done', !!done);
+        box.querySelectorAll('.upd-steps li').forEach((li, i) => {
+            li.dataset.st = done || i < idx ? 'done' : i === idx ? 'active' : 'todo';
+        });
+        box.style.setProperty('--upd-p', done ? 1 : (idx + 0.5) / UPD_STEPS.length);
+        box.querySelector('.upd-note').textContent = note || '';
+        if (!updStart) updStart = Date.now();
+        const tick = () => {
+            const s = Math.max(0, Math.round((Date.now() - updStart) / 1000));
+            const el2 = box.querySelector('.upd-time');
+            if (el2) el2.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+        };
+        tick(); clearInterval(updClock); updClock = done ? null : setInterval(tick, 1000);
+    }
+    function updProgressReset() { clearInterval(updClock); updClock = null; updStart = null; }
     async function updApi(path, post) {
         const res = await fetch(API_URL + '/api/admin/update' + path, {
             method: post ? 'POST' : 'GET',
@@ -739,9 +767,8 @@ document.addEventListener("DOMContentLoaded", () => {
             d = await updApi('');
         } catch (e) {
             // Während des Updates startet der Container neu: kurz nicht erreichbar
-            run.innerHTML = updWasRunning
-                ? '<div class="dis-alert dis-alert--info">Das Bootcamp startet gerade neu. Die Seite verbindet sich gleich wieder …</div>'
-                : `<div class="dis-alert dis-alert--fail">${updEsc(e.message)}</div>`;
+            if (updWasRunning) updProgress(run, 2, 'Das Bootcamp startet gerade neu. Die Seite verbindet sich gleich wieder …');
+            else run.innerHTML = `<div class="dis-alert dis-alert--fail">${updEsc(e.message)}</div>`;
             updTimer = setTimeout(loadUpdateStatus, 4000);
             return;
         }
@@ -772,9 +799,16 @@ document.addEventListener("DOMContentLoaded", () => {
             : s.behind > 0 ? '' : 'Keine neuen Änderungen. Das Bootcamp ist auf dem neuesten Stand.';
         $u('btn-upd-check').disabled = !d.agent || running || d.pending.includes('check.req');
         $u('btn-upd-apply').disabled = !d.agent || running || !(s.behind > 0);
-        if (running) run.innerHTML = `<div class="dis-alert dis-alert--info">${updEsc(r.state === 'running' ? r.message : 'Update angefordert. Der Server startet es in wenigen Sekunden.')}</div>`;
-        else if (r.state === 'failed') run.innerHTML = `<div class="dis-alert dis-alert--fail"><strong>Letztes Update fehlgeschlagen.</strong> ${updEsc(r.message)}</div>`;
-        else run.innerHTML = '';
+        if (running) {
+            if (r.state === 'running' && r.started_at && !updStart) updStart = Date.parse(r.started_at) || null;
+            updProgress(run, r.state === 'running' ? Math.min(2, Math.max(1, r.step || 1)) : 0,
+                r.state === 'running' ? r.message : 'Auftrag liegt bereit. Der Server startet das Update in wenigen Sekunden.');
+        } else if (updWasRunning && r.state === 'ok') {
+            updProgress(run, 3, 'Update erfolgreich. Die Seite lädt gleich neu.', true);
+        } else if (r.state === 'failed') {
+            updProgressReset();
+            run.innerHTML = `<div class="dis-alert dis-alert--fail"><strong>Letztes Update fehlgeschlagen.</strong> ${updEsc(r.message)}</div>`;
+        } else { updProgressReset(); run.innerHTML = ''; }
         document.getElementById('upd-logbox').hidden = !d.log;
         document.getElementById('upd-log').textContent = d.log || '';
         if (updWasRunning && !running && r.state === 'ok') {

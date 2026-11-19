@@ -1855,3 +1855,29 @@ body.is-admin .admin-only { display: block !important; }
 .upd-noagent pre { margin: 8px 0 0; padding: 8px 10px; background: var(--dis-bg-elev); border-radius: var(--dis-radius-md); font-family: var(--dis-font-mono); }
 
 .upd-actions .dis-btn:disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.4); }
+
+/* Fortschritt des Updates */
+.upd-progress { --upd-p: 0; padding: 16px 18px; border: 1px solid var(--dis-border); border-radius: var(--dis-radius-md); background: var(--dis-bg-elev); display: flex; flex-direction: column; gap: 14px; }
+.upd-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); position: relative; }
+.upd-steps::before { content: ''; position: absolute; top: 9px; left: 12.5%; right: 12.5%; height: 2px; background: var(--dis-border); }
+.upd-steps::after { content: ''; position: absolute; top: 9px; left: 12.5%; height: 2px; width: calc(75% * min(1, max(0, (var(--upd-p) * 4 - .5) / 3))); background: var(--dis-matrix); transition: width .6s ease; }
+.upd-steps li { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; font-size: .78rem; color: var(--dis-text-2); }
+.upd-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--dis-border-strong, var(--dis-border)); background: var(--dis-bg); display: grid; place-items: center; transition: background .3s, border-color .3s; }
+.upd-steps li[data-st="done"] .upd-dot { background: var(--dis-matrix); border-color: var(--dis-matrix); }
+.upd-steps li[data-st="done"] .upd-dot::after { content: ''; width: 5px; height: 9px; border: solid var(--dis-bg); border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+.upd-steps li[data-st="active"] { color: var(--dis-text); font-weight: 600; }
+.upd-steps li[data-st="active"] .upd-dot { border-color: var(--dis-gold); animation: upd-ring 1.6s ease-out infinite; }
+.upd-steps li[data-st="active"] .upd-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--dis-gold); }
+@keyframes upd-ring { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--dis-gold) 55%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+.upd-bar { height: 6px; border-radius: 3px; background: var(--dis-border); overflow: hidden; position: relative; }
+.upd-bar i { position: absolute; top: 0; bottom: 0; left: 0; width: calc(var(--upd-p) * 100%); background: linear-gradient(90deg, var(--dis-gold), var(--dis-matrix)); border-radius: 3px; transition: width .6s ease; overflow: hidden; }
+.upd-bar i::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); transform: translateX(-100%); animation: upd-shine 1.6s linear infinite; }
+.upd-progress.is-done .upd-bar i::after { animation: none; display: none; }
+@keyframes upd-shine { to { transform: translateX(100%); } }
+.upd-foot { display: flex; justify-content: space-between; gap: 12px; font-size: .85rem; color: var(--dis-text-2); }
+.upd-time { font-family: var(--dis-font-mono); color: var(--dis-text); }
+.upd-progress.is-done { border-color: color-mix(in srgb, var(--dis-ok) 45%, var(--dis-border)); }
+[data-motion="off"] .upd-steps li .upd-dot, [data-motion="off"] .upd-bar i::after { animation: none; }
+@media (prefers-reduced-motion: reduce) { .upd-steps li .upd-dot, .upd-bar i::after { animation: none; } .upd-bar i, .upd-steps::after { transition: none; } }
+@media (max-width: 600px) { .upd-steps li { font-size: .7rem; } }
+
