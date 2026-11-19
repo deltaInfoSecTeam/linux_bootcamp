@@ -934,5 +934,236 @@ let QUESTIONS = [
         "topicId": 31,
         "difficulty": "schwer",
         "moreInfo": "### 1. tl;dr\n`nsswitch.conf` steuert die Reihenfolge, in der Systembibliotheken nach Informationen wie Hostnamen oder Benutzern suchen.\n---\n> **Tux-Ansage:** \"Wer meint, alles sei fest im Code verdrahtet, hat noch nie in die nsswitch geschaut. Linux ist flexibel wie ein Gummiband!\"\n---\n### 3. Deep Dive\nNSS (Name Service Switch) ist eine zentrale C-Bibliothek (glibc) Funktionalität. Wenn ein Programm wie `ping` oder `curl` einen Hostnamen auflösen will, ruft es eine Funktion wie `gethostbyname()`. Die Datei `/etc/nsswitch.conf` sagt dieser Funktion, wo sie suchen soll. Ein Eintrag `hosts: files dns` bedeutet: 'Schau zuerst in lokalen Dateien (`/etc/hosts`) nach. Nur wenn du da nichts findest, frage den DNS-Dienst (`resolv.conf`).' Das gilt nicht nur für Hosts, sondern auch für Benutzer (`passwd: files ldap`), Passwörter und Gruppen."
+    },
+    {
+        "id": 132,
+        "category": "Git::1. Klon und Spiegel",
+        "question": "Was ist der Unterschied zwischen 'git clone' und 'git clone --mirror'?",
+        "answer": "`git clone` legt ein Arbeitsverzeichnis mit ausgecheckten Dateien an. Lokal gibt es nur den Standard-Branch, alle anderen Branches kennt der Klon nur als Verweise auf das Remote (`origin/…`).\n\n`git clone --mirror` legt ein Bare-Repository ohne Arbeitsverzeichnis an und übernimmt **alle** Referenzen 1:1: Branches, Tags und weitere Refs. Das ist die richtige Wahl für Sicherungen und Umzüge.",
+        "validationType": "concept",
+        "topicId": 32,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\nNormaler Klon = zum Arbeiten, ein lokaler Branch. Spiegel = vollständige Kopie aller Refs, ohne Arbeitsverzeichnis.\n---\n> **Tux-Ansage:** Ein normaler Klon ist dein Feldrucksack, Rekrut. Ein Spiegel ist das ganze Depot. Wer umzieht, nimmt das Depot mit!\n---\n### 3. Deep Dive\nEin normaler Klon schreibt die Branches des Servers unter `refs/remotes/origin/*` ab und legt nur einen lokalen Branch unter `refs/heads/` an. Ein Spiegel schreibt dagegen alle Refs des Servers unverändert unter denselben Namen ab, also `refs/heads/*`, `refs/tags/*` und weitere wie `refs/pull/*` bei GitHub.\n\n```bash\ngit clone --mirror https://git.example.org/team/app.git\ncd app.git\ngit branch | wc -l      # alle Branches des Servers\ngit tag | wc -l\n```\n\nEin Spiegel hat keine ausgecheckten Dateien (Bare-Repository). Mit `git remote update` lässt er sich später auf den neuesten Stand bringen."
+    },
+    {
+        "id": 32,
+        "category": "Git::1. Klon und Spiegel",
+        "question": "Du klonst ein Repo mit 23 Branches ganz normal, kopierst den Ordner auf einen anderen Rechner und schiebst von dort mit 'git push --all' in ein neues, leeres Repo. Wie viele Branches kommen an, und warum?",
+        "answer": "Nur die **lokalen** Branches, nach einem frischen Klon also meist nur einer (z. B. `main`). Die übrigen 22 existieren im Klon nur als Remote-Tracking-Branches (`origin/…`), und die schiebt `git push --all` nicht mit.\n\nRichtig wäre ein Spiegel (`git clone --mirror`) oder ausdrücklich: `git push neu 'refs/remotes/origin/*:refs/heads/*'` plus `git push neu --tags`.",
+        "validationType": "concept",
+        "topicId": 32,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\n`git push --all` schiebt nur `refs/heads/*`. Nach einem normalen Klon liegt dort nur ein Branch, der Rest wird stillschweigend vergessen.\n---\n> **Tux-Ansage:** 22 Branches einfach liegen gelassen, und keiner merkt es! So verliert man im Ernstfall die halbe Truppe. Zählen, Rekrut, immer zählen!\n---\n### 3. Deep Dive\nDer Fehler ist tückisch, weil kein Befehl eine Warnung ausgibt. Am Ziel sieht alles normal aus, nur fehlen Branches.\n\nGegenprobe vor und nach dem Umzug:\n```bash\ngit ls-remote --heads https://git.example.org/team/app.git | wc -l\ngit ls-remote --tags  https://git.example.org/team/app.git | grep -vc '\\^{}'\n```\n\nWer den normalen Klon trotzdem nutzen will, mappt die Remote-Tracking-Branches beim Push wieder auf echte Branches:\n```bash\ngit push neu 'refs/remotes/origin/*:refs/heads/*'\ngit push neu --tags\n```\nDabei landet allerdings auch `origin/HEAD` als Branch `HEAD` am Ziel; den löscht man danach wieder."
+    },
+    {
+        "id": 232,
+        "category": "Git::1. Klon und Spiegel",
+        "question": "Warum ist es keine gute Idee, ein Repo umzuziehen, indem man die Dateien eines Klons über die Weboberfläche des neuen Servers hochlädt oder den Ordner einfach kopiert?",
+        "answer": "Beim Hochladen der Dateien kommt nur der **aktuelle Stand** an: Die gesamte Historie (Commits, Autoren, Zeitpunkte, Signaturen), alle anderen Branches und alle Tags fehlen.\n\nBeim Kopieren des Ordners über Datenträger gehen leicht versteckte Dateien (`.git`), Dateirechte (z. B. das Ausführbar-Bit) oder Dateinamen mit Umlauten verloren, und die Vollständigkeit lässt sich bei tausenden Einzeldateien kaum prüfen. Sicher ist der Weg über Spiegel, `push --all`/`--tags` oder ein Bundle mit Prüfsumme.",
+        "validationType": "concept",
+        "topicId": 32,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\nDateien hochladen = Historie weg. Ordner kopieren = viele Einzeldateien, schwer zu prüfen. Besser: Spiegel oder Bundle.\n---\n> **Tux-Ansage:** Wer nur die Dateien rüberträgt, schmeißt die ganze Kriegsgeschichte weg. Ohne Historie weißt du nie wieder, wer wann welchen Bock geschossen hat!\n---\n### 3. Deep Dive\nGit speichert nicht Dateien, sondern Objekte (Commits, Trees, Blobs, Tags) in `.git/objects`. Die Historie ist eine Kette von Commits, die über Prüfsummen verbunden sind. Ein Upload über die Weboberfläche erzeugt einen **neuen** ersten Commit, mit der alten Kette hat er nichts zu tun.\n\nBeim Kopieren über USB und Windows-Rechner kommen weitere Fallen dazu:\n- Windows kennt kein Ausführbar-Bit, Skripte verlieren es.\n- Versteckte Ordner werden je nach Werkzeug nicht mitkopiert.\n- Zeilenenden können umgewandelt werden (`core.autocrlf`).\n\nEin Bundle oder ein gepackter Spiegel ist dagegen **eine** Datei, deren Prüfsumme man vergleichen kann, und Git prüft beim Einlesen jedes Objekt selbst."
+    },
+    {
+        "id": 133,
+        "category": "Git::2. Remotes und Zugang",
+        "question": "Wie stellst du die Adresse des Remotes 'origin' auf 'https://git.example.org/team/app.git' um?",
+        "answer": "`git remote set-url origin https://git.example.org/team/app.git`\n\nKontrolle mit `git remote -v`.",
+        "validationType": "command",
+        "solutions": [
+            "git\\s+remote\\s+set-url\\s+origin\\s+https://git\\.example\\.org/team/app\\.git"
+        ],
+        "topicId": 33,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\n`git remote set-url <name> <adresse>` ändert, wohin `fetch` und `push` gehen. Historie und Branches bleiben unverändert.\n---\n> **Tux-Ansage:** Neuer Standort, neue Funkfrequenz! Wer nach dem Umzug die Remote nicht umstellt, funkt weiter ins Leere, äh, ins alte Lager.\n---\n### 3. Deep Dive\nNach einem Umzug muss jeder vorhandene Klon auf die neue Adresse zeigen:\n```bash\ngit remote -v                       # aktuelle Adresse\ngit remote set-url origin https://git.example.org/team/app.git\ngit fetch origin                    # Verbindung testen\n```\nVergisst man das, laufen Pushes weiter ins alte System, oder Automationen (Sync-Skripte, nächtliche Builds) holen nie wieder neue Stände."
+    },
+    {
+        "id": 33,
+        "category": "Git::2. Remotes und Zugang",
+        "question": "Beim Klonen über 'git@github.com:org/app.git' erscheint 'Permission denied (publickey)', obwohl 'gh auth status' dich als angemeldet anzeigt. Woran liegt das, und wie löst du es?",
+        "answer": "`gh` ist mit einem **Token über HTTPS** angemeldet und hat sich als Credential-Helper für `https://github.com` eingetragen. Eine Adresse der Form `git@github.com:…` nutzt aber **SSH**, und dafür ist bei GitHub kein Schlüssel hinterlegt.\n\nLösung: die HTTPS-Adresse verwenden (`https://github.com/org/app.git`) oder einen SSH-Schlüssel beim Konto hinterlegen.",
+        "validationType": "concept",
+        "topicId": 33,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\nSSH und HTTPS sind zwei getrennte Wege mit eigener Anmeldung. `gh auth status` zeigt unter „Git operations protocol“, welcher eingerichtet ist.\n---\n> **Tux-Ansage:** Du hast den Hausausweis für den Haupteingang und rennst gegen die Hintertür! Erst schauen, welcher Eingang freigeschaltet ist, Rekrut.\n---\n### 3. Deep Dive\nSo prüfst du die Lage:\n```bash\ngh auth status                       # Protokoll und Konto\ngit config --get-regexp credential   # Credential-Helper für https\nssh -T git@github.com                # testet nur den SSH-Weg\n```\n\nDie Adresse entscheidet über den Weg:\n- `https://github.com/org/app.git`: HTTPS, Anmeldung über Token bzw. Credential-Helper\n- `git@github.com:org/app.git` oder `ssh://…`: SSH, Anmeldung über Schlüssel\n\nIn Schleifen über viele Repos (Umzug) muss die Adressform zur eingerichteten Anmeldung passen, sonst schlägt jeder einzelne Klon fehl."
+    },
+    {
+        "id": 233,
+        "category": "Git::2. Remotes und Zugang",
+        "question": "Ein Server soll jede Nacht automatisch den neuesten Stand eines privaten Repos holen und daraus etwas bauen. Welche Art von Zugang richtest du ein, und warum?",
+        "answer": "Einen **Deploy-Key mit nur Lesezugriff**, der nur für dieses eine Repo gilt, eigens für diesen Server erzeugt wird und keine Passphrase braucht.\n\nKein persönlicher Schlüssel und kein persönliches Token: Die hätten Zugriff auf alle Repos und oft Schreibrechte. Wird der Server kompromittiert, kann der Angreifer mit einem Deploy-Key nur dieses eine Repo lesen. Zusätzlich holt der Server nur mit `git pull --ff-only`, damit er nie eigene Commits erzeugt.",
+        "validationType": "concept",
+        "topicId": 33,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\nAutomaten bekommen eigene, eng begrenzte Schlüssel: ein Repo, nur lesen.\n---\n> **Tux-Ansage:** Du gibst dem Nachtwächter doch auch nicht den Generalschlüssel für die ganze Kaserne! Einen Schlüssel für eine Tür, und die nur zum Reinschauen.\n---\n### 3. Deep Dive\nEinrichtung in groben Zügen:\n```bash\nssh-keygen -t ed25519 -f ~/.ssh/deploy_app -N '' -C 'nightly build (read-only)'\n```\nDen öffentlichen Teil im Repo als Deploy-Key **ohne** Schreibrecht eintragen. In `~/.ssh/config` einen eigenen Host-Alias anlegen, damit genau dieser Schlüssel benutzt wird:\n```\nHost git-app\n    HostName git.example.org\n    User git\n    IdentityFile ~/.ssh/deploy_app\n    IdentitiesOnly yes\n```\nund klonen mit `git clone git-app:team/app.git`.\n\nWichtig: Wer auf den Hauptbranch pushen darf, bestimmt trotzdem, was der Server baut. Schutz davor bieten Reviews, geschützte Branches oder signierte Tags, die der Server vor dem Bauen prüft (`git verify-tag`)."
+    },
+    {
+        "id": 134,
+        "category": "Git::3. Alle Repos spiegeln",
+        "question": "Warum funktioniert 'git clone --mirror https://github.com/org/*.git' nicht, und wie spiegelt man stattdessen alle Repos einer Organisation?",
+        "answer": "Git kennt keine Platzhalter für entfernte Repos: Jeder Klon braucht genau eine Adresse, und `*` wird nicht auf dem Server aufgelöst.\n\nMan holt sich die Liste der Repos über die API des Anbieters, z. B. `gh repo list org --limit 500 --json name -q '.[].name' > repos.txt`, und spiegelt dann in einer Schleife jedes Repo einzeln.",
+        "validationType": "concept",
+        "topicId": 34,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\nErst die Liste holen, dann in einer Schleife einzeln spiegeln.\n---\n> **Tux-Ansage:** Der Server hat kein Inventarbuch zum Durchblättern per Sternchen. Du musst die Stärkemeldung schon anfordern, Rekrut!\n---\n### 3. Deep Dive\n```bash\nmkdir -p ~/umzug/mirror && cd ~/umzug\ngh repo list org --limit 500 --json name -q '.[].name' > repos.txt\ncd mirror\nwhile read -r r; do\n  git clone --mirror \"https://github.com/org/$r.git\" \"$r.git\" \\\n    || echo \"FEHLER: $r\" >> ../fehler.txt\ndone < ../repos.txt\n```\n\nTipps:\n- `repos.txt` vorher ansehen und Repos streichen, die nicht mit sollen.\n- Fehler in eine Datei schreiben statt abzubrechen, dann sieht man am Ende alles auf einen Blick.\n- Wikis sind eigene Repos (`<repo>.wiki.git`) und müssen bei Bedarf extra gespiegelt werden."
+    },
+    {
+        "id": 34,
+        "category": "Git::3. Alle Repos spiegeln",
+        "question": "Du stehst im Spiegel 'app.git' und hast das neue Ziel als Remote 'neu' eingetragen. Wie schiebst du **alle Branches** (noch ohne Tags) dorthin?",
+        "answer": "`git push --all neu`\n\nDanach die Tags mit `git push --tags neu`.",
+        "validationType": "command",
+        "solutions": [
+            "git\\s+push\\s+--all\\s+neu",
+            "git\\s+push\\s+neu\\s+--all"
+        ],
+        "topicId": 34,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\n`--all` schiebt alle Branches (`refs/heads/*`), `--tags` alle Tags. Zusammen ergibt das den vollständigen Code-Stand.\n---\n> **Tux-Ansage:** Erst die Truppe, dann die Orden! Wer die Tags vergisst, steht beim nächsten Release ohne Versionsnummern da.\n---\n### 3. Deep Dive\nStatt eines eingetragenen Remotes geht auch direkt die Adresse:\n```bash\ngit -C app.git push --all  https://git.example.org/team/app.git\ngit -C app.git push --tags https://git.example.org/team/app.git\n```\nDas Ziel-Repo muss leer sein (ohne README oder Lizenz-Commit). Sonst lehnt der Server den Push ab, weil die Historien nicht zusammenpassen."
+    },
+    {
+        "id": 234,
+        "category": "Git::3. Alle Repos spiegeln",
+        "question": "Beim Umzug von GitHub wird 'git push --all' plus 'git push --tags' statt 'git push --mirror' empfohlen. Warum?",
+        "answer": "`--mirror` schiebt **alle** Refs des Spiegels, auch GitHubs interne `refs/pull/*` (die Pull-Request-Stände). Viele Server lehnen solche Refs ab, und der Push scheitert ganz oder teilweise.\n\nAußerdem **löscht** `--mirror` am Ziel alle Refs, die es im Spiegel nicht gibt. Ist das Ziel nicht leer, gehen dort Branches verloren. `--all` und `--tags` schieben nur Branches und Tags und löschen nichts.",
+        "validationType": "concept",
+        "topicId": 34,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\n`--mirror` = alles inklusive Fremdrefs und mit Löschen am Ziel. `--all` + `--tags` = nur Branches und Tags, nichts wird gelöscht.\n---\n> **Tux-Ansage:** Mit `--mirror` rückst du mit der kompletten Altlast ein und reißt nebenbei alles ab, was am Ziel schon steht. Gezielt vorgehen, Rekrut!\n---\n### 3. Deep Dive\nWelche Refs ein Spiegel enthält, zeigt:\n```bash\ngit -C app.git for-each-ref --format='%(refname)' | cut -d/ -f1-2 | sort | uniq -c\n```\nTypisch bei GitHub-Spiegeln: `refs/heads`, `refs/tags` und sehr viele `refs/pull`.\n\nBeim Bundle lässt man die Pull-Refs gleich weg:\n```bash\ngit bundle create app.bundle --branches --tags\n```"
+    },
+    {
+        "id": 135,
+        "category": "Git::4. Bundles",
+        "question": "Was ist ein Git-Bundle, und wofür setzt man es ein?",
+        "answer": "Ein Bundle ist **eine einzelne Datei**, die Commits und Referenzen (Branches, Tags) eines Repos enthält. Git kann sie wie ein Remote benutzen: klonen, fetchen, prüfen.\n\nMan setzt sie ein, wenn es keine direkte Netzverbindung zwischen Quelle und Ziel gibt, z. B. beim Transport über USB-Stick oder eine Datenschleuse in ein abgeschottetes Netz.",
+        "validationType": "concept",
+        "topicId": 35,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\nBundle = ein Repo in einer Datei, transportierbar ohne Netz.\n---\n> **Tux-Ansage:** Kein Funkkontakt zum Zielgebiet? Dann geht das Paket eben per Kurier. Das Bundle ist dein versiegelter Meldebeutel.\n---\n### 3. Deep Dive\n```bash\n# erstellen\ngit -C app.git bundle create /pfad/app.bundle --branches --tags\n\n# am Ziel wie ein Remote benutzen\ngit clone --mirror app.bundle app.git\ngit -C app.git push --all  https://git.example.org/team/app.git\ngit -C app.git push --tags https://git.example.org/team/app.git\n```\n\nVorteile gegenüber kopierten Ordnern: eine Datei, eine Prüfsumme, und Git prüft beim Einlesen jedes Objekt."
+    },
+    {
+        "id": 35,
+        "category": "Git::4. Bundles",
+        "question": "Erstelle aus dem Repo im aktuellen Verzeichnis ein Bundle 'app.bundle', das alle Branches und alle Tags enthält.",
+        "answer": "`git bundle create app.bundle --branches --tags`\n\n`--all` würde zusätzlich alle weiteren Refs mitnehmen, bei GitHub-Spiegeln z. B. `refs/pull/*`.",
+        "validationType": "command",
+        "solutions": [
+            "git\\s+bundle\\s+create\\s+app\\.bundle\\s+--branches\\s+--tags",
+            "git\\s+bundle\\s+create\\s+app\\.bundle\\s+--tags\\s+--branches",
+            "git\\s+bundle\\s+create\\s+app\\.bundle\\s+--all"
+        ],
+        "topicId": 35,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\n`git bundle create <datei> <refs>`: Welche Refs hinein sollen, bestimmen Optionen wie `--branches`, `--tags` oder `--all`.\n---\n> **Tux-Ansage:** Pack, was gebraucht wird, nicht den ganzen Müll aus der Stube! `--branches --tags` ist das saubere Marschgepäck.\n---\n### 3. Deep Dive\nDie Ref-Angaben funktionieren wie bei `git rev-list`. Es gehen also auch einzelne Branches oder Bereiche:\n```bash\ngit bundle create nur-main.bundle main\ngit bundle create neu-seit-v1.bundle v1.0..main   # inkrementell\n```\nEin inkrementelles Bundle setzt voraus, dass das Ziel `v1.0` schon hat. Das prüft `git bundle verify` im Ziel-Repo.\n\nHinweis: Ein Repo ganz ohne Commits lässt sich nicht bündeln. Leere Repos legt man am Ziel einfach neu an."
+    },
+    {
+        "id": 235,
+        "category": "Git::4. Bundles",
+        "question": "Du rufst im Ordner 'mirror/' den Befehl 'git -C app.git bundle create ../usb/app.bundle --all' auf und erhältst „Konnte '…/app.git/../usb/app.bundle.lock' nicht erstellen“, obwohl 'usb/' neben 'mirror/' existiert. Außerdem meldet 'git bundle verify app.bundle' außerhalb eines Repos einen Fehler. Erkläre beide Effekte.",
+        "answer": "1. `git -C app.git` wechselt **vor** der Ausführung in den Ordner `app.git`. Relative Pfade gelten dann ab dort: `../usb` zeigt auf `mirror/usb`, nicht auf den `usb/`-Ordner neben `mirror/`. Lösung: absolute Pfade verwenden.\n\n2. `git bundle verify` braucht ein Repository, weil es prüft, ob die Voraussetzungen (Prerequisites) des Bundles in der Objektdatenbank vorhanden sind. Außerhalb eines Repos schlägt der Aufruf fehl, obwohl das Bundle in Ordnung ist. Alternative: das Bundle testweise klonen und Branches und Tags zählen.",
+        "validationType": "concept",
+        "topicId": 35,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\n`-C` verschiebt den Bezugspunkt aller relativen Pfade. `bundle verify` gehört in ein Repo, sonst einen Testklon machen.\n---\n> **Tux-Ansage:** Du meldest „Bundle defekt“, dabei hast du nur im falschen Raum nachgeschaut! Erst Koordinaten prüfen, dann Alarm schlagen.\n---\n### 3. Deep Dive\nSicher mit absolutem Pfad:\n```bash\nU=~/umzug/usb\nwhile read -r r; do\n  git -C \"$r.git\" bundle create \"$U/$r.bundle\" --branches --tags &&\n  git -C \"$r.git\" bundle verify \"$U/$r.bundle\" >/dev/null ||\n  echo \"FEHLER: $r\" >> ../fehler.txt\ndone < ../repos.txt\n```\nHier läuft `verify` **innerhalb** des Spiegels, dort funktioniert es.\n\nGegenprobe ohne Repo:\n```bash\ngit clone -q --mirror app.bundle /tmp/test.git\ngit -C /tmp/test.git branch | wc -l\ngit -C /tmp/test.git tag | wc -l\nrm -rf /tmp/test.git\n```"
+    },
+    {
+        "id": 136,
+        "category": "Git::5. Transport über eine Datenschleuse",
+        "question": "Erzeuge im aktuellen Ordner für alle '.bundle'-Dateien eine Prüfsummendatei 'SHA256SUMS'.",
+        "answer": "`sha256sum *.bundle > SHA256SUMS`\n\nAm Ziel prüfen mit `sha256sum -c SHA256SUMS`, alle Zeilen müssen `OK` melden.",
+        "validationType": "command",
+        "solutions": [
+            "sha256sum\\s+\\*\\.bundle\\s*>\\s*SHA256SUMS"
+        ],
+        "topicId": 36,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\n`sha256sum` erzeugt Prüfsummen, `sha256sum -c` vergleicht sie. Eine geänderte Datei fällt sofort auf.\n---\n> **Tux-Ansage:** Was du nicht nachgezählt hast, hast du nicht übergeben! Prüfsumme drauf, sonst ist der Transport Glückssache.\n---\n### 3. Deep Dive\n```bash\ncd ~/umzug/usb\nsha256sum *.bundle repos.txt > SHA256SUMS\nsha256sum SHA256SUMS          # diese eine Zeile separat notieren\n```\nAm Ziel:\n```bash\nsha256sum SHA256SUMS          # muss zur Notiz passen\nsha256sum -c SHA256SUMS       # alle Dateien OK?\n```\nUnter Windows ohne Zusatzsoftware:\n```powershell\nGet-FileHash .\\app.bundle -Algorithm SHA256\n```"
+    },
+    {
+        "id": 36,
+        "category": "Git::5. Transport über eine Datenschleuse",
+        "question": "Warum notiert man die Prüfsumme der Datei 'SHA256SUMS' auf einem zweiten Weg (z. B. als Foto) und legt sie nicht nur mit auf den Stick?",
+        "answer": "Wer die Dateien auf dem Stick manipulieren kann, kann auch `SHA256SUMS` passend neu berechnen. Dann meldet `sha256sum -c` trotzdem überall `OK`.\n\nNur ein Vergleich mit einem Wert, der **über einen anderen Kanal** mitgekommen ist, deckt das auf. Eine Prüfsumme schützt vor Übertragungsfehlern, gegen Manipulation hilft sie nur mit unabhängigem Vergleichswert oder einer Signatur.",
+        "validationType": "concept",
+        "topicId": 36,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\nPrüfsumme und Daten auf demselben Stick = keine Sicherheit gegen Manipulation. Vergleichswert immer getrennt transportieren.\n---\n> **Tux-Ansage:** Wenn der Feind den Meldebeutel in die Finger kriegt, fälscht er auch den Zettel mit der Stückzahl. Die Kontrollnummer trägst du am Mann, Rekrut!\n---\n### 3. Deep Dive\nDrei Stufen der Absicherung:\n1. **Prüfsumme auf dem Stick:** erkennt defekte Sticks und Übertragungsfehler.\n2. **Prüfsumme der Prüfsummendatei über zweiten Kanal** (Foto, Telefon, Zettel): erkennt zusätzlich Manipulation auf dem Stick.\n3. **Signatur** (z. B. `gpg --detach-sign SHA256SUMS`): Der Empfänger prüft mit dem öffentlichen Schlüssel des Absenders, kein zweiter Kanal nötig, sobald der Schlüssel einmal sicher übergeben wurde.\n\nVerschlüsselung (z. B. AES-256) schützt die **Vertraulichkeit**, Prüfsumme und Signatur schützen die **Unversehrtheit**. Für einen sicheren Transport braucht man beides."
+    },
+    {
+        "id": 236,
+        "category": "Git::5. Transport über eine Datenschleuse",
+        "question": "Die Daten müssen per USB über einen Windows-11-Schleusenrechner **ohne Admin-Rechte** auf ein Linux-System im internen Netz. Wie verschlüsselst du den Transport, und welche Verfahren scheiden aus?",
+        "answer": "Der Windows-Rechner wird nur **Durchreiche**: Er muss die Datei nicht öffnen. Verschlüsselt wird auf der Quellseite, entschlüsselt erst auf dem Linux-System, z. B. mit `gpg --symmetric --cipher-algo AES256` oder einem 7z-Archiv mit AES-256 und verschlüsselten Dateinamen (`7z a -p -mhe=on`).\n\nVeraCrypt scheidet aus, weil es zum Einbinden einen Treiber und damit Admin-Rechte braucht. Die eingebaute ZIP-Verschlüsselung des Explorers ist zu schwach. BitLocker To Go ließe sich ohne Admin entsperren, muss aber auf einem Windows mit Pro- oder Enterprise-Lizenz eingerichtet werden. Vorher klären: Viele Schleusen lassen verschlüsselte Archive nicht durch, weil der Virenscanner nicht hineinsehen kann.",
+        "validationType": "concept",
+        "topicId": 36,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\nVerschlüsseln und Entschlüsseln dort, wo man die Werkzeuge hat. Die Schleuse reicht nur durch.\n---\n> **Tux-Ansage:** Der Schleusenrechner ist der Postbote, nicht der Empfänger. Der kriegt den Umschlag, aber nicht den Schlüssel!\n---\n### 3. Deep Dive\nQuellseite (Linux):\n```bash\ntar -cf - usb | gpg --symmetric --cipher-algo AES256 -o umzug.tar.gpg\nsha256sum umzug.tar.gpg       # separat notieren\n```\nSchleuse (Windows 11, ohne Admin):\n```powershell\nGet-FileHash E:\\umzug.tar.gpg -Algorithm SHA256\nscp E:\\umzug.tar.gpg benutzer@linux-ziel:~/\n```\n`scp` ist als OpenSSH-Client in Windows 11 eingebaut.\n\nZielseite (Linux):\n```bash\nsha256sum umzug.tar.gpg\ngpg -d umzug.tar.gpg | tar -xf -\n```\n\nZur Passphrase: lang (Satz aus mehreren Wörtern), nie auf demselben Datenträger und nur auf vertrauenswürdigen Rechnern eintippen. Nach dem Import alle Zwischenkopien löschen: Stick, Schleuse, entpackte Dateien."
+    },
+    {
+        "id": 137,
+        "category": "Git::6. Gegenprobe und Umstellung",
+        "question": "Was kommt bei einem Git-Umzug über Spiegel oder Bundles **nicht** mit?",
+        "answer": "Alles, was nicht im Git-Repository selbst steckt, sondern auf der Plattform: Issues, Pull bzw. Merge Requests mit Kommentaren, Releases mit Anhängen, Wiki (ein eigenes Repo `<repo>.wiki.git`), Git-LFS-Dateien (eigener Speicher), Deploy-Keys, Secrets, Webhooks und Einstellungen wie geschützte Branches.",
+        "validationType": "concept",
+        "topicId": 37,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\nGit transportiert Code und Historie. Alles Drumherum gehört der Plattform und muss eigens umgezogen oder neu angelegt werden.\n---\n> **Tux-Ansage:** Du ziehst die Waffenkammer um, aber das Dienstbuch bleibt im alten Büro liegen? Liste machen, was sonst noch mit muss!\n---\n### 3. Deep Dive\nWege für das Drumherum:\n- **Import-Funktion** des neuen Servers (GitLab, Gitea, Forgejo können von GitHub importieren, inkl. Issues und PRs), wenn eine Netzverbindung besteht.\n- **Export als JSON** über die API, z. B. `gh issue list --state all --json number,title,body,comments`, und später manuell oder per Skript einspielen.\n- **LFS:** im Spiegel `git lfs fetch --all`, am Ziel `git lfs push --all <remote>`.\n- **Wiki:** wie ein normales Repo spiegeln (`<repo>.wiki.git`).\n- **Keys, Secrets, Webhooks:** am Ziel neu anlegen, nicht kopieren."
+    },
+    {
+        "id": 37,
+        "category": "Git::6. Gegenprobe und Umstellung",
+        "question": "Wie listest du die Branches des Repos 'https://git.example.org/team/app.git' auf, ohne es zu klonen?",
+        "answer": "`git ls-remote --heads https://git.example.org/team/app.git`\n\nMit `| wc -l` erhältst du die Anzahl, mit `--tags` die Tags.",
+        "validationType": "command",
+        "solutions": [
+            "git\\s+ls-remote\\s+(--heads|-h|--branches)\\s+https://git\\.example\\.org/team/app\\.git"
+        ],
+        "topicId": 37,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\n`git ls-remote` fragt die Refs eines Servers ab, ohne etwas herunterzuladen. Ideal für die Gegenprobe nach dem Umzug.\n---\n> **Tux-Ansage:** Nach der Verlegung wird durchgezählt! Wer nicht nachzählt, merkt erst beim Appell, dass die Hälfte fehlt.\n---\n### 3. Deep Dive\nGegenprobe Quelle gegen Ziel:\n```bash\nfor r in app web api; do\n  printf '%-6s Branches %3s Tags %3s\\n' \"$r\" \\\n    \"$(git ls-remote --heads https://git.example.org/team/$r.git | wc -l)\" \\\n    \"$(git ls-remote --tags  https://git.example.org/team/$r.git | grep -vc '\\^{}')\"\ndone\n```\n`grep -vc '\\^{}'` blendet die zusätzlichen Zeilen aus, die annotierte Tags in der Ausgabe erzeugen. Die Zahlen werden mit dem Spiegel verglichen (`git -C app.git branch | wc -l`)."
+    },
+    {
+        "id": 237,
+        "category": "Git::6. Gegenprobe und Umstellung",
+        "question": "Die Repos liegen jetzt im internen Git. Welche Schritte gehören zu einer sauberen Umstellung, bevor die alten Repos gelöscht werden?",
+        "answer": "1. **Gegenprobe:** Branches und Tags je Repo zählen und mit der Quelle vergleichen, Standard-Branch prüfen.\n2. **Klone umstellen:** auf allen Rechnern `git remote set-url origin <neu>`.\n3. **Automationen umstellen:** Sync-Skripte, CI und nächtliche Builds auf die neue Adresse, mit neuen Deploy-Keys (nur Lesen).\n4. **Plattform-Inhalte** übernehmen, soweit nötig (Issues, Wiki, Releases, Schutzregeln für Branches).\n5. **Alte Repos archivieren** (schreibgeschützt), nicht sofort löschen, als Rückweg.\n6. **Aufräumen:** Stick, Schleusenkopie und entpackte Dateien löschen, alte Tokens und Deploy-Keys widerrufen.",
+        "validationType": "concept",
+        "topicId": 37,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\nZählen, umstellen, archivieren, aufräumen. Gelöscht wird erst, wenn alles am neuen Ort nachweislich läuft.\n---\n> **Tux-Ansage:** Die alte Stellung wird erst geräumt, wenn die neue besetzt und gesichert ist. Und die Schlüssel der alten Stellung werden eingezogen!\n---\n### 3. Deep Dive\nTypische Fallen nach einem Umzug:\n- Ein vergessener Klon pusht weiter ins alte System, die Änderung fehlt im neuen.\n- Ein nächtlicher Job zieht still weiter vom alten Server und baut veraltete Stände. Hilfreich ist eine Anzeige, wie alt der Datenstand ist, oder eine Meldung bei Fehlschlag.\n- Alte Zugangsdaten bleiben gültig und werden vergessen. Jedes Token und jeder Deploy-Key des alten Systems gehört auf die Liste zum Widerrufen.\n\nArchivieren statt Löschen: Archivierte Repos sind schreibgeschützt, bleiben aber lesbar. Fehlt nach Wochen doch ein Branch oder ein Issue, ist er noch da. Gelöscht wird erst nach einer vereinbarten Frist."
+    },
+    {
+        "id": 138,
+        "category": "Git::7. Aktualisieren",
+        "question": "Hole den neuesten Stand vom Remote, aber nur, wenn dein Branch einfach vorgespult werden kann (ohne Merge-Commit).",
+        "answer": "`git pull --ff-only`\n\nIst ein Vorspulen nicht möglich, bricht der Befehl ab, statt einen Merge-Commit zu erzeugen.",
+        "validationType": "command",
+        "solutions": [
+            "git\\s+pull\\s+--ff-only"
+        ],
+        "topicId": 38,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\n`--ff-only` übernimmt neue Commits nur, wenn dein Stand ein direkter Vorgänger ist. Auf Servern ist das der sichere Standard.\n---\n> **Tux-Ansage:** Auf dem Server wird nicht improvisiert, Rekrut! Entweder der neue Stand passt glatt drauf, oder es wird abgebrochen und nachgesehen.\n---\n### 3. Deep Dive\nEin normales `git pull` erzeugt einen Merge-Commit, wenn lokal und auf dem Remote unterschiedliche Commits liegen. Auf einem Server, an dem niemand entwickeln sollte, ist das ein Warnsignal: Jemand hat dort etwas geändert, oder die Historie auf dem Remote wurde umgeschrieben.\n\n```bash\ngit pull --ff-only\n# oder dauerhaft für dieses Repo:\ngit config pull.ff only\n```\n\nBricht `--ff-only` ab, erst nachsehen (`git status`, `git log --oneline --graph --all -n 20`), bevor irgendetwas überschrieben wird."
+    },
+    {
+        "id": 38,
+        "category": "Git::7. Aktualisieren",
+        "question": "Bevor du eine Installation aktualisierst, willst du sehen, ob und was sich auf dem Remote geändert hat, ohne schon etwas zu übernehmen. Wie gehst du vor?",
+        "answer": "1. `git fetch` holt die neuen Commits, ändert aber nichts an deinen Dateien.\n2. `git status` zeigt, ob dein Stand hinterherhängt („behind by n commits“) und ob lokale Änderungen da sind.\n3. `git log --oneline HEAD..origin/main` listet die neuen Commits, `git diff --stat HEAD origin/main` die geänderten Dateien.\n4. Erst danach `git pull --ff-only` und den Dienst neu bauen bzw. starten.",
+        "validationType": "concept",
+        "topicId": 38,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\nErst `fetch` und ansehen, dann `pull --ff-only`. So weißt du vorher, was das Update mitbringt.\n---\n> **Tux-Ansage:** Du marschierst doch auch nicht blind ins Gelände! Erst aufklären, was kommt, dann vorrücken.\n---\n### 3. Deep Dive\n```bash\ngit fetch\ngit status -sb                         # z. B. ## main...origin/main [behind 3]\ngit log --oneline HEAD..origin/main     # was neu ist\ngit diff --stat HEAD origin/main        # welche Dateien\ngit pull --ff-only\n```\n\nLiegen lokale Änderungen vor (`git status` zeigt geänderte Dateien), gehören die geklärt, bevor aktualisiert wird: Entweder sind es Konfigurationsdateien, die gar nicht im Repo stehen sollten (`.env`, Daten), oder jemand hat direkt auf dem Server gearbeitet.\n\nNach dem `pull` bei Anwendungen mit Container meist noch neu bauen und starten, z. B. über das Installations- oder Update-Skript des Projekts."
+    },
+    {
+        "id": 238,
+        "category": "Git::7. Aktualisieren",
+        "question": "Nach einem Update auf dem Server sehen manche Nutzer einer installierten Web-App (PWA) noch den alten Stand, z. B. ohne die neuen Fragen. Woran liegt das, und was hilft?",
+        "answer": "Der **Service Worker** der PWA hält die Dateien der App im Cache des Geräts. Bleibt sein Cache-Name gleich, liefert er weiter die alten Dateien aus, auch wenn der Server längst neue hat.\n\nAbhilfe: Bei jedem Update die **Cache-Version** im Service Worker erhöhen (z. B. `CACHE_NAME = 'app-v189'`). Dann installiert der Browser den neuen Service Worker, löscht den alten Cache und lädt die aktuellen Dateien. Für einzelne Geräte hilft auch, die App einmal ganz zu schließen und neu zu öffnen.",
+        "validationType": "concept",
+        "topicId": 38,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\nNeue Dateien auf dem Server reichen nicht: Ohne neue Cache-Version liefert der Service Worker weiter den alten Stand aus.\n---\n> **Tux-Ansage:** Der Service Worker ist dein übereifriger Fourier: Er gibt die alte Ausrüstung aus, bis jemand ihm offiziell eine neue Liste in die Hand drückt!\n---\n### 3. Deep Dive\nAblauf beim Update einer PWA:\n1. Der Browser lädt `sw.js` neu und vergleicht sie byteweise mit der installierten Version.\n2. Nur wenn sich `sw.js` geändert hat, wird der neue Service Worker installiert. Eine geänderte Cache-Version ist genau so eine Änderung.\n3. Beim Aktivieren löscht er Caches mit altem Namen:\n```js\nconst CACHE_NAME = 'app-v189';\nself.addEventListener('activate', e => e.waitUntil(\n  caches.keys().then(keys => Promise.all(\n    keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))));\n```\n\nZum Testen: in den Entwicklerwerkzeugen unter „Anwendung“ → „Service Worker“ den alten abmelden oder ein frisches Browser-Profil nutzen. Ein einfaches Neuladen mit Strg+F5 umgeht den Service Worker oft nicht."
     }
 ];
