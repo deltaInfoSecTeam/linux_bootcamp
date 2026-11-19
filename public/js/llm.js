@@ -208,6 +208,12 @@ async function revealAnswer(e) {
             }
         }
         
+        // "Keine Ahnung" zählt immer als 0 Punkte, auch wenn die KI die (leere) Antwort anders einstuft
+        if (isIdk) {
+            result.rating = 'wrong';
+            if (source !== 'ai') result.text = '<span class="dis-mark dis-mark--info">ii</span> <strong>Keine Ahnung gewählt.</strong> Das zählt 0 Punkte. Lies die Musterlösung und markiere die Frage bei Bedarf mit „Nachlernen“.';
+        }
+
         // Set feedback CSS classes
         el.feedbackContainer.classList.remove('hidden', 'info', 'correct', 'partial', 'wrong');
         el.feedbackContainer.classList.add(result.rating);
@@ -308,6 +314,10 @@ async function revealAnswer(e) {
 
         if (state.mode === 'quiz') {
             el.ratingControls.classList.remove('hidden');
+            // Nach "Keine Ahnung" keine Selbstbewertung mit Punkten: nur 0 bestätigen oder nachlernen
+            // (inline, weil die Button-Styles die Klasse .hidden überstimmen)
+            document.getElementById('rate-partial').style.display = isIdk ? 'none' : '';
+            document.getElementById('rate-correct').style.display = isIdk ? 'none' : '';
             document.getElementById('btn-confirm-rating').classList.remove('hidden');
             document.getElementById('btn-flag-review').classList.remove('hidden');
             // Give focus to the confirm button so enter can press it

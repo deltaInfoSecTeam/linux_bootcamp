@@ -264,6 +264,8 @@ function renderCurrentQuestion() {
     document.getElementById('btn-confirm-rating').classList.add('hidden');
     document.getElementById('btn-fc-next').classList.add('hidden');
     document.getElementById('btn-flag-review').classList.add('hidden');
+    document.getElementById('rate-partial').style.display = '';
+    document.getElementById('rate-correct').style.display = '';
     el.ratingControls.classList.add('hidden');
 }
 
