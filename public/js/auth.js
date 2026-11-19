@@ -436,7 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Systemmanagement: eigene Ansicht im selben Bereich, ohne die Reiter des Usermanagements
+    // Management / System: eigene Ansicht im selben Bereich, ohne die Reiter von Management / Users
     const btnAdminSystemView = document.getElementById('btn-admin-system');
     if (btnAdminSystemView) {
         btnAdminSystemView.addEventListener('click', () => {
@@ -704,7 +704,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Bereich der Admin-Ansicht: 'users' (Benutzer, Klausuren) oder 'system' (Programmstand, Update)
     function showAdminArea(area) {
         const sys = area === 'system';
-        document.getElementById('admin-main-title').textContent = sys ? 'Systemmanagement' : 'Usermanagement';
+        document.getElementById('admin-main-title').textContent = sys ? 'System' : 'Users';
         adminTabs.forEach(([b]) => { if (b) b.style.display = sys ? 'none' : ''; });
         if (sys) {
             adminTabs.forEach(([, s]) => { if (s) s.style.display = 'none'; });

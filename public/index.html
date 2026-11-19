@@ -218,11 +218,11 @@
                 
                 <div class="sidebar-section stats-section admin-only">
                     <details class="collapsible-section">
-                        <summary><h2>Admin Console</h2></summary>
+                        <summary><h2>Management</h2></summary>
                         <div style="margin-top: 10px;">
-                            <button id="btn-admin-rights" class="mode-btn" style="width: 100%;">Usermanagement</button>
-                            <button id="btn-admin-content" class="mode-btn" style="width: 100%; margin-top: 5px;">Contentverwaltung</button>
-                            <button id="btn-admin-system" class="mode-btn" style="width: 100%; margin-top: 5px;">Systemmanagement</button>
+                            <button id="btn-admin-rights" class="mode-btn" style="width: 100%;">Users</button>
+                            <button id="btn-admin-content" class="mode-btn" style="width: 100%; margin-top: 5px;">Content</button>
+                            <button id="btn-admin-system" class="mode-btn" style="width: 100%; margin-top: 5px;">System</button>
                         </div>
                     </details>
                 </div>
@@ -395,9 +395,9 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--dis-border-strong); padding-bottom: 10px; margin-bottom: 15px;">
                         
 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-    <h2 id="admin-main-title" style="color: var(--dis-matrix); margin: 0; white-space: nowrap;">Usermanagement</h2>
-    <button id="btn-admin-view-users" class="mode-btn active" style="margin: 0; padding: 4px 10px;">Benutzer</button>
-    <button id="btn-admin-view-exams" class="mode-btn" style="margin: 0; padding: 4px 10px;">Klausuren</button>
+    <div><span style="display: block; color: var(--dis-text-2); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase;">Management /</span><h2 id="admin-main-title" style="color: var(--dis-matrix); margin: 0; white-space: nowrap;">Users</h2></div>
+    <button id="btn-admin-view-users" class="mode-btn active" style="margin: 0; padding: 4px 10px;">Accounts</button>
+    <button id="btn-admin-view-exams" class="mode-btn" style="margin: 0; padding: 4px 10px;">Exams</button>
 </div>
                         <button id="btn-close-admin-view" class="btn-secondary" style="width: auto; padding: 4px 12px; font-weight: bold;" title="Schliessen">X</button>
                     </div>
@@ -472,7 +472,7 @@
             <main class="app-main" id="admin-content-main" style="display: none; flex-direction: column;">
                 <div class="quiz-card" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; max-height: 100%;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--dis-border-strong); padding-bottom: 10px; margin-bottom: 15px;">
-                        <h2 style="color: var(--dis-matrix); margin: 0; white-space: nowrap;">Contentverwaltung</h2>
+                        <div><span style="display: block; color: var(--dis-text-2); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase;">Management /</span><h2 style="color: var(--dis-matrix); margin: 0; white-space: nowrap;">Content</h2></div>
                         <button id="btn-close-content-view" class="btn-secondary" style="width: auto; padding: 4px 12px; font-weight: bold;" title="Schliessen">X</button>
                     </div>
                     <div id="admin-content-tree" style="overflow-y: auto; flex: 1; text-align: left;">
