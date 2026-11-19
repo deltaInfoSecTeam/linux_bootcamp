@@ -83,6 +83,23 @@ do_check() {
     put status.json "{\"agent\":1,\"checked_at\":$(jstr "$(now)"),\"branch\":$(jstr "$branch"),\"current\":$(jstr "$cur"),\"remote\":$(jstr "$remote"),\"behind\":${behind:-0},\"commits\":[${commits}],\"error\":$(jstr "$err")}"
 }
 
+# Hat sich update-agent.sh mit dem Update geändert, installiert sich der Agent selbst neu (Kopie,
+# systemd-Units). Das nutzt dasselbe Vertrauen wie install.sh, das der Agent ohnehin als root ausführt.
+# Nur der installierte Agent tut das, nicht ein direkt aus dem Repo gestarteter. Ein Fehler hier lässt
+# das Update nicht scheitern; dann bleibt die bisherige Agent-Version aktiv.
+self_update() {
+    [ "$(id -u)" -eq 0 ] || return 0
+    [ "$(readlink -f "$0")" = "$AGENT_DEST" ] || return 0
+    local src="$REPO_DIR/scripts/update-agent.sh"
+    [ -f "$src" ] || return 0
+    if sed "s|__REPO_DIR__|$REPO_DIR|" "$src" | cmp -s - "$AGENT_DEST"; then
+        echo "Update-Agent ist aktuell."
+        return 0
+    fi
+    echo "Update-Agent hat sich geändert, installiere die neue Version …"
+    bash "$src" install || echo "Hinweis: Der Update-Agent konnte sich nicht selbst aktualisieren. Bitte einmal von Hand: sudo ./scripts/update-agent.sh install"
+}
+
 run_state() {   # state message by started finished step(1 holen, 2 bauen/neu starten, 3 fertig)
     put run.json "{\"state\":$(jstr "$1"),\"message\":$(jstr "$2"),\"by\":$(jstr "$3"),\"started_at\":$(jstr "$4"),\"finished_at\":$(jstr "${5:-}"),\"step\":${6:-0}}"
 }
@@ -112,6 +129,7 @@ do_apply() {
         # sonst die Commit-Info ("dubious ownership"). Nur für diesen Aufruf als vertrauenswürdig angeben.
         SUDO_USER="$OWNER" GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$REPO_DIR" \
             bash "$REPO_DIR/scripts/install.sh" --yes
+        self_update
         echo "== $(now) fertig"
     ) > "$log" 2>&1 || rc=$?
     ensure_dir
