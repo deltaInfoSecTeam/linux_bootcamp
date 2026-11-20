@@ -173,7 +173,7 @@ Jedes Objekt im Array muss folgende Struktur haben:
   "category": "${category}",
   "question": "Die Quizfrage hier...",
   "answer": "Die korrekte, kurze Antwort...",
-  "moreInfo": "### 1. tl;dr\\n[WICHTIG: Schreibe hier eine echte, inhaltliche Kurzzusammenfassung (1-2 Sätze)! Schreibe NIEMALS 'Siehe Erklärung unten' oder ähnliches!]\\n---\\n> **Tux-Ansage:** [Ein bissiger, aber motivierender Ausbilderspruch von Tux passend zur Frage]\\n---\\n### 2. Deep Dive\\n[Tiefergehende Erklärung, Hintergrundinfos und Praxis-Beispiele mit Befehlen]\\n---\\n### 3. Schaubild\\n[Nur wenn es zum Thema passt: eine Textgrafik in einem Codeblock aus drei Backticks, aus Zeichen wie -->, | und +---+, höchstens 60 Zeichen breit. Kein HTML, keine Bilder, keine Emojis.]",
+  "moreInfo": "### 1. tl;dr\\n[WICHTIG: Schreibe hier eine echte, inhaltliche Kurzzusammenfassung (1-2 Sätze)! Schreibe NIEMALS 'Siehe Erklärung unten' oder ähnliches!]\\n---\\n> **Tux-Ansage:** [Ein bissiger, aber motivierender Ausbilderspruch von Tux passend zur Frage]\\n---\\n### 2. Deep Dive\\n[Tiefergehende Erklärung, Hintergrundinfos und Praxis-Beispiele mit Befehlen]\\n---\\n### 3. Schaubild\\n[Nur wenn ein Schaubild das Verständnis spürbar verbessert (Ablauf, Zustände, Datenfluss, Commit-Graph, Vergleich). Kein Schaubild um des Schaubilds willen und keine Wiederholung eines Codeblocks; sonst den Abschnitt 3 samt Trennlinie ganz weglassen. Format: eine Textgrafik in einem Codeblock aus drei Backticks, aus Zeichen wie -->, | und +---+, höchstens 60 Zeichen breit. Kein HTML, keine Bilder, keine Emojis.]",
   "difficulty": "leicht", // oder "mittel" oder "schwer"
   "validationType": "concept",
   "keywords": ["stichwort1", "stichwort2", "stichwort3"]
