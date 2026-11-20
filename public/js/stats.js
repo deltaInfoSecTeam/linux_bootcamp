@@ -213,6 +213,10 @@ function updateDifficultyUI() {
 
 function handleRating(pointsSelf, pointsAI, isFlagged = false) {
     const q = state.filteredQuestions[state.currentIndex];
+    // Punkte gibt es nur nach der geprüften Bewertung (KI oder Stichwortprüfung).
+    // Die eigene Einschätzung darf nach unten korrigieren, aber nichts dazugeben.
+    const claimed = pointsSelf;
+    pointsSelf = Math.min(pointsSelf, pointsAI);
     let difficultyWeight = 1;
     if (q && q.difficulty === 'medium') difficultyWeight = 2;
     if (q && q.difficulty === 'hard') difficultyWeight = 3;
@@ -302,7 +306,9 @@ function handleRating(pointsSelf, pointsAI, isFlagged = false) {
     if (isFlagged) {
         showToast("Frage zum Nachlernen markiert. (Gewertet mit " + pointsSelf + " Pt)", "warning");
     } else {
-        showToast("Gewertet: Du " + pointsSelf + " | KI " + pointsAI, 'info');
+        showToast(claimed > pointsSelf
+            ? `Gewertet: ${pointsSelf} Punkte. Die Prüfung ergab ${pointsAI}, mehr ist nicht drin.`
+            : `Gewertet: ${pointsSelf} Punkte.`, 'info');
     }
     
     // Auto advance

@@ -190,8 +190,14 @@ function updateFilteredQuestions() {
     }
     
     state.currentIndex = 0;
-    
-    showToast(`${state.filteredQuestions.length} Fragen geladen.`, 'success');
+
+    if (state.mode === 'flashcard' && typeof sortCardsByDue === 'function') {
+        const sorted = sortCardsByDue(state.filteredQuestions);
+        state.filteredQuestions = sorted.cards;
+        showToast(`${sorted.cards.length} Karten geladen, ${sorted.dueCount} davon fällig.`, 'success');
+    } else {
+        showToast(`${state.filteredQuestions.length} Fragen geladen.`, 'success');
+    }
     renderCurrentQuestion();
     if (typeof updateSessionStatsUI === 'function') updateSessionStatsUI();
 }
@@ -223,6 +229,9 @@ function renderCurrentQuestion() {
     el.card.style.animation = 'none';
     el.card.offsetHeight; /* trigger reflow */
     el.card.style.animation = 'slideUp 0.4s ease forwards';
+
+    if (typeof labelRatingButtons === 'function') labelRatingButtons();
+    if (typeof updateLeitnerInfo === 'function') updateLeitnerInfo();
 
     el.questionText.textContent = q.question;
     el.categoryBadge.textContent = q.category;

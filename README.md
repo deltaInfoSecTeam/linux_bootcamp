@@ -27,7 +27,8 @@
 |---|---|
 | **KI-Tutor** | Erklärt falsch beantwortete Fragen ausführlich im Ausbilder-Ton. Anbindung an Google Gemini, OpenAI, Groq, xAI, Together oder ein lokales Ollama. |
 | **Prüfungssimulation** | Simuliert eine schriftliche Abschlussprüfung: 45 Minuten, 24 Fragen quer durch alle Kategorien, Note 1 bis 6. |
-| **Ränge** | XP für richtige Antworten, Streaks und Dienstgrade von *Schütze* bis *General* (angelehnt an die Bundeswehr). |
+| **Lernkarten** | Lernkartei nach dem Leitner-System: Nach dem Aufdecken entscheidest du „Nochmal“, „Unsicher“ oder „Sitzt“. Das steuert nur, wann die Karte wiederkommt (gleich, morgen, in 3 bzw. 7 Tagen); fällige Karten kommen zuerst. Lernkarten bringen keine Punkte, zählen aber für die Tagesserie. |
+| **Ränge** | XP für richtige Antworten, Streaks und Dienstgrade von *Schütze* bis *General* (angelehnt an die Bundeswehr). Punkte gibt es nur nach der geprüften Bewertung (KI oder Stichwortprüfung); die eigene Einschätzung kann nur nach unten korrigieren. |
 | **PWA** | Installierbar auf Android, iOS und Desktop. Spielt auch offline: Programm und Fragenkatalog liegen im Gerät, zentral gepflegte Fragen werden bei jeder Verbindung zwischengespeichert. |
 | **Management** | *Users:* Benutzer und Rechte verwalten, alle abgelegten Klausuren einsehen. *Content:* Fragen für alle pflegen, mit den Reitern Questions (Module/Kapitel entfernen oder wieder einblenden), Import / Export (JSON) und Generator (Fragen per KI aus PDF, Markdown oder Text). *System:* Programmstand und Update per Knopf. |
 | **Docker** | Isoliertes Setup, das mit einem Skript auf jedem Linux-Server läuft. |
@@ -250,7 +251,7 @@ npm start
 │   ├── css/           brand.css (Corporate Design), styles.css (App)
 │   ├── fonts/         JetBrains Mono (selbst gehostet, SIL OFL)
 │   ├── img/brand/     wappen.svg (zentrales Wappen), App-Icons
-│   └── js/            theme, brand, boot, auth, core, questions, quiz, llm, stats, main, generator, content
+│   └── js/            theme, brand, boot, auth, core, questions, quiz, llm, stats, flashcards, main, generator, content
 ├── scripts/           install.sh, update-agent.sh, tls.sh, create-admin.js, healthcheck.js
 ├── docs/brand/        README-Banner, Screenshot
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)

@@ -155,6 +155,9 @@ async function revealAnswer(e) {
             
             // Bewertungs-Buttons anzeigen, keine KI-Vorwertung
             state.lastAIRatingValue = 0; // Spielt keine Rolle, Nutzer wertet selbst
+            // Kein Vorschlag bei Lernkarten: Markierung aus einer vorigen Quizfrage entfernen
+            ['rate-wrong', 'rate-partial', 'rate-correct'].forEach(id =>
+                document.getElementById(id).classList.remove('rating-suggested'));
             el.ratingControls.classList.remove('hidden');
             document.getElementById('btn-confirm-rating').classList.add('hidden');
             document.getElementById('btn-flag-review').classList.add('hidden');
