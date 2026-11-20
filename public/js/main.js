@@ -44,7 +44,7 @@ function bindEvents() {
         state.mode = 'flashcard';
         el.btnFlashcard.classList.add('active');
         el.btnQuiz.classList.remove('active');
-        renderCurrentQuestion();
+        updateFilteredQuestions(); // fällige Karten nach vorn
     });
     
     document.getElementById('mode-exam').addEventListener('click', () => {
@@ -97,9 +97,13 @@ function bindEvents() {
     if (el.btnMoreInfo) el.btnMoreInfo.addEventListener('click', fetchMoreInfo);
 
     // Rating Buttons
-    document.getElementById('rate-wrong').addEventListener('click', () => handleRating(0, state.lastAIRatingValue || 0));
-    document.getElementById('rate-partial').addEventListener('click', () => handleRating(0.5, state.lastAIRatingValue || 0));
-    document.getElementById('rate-correct').addEventListener('click', () => handleRating(1.0, state.lastAIRatingValue || 0));
+    // Lernkarten: Selbsteinschätzung steuert nur die Wiederholung (flashcards.js)
+    const rate = (level, self) => () => (state.mode === 'flashcard'
+        ? rateFlashcard(level)
+        : handleRating(self, state.lastAIRatingValue || 0));
+    document.getElementById('rate-wrong').addEventListener('click', rate('again', 0));
+    document.getElementById('rate-partial').addEventListener('click', rate('unsure', 0.5));
+    document.getElementById('rate-correct').addEventListener('click', rate('known', 1.0));
     
     // Confirm & Flag
     document.getElementById('btn-confirm-rating').addEventListener('click', () => handleRating(state.lastAIRatingValue || 0, state.lastAIRatingValue || 0));

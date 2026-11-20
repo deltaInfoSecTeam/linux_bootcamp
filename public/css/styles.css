@@ -1308,6 +1308,29 @@ body.is-admin .admin-only-btn {
     .tux-msg { max-width: 92%; }
 }
 
+/* Flashcards: Leitner box distribution under the rating bar */
+.leitner-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    font-family: var(--dis-font-mono);
+    font-size: 0.72rem;
+    color: var(--dis-text-3);
+}
+.leitner-info[hidden] { display: none; }
+.leitner-due,
+.leitner-box {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 3px 8px;
+    border: 1px solid var(--dis-border);
+    border-radius: var(--dis-radius-sm);
+}
+.leitner-due { color: var(--dis-gold); border-color: color-mix(in srgb, var(--dis-gold) 40%, transparent); }
+.leitner-box b { color: var(--dis-text); font-weight: 600; }
+
 /* Deep dive: reading mode from css/brand.css (.dis-prose--read) brings its own surface */
 #more-info-content.feedback-container {
     padding: 0;

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'linux-bootcamp-v198';
+const CACHE_NAME = 'linux-bootcamp-v199';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -19,6 +19,7 @@ const ASSETS_TO_CACHE = [
   './js/quiz.js',
   './js/llm.js',
   './js/stats.js',
+  './js/flashcards.js',
   './js/main.js',
   './js/generator.js',
   './js/content.js',
