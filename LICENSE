@@ -1,8 +1,11 @@
 Required Notice: Copyright (c) 2026 deltaInfoSec (https://github.com/deltaInfoSecTeam/linux_bootcamp)
 
 Not covered by this license:
-- The name "deltaInfoSec", the coat of arms and the logos and icons in
-  public/img/brand/. All rights reserved.
+- The deltaInfoSec brand: the name "deltaInfoSec", the coat of arms, logos,
+  icons, README banner and the corporate design layer (public/img/brand/,
+  public/css/brand.css,
+  public/js/brand.js, public/js/theme.js, docs/brand/). All rights reserved, see
+  public/img/brand/LICENSE-BRAND.md.
 - Third-party components under their own licenses, e.g. the font in
   public/fonts/ (see public/fonts/LICENSE-JetBrainsMono.txt).
 

@@ -1,7 +1,7 @@
 # deltaInfoSec corporate design – central brand layer, copied in unchanged
 # Do not edit the files listed below in this project.
-version 1.3.3
-commit 23e4d05
+version 1.3.4
+commit c511296
 10a2be1db59e8c54ae4e2321311141399f0d211a2d876f9254a6d2270560992c css/brand.css
 4e357b848ecf1d0f6cb5ffcb17320cff32d7fbd1b7d9f9bfadb11d6d505cc604 js/brand.js
 9af2e880e78d7ff836d0c6a9e91ece5ed96d0e988e4c21067200af23f67dd528 js/theme.js
@@ -10,3 +10,4 @@ bb1c26eb6fe1839e3759548777c8a35b9495ce4878a4b833b1b63d43ff313a4b fonts/LICENSE-J
 ea35ed11ac039b71c83ed135dda555524994c44708a16ae0dbd2c07c46db36a4 img/brand/wappen.svg
 b512ef7508a3fa61476a9fdde45ad37a7dccd9d1dd92b2efa6acccd5452bbe36 img/brand/icon-192.png
 33b37a69b582e9732815faa6e4f7b5cc7491c789dd37ee238d1bf03743074840 img/brand/icon-512.png
+9802dc6627d2e478f78327a7e80c1b78c02418fdaf373cf35d52247c60998854 img/brand/LICENSE-BRAND.md
