@@ -182,6 +182,8 @@ sudo ./scripts/tls.sh untrust     # CA aus System und Browsern entfernen
 
 ### Inhalte zentral pflegen (Management / Content)
 
+Wie eine Frage aufgebaut ist (Kapitel mit drei Schwierigkeitsstufen, Felder, Vertiefung mit tl;dr, Tux-Ansage, Deep Dive und Schaubild), steht in [docs/fragen-format.md](docs/fragen-format.md).
+
 Eigene Fragen liegen in der Datenbank (`data/bootcamp.db`) und gelten für alle Lernenden. Nur Admins dürfen sie anlegen, importieren oder entfernen; der Server prüft das bei jeder Änderung. Lesen darf jeder (`GET /api/content`), damit das Quiz auch ohne Anmeldung funktioniert.
 
 - **Import / Export:** JSON-Datei im Format des Exports (`{"format": "linux-bootcamp-content", "questions": [...]}`) oder ein reines Array von Fragen mit `category`, `question`, `answer`, optional `moreInfo`, `difficulty` (`leicht`, `mittel`, `schwer`), `validationType` (`concept` oder `command` mit `solutions`). Ungültige Fragen werden übersprungen.
