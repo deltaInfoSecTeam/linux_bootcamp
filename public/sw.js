@@ -1,4 +1,4 @@
-const CACHE_NAME = 'linux-bootcamp-v195';
+const CACHE_NAME = 'linux-bootcamp-v196';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
