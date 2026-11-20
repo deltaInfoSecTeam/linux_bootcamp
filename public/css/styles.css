@@ -1899,3 +1899,8 @@ body.is-admin .admin-only { display: block !important; }
 .content-del-btn { background: none; border: 1px solid color-mix(in srgb, var(--dis-danger) 45%, transparent); color: var(--dis-danger); border-radius: 4px; padding: 1px 8px; font-size: .75rem; cursor: pointer; width: auto; }
 .content-del-btn:hover { background: color-mix(in srgb, var(--dis-danger) 12%, transparent); }
 
+
+/* Codeblöcke und Schaubilder in Antworten und Vertiefungen: nie breiter als die Karte, auf dem Handy seitlich scrollbar */
+.quiz-card pre, .quiz-card pre code { white-space: pre !important; word-break: normal !important; overflow-wrap: normal !important; }
+.quiz-card pre { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 600px) { .quiz-card pre { font-size: .76rem; } }

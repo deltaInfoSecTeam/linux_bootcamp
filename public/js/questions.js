@@ -1165,5 +1165,232 @@ let QUESTIONS = [
         "topicId": 38,
         "difficulty": "schwer",
         "moreInfo": "### 1. tl;dr\nNeue Dateien auf dem Server reichen nicht: Ohne neue Cache-Version liefert der Service Worker weiter den alten Stand aus.\n---\n> **Tux-Ansage:** Der Service Worker ist dein übereifriger Fourier: Er gibt die alte Ausrüstung aus, bis jemand ihm offiziell eine neue Liste in die Hand drückt!\n---\n### 3. Deep Dive\nAblauf beim Update einer PWA:\n1. Der Browser lädt `sw.js` neu und vergleicht sie byteweise mit der installierten Version.\n2. Nur wenn sich `sw.js` geändert hat, wird der neue Service Worker installiert. Eine geänderte Cache-Version ist genau so eine Änderung.\n3. Beim Aktivieren löscht er Caches mit altem Namen:\n```js\nconst CACHE_NAME = 'app-v189';\nself.addEventListener('activate', e => e.waitUntil(\n  caches.keys().then(keys => Promise.all(\n    keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))));\n```\n\nZum Testen: in den Entwicklerwerkzeugen unter „Anwendung“ → „Service Worker“ den alten abmelden oder ein frisches Browser-Profil nutzen. Ein einfaches Neuladen mit Strg+F5 umgeht den Service Worker oft nicht."
+    },
+    {
+        "id": 139,
+        "category": "Git Grundlagen::1. Was ist Git?",
+        "question": "Was ist Git, und wofür setzt man es ein?",
+        "answer": "Git ist ein **Versionsverwaltungssystem**. Es speichert jeden festgehaltenen Stand eines Projekts (Commit), sodass man Änderungen nachvollziehen, vergleichen, rückgängig machen und mit anderen zusammenführen kann.",
+        "validationType": "concept",
+        "topicId": 39,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\nGit merkt sich die Geschichte eines Projekts als Folge von Ständen (Commits) und macht Zusammenarbeit ohne Datenverlust möglich.\n---\n> **Tux-Ansage:** Ohne Versionsverwaltung arbeitest du ohne Sicherungsseil, Rekrut. Einmal falsch gespeichert, und die gute Version ist weg!\n---\n### 2. Deep Dive\nTypische Einsätze: Programmcode, Konfigurationsdateien von Servern (`/etc` per Git verwalten), Dokumentation, Infrastruktur als Code.\n\nWas Git dir gibt:\n- **Historie:** wer hat wann was geändert und warum (Commit-Nachricht)\n- **Rückweg:** jeder alte Stand lässt sich wiederherstellen\n- **Parallele Arbeit:** Branches für Experimente, ohne den Hauptstand zu gefährden\n- **Zusammenarbeit:** Änderungen mehrerer Personen zusammenführen\n---\n### 3. Schaubild\n```\nStand 1 ---> Stand 2 ---> Stand 3 ---> Stand 4\n(Commit)     (Commit)     (Commit)     (aktuell)\n   ^\n   +-- jederzeit wiederherstellbar\n```"
+    },
+    {
+        "id": 39,
+        "category": "Git Grundlagen::1. Was ist Git?",
+        "question": "Was ist der Unterschied zwischen einer zentralen Versionsverwaltung (z. B. Subversion) und einer verteilten wie Git?",
+        "answer": "Bei **zentraler** Versionsverwaltung liegt die Historie nur auf einem Server; ohne Verbindung kann man nicht committen oder in die Historie schauen. Bei **verteilter** Versionsverwaltung hat jeder Klon die **vollständige Historie**. Man arbeitet lokal (commit, log, diff, branch) und tauscht Änderungen nur bei Bedarf mit anderen aus.",
+        "validationType": "concept",
+        "topicId": 39,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\nGit ist verteilt: Jeder Klon ist ein vollständiges Repository mit kompletter Historie, der Server ist nur ein vereinbarter Treffpunkt.\n---\n> **Tux-Ansage:** Fällt der Server aus, ist bei Git nicht alles verloren. Jeder Kamerad trägt eine komplette Kopie im Gepäck!\n---\n### 2. Deep Dive\nFolgen der verteilten Arbeitsweise:\n- Fast alle Befehle laufen lokal und damit schnell, auch offline.\n- Jeder Klon ist zugleich eine Sicherung.\n- Ein „Server“ (GitHub, GitLab, Gitea, ein internes Git) ist technisch nur ein weiteres Repository, auf das man sich einigt.\n\nDer Austausch passiert ausdrücklich mit `git fetch`, `git pull` und `git push`.\n---\n### 3. Schaubild\n```\nzentral:\n Client --+\n Client --+--> Server (einzige Historie)\n Client --+\n\nverteilt (Git):\n Klon A <---> Server <---> Klon B\n (komplett)  (Treffpunkt) (komplett)\n```"
+    },
+    {
+        "id": 239,
+        "category": "Git Grundlagen::1. Was ist Git?",
+        "question": "Was ist ein Commit in Git technisch, und warum kann man einen Commit nach dem Teilen nicht einfach unbemerkt verändern?",
+        "answer": "Ein Commit ist ein Objekt mit einem **Schnappschuss** des Projekts (Verweis auf einen Tree), Autor, Zeit, Nachricht und dem Verweis auf seinen **Vorgänger**. Seine ID ist eine Prüfsumme (Hash) über genau diese Inhalte. Ändert man etwas, entsteht ein **neuer** Commit mit neuer ID, und alle Nachfolger ändern sich mit. Wer den alten Stand schon hat, sieht die Abweichung sofort.",
+        "validationType": "concept",
+        "topicId": 39,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\nCommits sind über Prüfsummen verkettet. Jede Änderung an der Vergangenheit erzeugt neue IDs und fällt dadurch auf.\n---\n> **Tux-Ansage:** Die Kette der Commits ist wie ein versiegeltes Dienstbuch. Wer eine Seite herausreißt, zerreißt das Siegel!\n---\n### 2. Deep Dive\nGit speichert Objekte in `.git/objects`:\n- **Blob:** Inhalt einer Datei\n- **Tree:** Verzeichnis mit Verweisen auf Blobs und Trees\n- **Commit:** Verweis auf einen Tree, auf den/die Vorgänger, Autor, Zeit, Nachricht\n\n```bash\ngit cat-file -p HEAD      # Commit-Objekt ansehen\ngit cat-file -p HEAD^{tree}\n```\nDeshalb gilt: Geteilte Historie nicht umschreiben (`rebase`, `commit --amend`, `reset` auf bereits gepushte Commits), sonst müssen alle anderen ihre Kopien reparieren.\n---\n### 3. Schaubild\n```\n+--------+     +--------+     +--------+\n| a1b2c3 |<----| d4e5f6 |<----| 9a8b7c |  <- HEAD\n| Tree   |     | Tree   |     | Tree   |\n+--------+     +--------+     +--------+\n Jeder Commit kennt seinen Vorgänger (Hash).\n```"
+    },
+    {
+        "id": 140,
+        "category": "Git Grundlagen::2. Erste Schritte",
+        "question": "Mit welchem Befehl legst du im aktuellen Verzeichnis ein neues Git-Repository an?",
+        "answer": "`git init`\n\nDanach gibt es den versteckten Ordner `.git` mit der gesamten Versionsverwaltung.",
+        "validationType": "command",
+        "solutions": [
+            "git\\s+init"
+        ],
+        "topicId": 40,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\n`git init` macht aus einem normalen Verzeichnis ein Git-Repository.\n---\n> **Tux-Ansage:** Erst wird das Lager eingerichtet, dann wird eingelagert. Ohne `git init` kein Git, Rekrut!\n---\n### 2. Deep Dive\n```bash\nmkdir projekt && cd projekt\ngit init\ngit status\n```\nDer Ordner `.git` enthält Historie, Branches und Einstellungen dieses Repos. Löschst du ihn, ist die Versionsverwaltung weg, die Dateien bleiben.\n\nMit `git init -b main` legst du den ersten Branch gleich mit dem Namen `main` an."
+    },
+    {
+        "id": 40,
+        "category": "Git Grundlagen::2. Erste Schritte",
+        "question": "Wie trägst du für Git deinen Namen 'Max Muster' und die E-Mail 'max@example.com' für alle Repositories dieses Benutzers ein?",
+        "answer": "```bash\ngit config --global user.name \"Max Muster\"\ngit config --global user.email \"max@example.com\"\n```\nDiese Angaben landen in jedem Commit als Autor.",
+        "validationType": "command",
+        "solutions": [
+            "git\\s+config\\s+--global\\s+user\\.(name|email)"
+        ],
+        "topicId": 40,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\n`git config --global` speichert Einstellungen für alle Repos des Benutzers in `~/.gitconfig`.\n---\n> **Tux-Ansage:** Ein Commit ohne Namen ist wie ein Funkspruch ohne Rufzeichen. Keiner weiß, wer da gesprochen hat!\n---\n### 2. Deep Dive\nGit kennt drei Ebenen, die spätere überschreibt die frühere:\n- `--system`: für alle Benutzer (`/etc/gitconfig`)\n- `--global`: für deinen Benutzer (`~/.gitconfig`)\n- `--local`: nur dieses Repo (`.git/config`), Standard ohne Option\n\n```bash\ngit config --list --show-origin   # was gilt woher?\n```\nFür ein dienstliches Repo kannst du lokal eine andere E-Mail setzen als global.\n---\n### 3. Schaubild\n```\n--system  (/etc/gitconfig)\n   |  wird überschrieben von\n--global  (~/.gitconfig)\n   |  wird überschrieben von\n--local   (.git/config)\n```"
+    },
+    {
+        "id": 240,
+        "category": "Git Grundlagen::2. Erste Schritte",
+        "question": "'git status' meldet eine Datei als 'Untracked'. Was bedeutet das, und welche Zustände kann eine Datei in Git insgesamt haben?",
+        "answer": "**Untracked** heißt: Git kennt die Datei noch nicht, sie ist in keinem Commit. Zustände: **untracked** (unbekannt), **unmodified** (wie im letzten Commit), **modified** (geändert, noch nicht vorgemerkt), **staged** (für den nächsten Commit vorgemerkt). Mit `git add` wird eine Datei vorgemerkt, mit `git commit` festgehalten.",
+        "validationType": "concept",
+        "topicId": 40,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\nEine Datei wandert von untracked über staged in den Commit. Danach ist sie unmodified, bis du sie wieder änderst.\n---\n> **Tux-Ansage:** `git status` ist dein Lagebericht. Wer ihn nicht liest, marschiert blind ins Gelände!\n---\n### 2. Deep Dive\n```bash\ngit status -s      # Kurzform\n?? neu.txt         # untracked\n M geaendert.txt   # modified, nicht vorgemerkt\nM  vorgemerkt.txt  # staged\n```\nDateien, die nie versioniert werden sollen (Logs, Passwörter, Build-Ergebnisse), gehören in `.gitignore`, dann erscheinen sie nicht mehr als untracked.\n---\n### 3. Schaubild\n```\nuntracked --git add--> staged --git commit--> unmodified\n                        ^                        |\n                        |      Datei ändern      v\n                        +---git add--- modified <+\n```"
+    },
+    {
+        "id": 141,
+        "category": "Git Grundlagen::3. Änderungen festhalten",
+        "question": "Du hast die Datei 'readme.md' geändert. Mit welchem Befehl merkst du sie für den nächsten Commit vor?",
+        "answer": "`git add readme.md`\n\nDanach steht sie im Staging-Bereich und kommt mit dem nächsten `git commit` in die Historie.",
+        "validationType": "command",
+        "solutions": [
+            "git\\s+add\\s+(\\./)?readme\\.md"
+        ],
+        "topicId": 41,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\n`git add` legt den aktuellen Inhalt einer Datei in den Staging-Bereich.\n---\n> **Tux-Ansage:** Vormerken heißt nicht festhalten. Erst `git commit` schreibt es ins Dienstbuch!\n---\n### 2. Deep Dive\n```bash\ngit add readme.md     # eine Datei\ngit add .             # alle Änderungen im aktuellen Verzeichnis\ngit add -p            # Änderungen stückweise auswählen\n```\nÄnderst du die Datei nach `git add` noch einmal, ist nur der Stand von vorher vorgemerkt. Dann erneut `git add`.\n---\n### 3. Schaubild\n```\nArbeitsverz. --git add--> Staging --git commit--> Repo\n```"
+    },
+    {
+        "id": 41,
+        "category": "Git Grundlagen::3. Änderungen festhalten",
+        "question": "Wozu gibt es in Git den Staging-Bereich zwischen Arbeitsverzeichnis und Commit?",
+        "answer": "Der Staging-Bereich (Index) erlaubt es, **genau auszuwählen, was in den nächsten Commit kommt**. So entstehen kleine, thematisch saubere Commits, auch wenn im Arbeitsverzeichnis mehrere unabhängige Änderungen liegen.",
+        "validationType": "concept",
+        "topicId": 41,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\nStaging trennt „was ich geändert habe“ von „was in diesen Commit gehört“.\n---\n> **Tux-Ansage:** Ein guter Commit ist wie ein guter Marschbefehl: ein Ziel, klar beschrieben. Nicht alles auf einmal!\n---\n### 2. Deep Dive\n```bash\ngit add src/login.js        # nur die Login-Korrektur\ngit commit -m \"fix: login timeout\"\ngit add docs/               # danach die Doku\ngit commit -m \"docs: login\"\n```\nNützlich:\n- `git diff` zeigt, was geändert, aber noch nicht vorgemerkt ist.\n- `git diff --staged` zeigt, was im nächsten Commit landet.\n- `git restore --staged datei` nimmt eine Datei wieder aus dem Staging.\n---\n### 3. Schaubild\n```\n Arbeitsverzeichnis       Staging           Repository\n +----------------+     +---------+       +-----------+\n | login.js  (M)  |---->| login.js|------>| Commit    |\n | docs/     (M)  |     +---------+       | \"fix...\"  |\n +----------------+  git add        commit+-----------+\n  git diff          git diff --staged\n```"
+    },
+    {
+        "id": 241,
+        "category": "Git Grundlagen::3. Änderungen festhalten",
+        "question": "Was zeigt 'git log --oneline --graph --all', und was ist dabei HEAD?",
+        "answer": "Es zeigt die Historie **aller Branches** kompakt mit einer Zeile pro Commit und als **Grafik** der Verzweigungen und Zusammenführungen. **HEAD** ist der Zeiger auf den Stand, an dem du gerade arbeitest, normalerweise auf einen Branch, der wiederum auf seinen neuesten Commit zeigt.",
+        "validationType": "concept",
+        "topicId": 41,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\n`git log --oneline --graph --all` ist die Lagekarte des Repos, HEAD markiert den eigenen Standort.\n---\n> **Tux-Ansage:** Wer die Lagekarte nicht lesen kann, verläuft sich zwischen den Branches. Übe das, Rekrut!\n---\n### 2. Deep Dive\n```bash\ngit log --oneline --graph --all --decorate\n* 9a8b7c (HEAD -> main) Merge branch 'feature'\n|\\\n| * 3c4d5e (feature) Neue Funktion\n* | 1f2e3d Doku\n|/\n* a1b2c3 Start\n```\n- `HEAD -> main`: du bist auf Branch `main`.\n- Zeigt HEAD direkt auf einen Commit ohne Branch („detached HEAD“), gehen neue Commits leicht verloren, wenn du den Branch wechselst. Dann vorher einen Branch anlegen: `git switch -c rettung`.\n---\n### 3. Schaubild\n```\nHEAD --> main --> 9a8b7c\n                  |     \\\n             1f2e3d    3c4d5e <-- feature\n                  \\     /\n                  a1b2c3\n```"
+    },
+    {
+        "id": 142,
+        "category": "Git Grundlagen::4. Branches",
+        "question": "Lege einen neuen Branch 'feature' an und wechsle direkt dorthin.",
+        "answer": "`git switch -c feature`\n\n(Älter, gleiche Wirkung: `git checkout -b feature`)",
+        "validationType": "command",
+        "solutions": [
+            "git\\s+switch\\s+-c\\s+feature",
+            "git\\s+checkout\\s+-b\\s+feature"
+        ],
+        "topicId": 42,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\n`git switch -c name` legt einen Branch an und wechselt hinein.\n---\n> **Tux-Ansage:** Neue Mission, eigener Abschnitt! Experimente gehören in einen eigenen Branch, nicht an die Front von main.\n---\n### 2. Deep Dive\n```bash\ngit branch            # Branches anzeigen, * = aktuell\ngit switch -c feature # anlegen und wechseln\ngit switch main       # zurück\ngit branch -d feature # löschen (nach dem Zusammenführen)\n```\nEin Branch ist nur ein beweglicher Zeiger auf einen Commit. Ihn anzulegen kostet praktisch nichts.\n---\n### 3. Schaubild\n```\n          main\n           |\na1b2c3 <- d4e5f6\n           |\n          feature  (neu, zeigt auf denselben Commit)\n```"
+    },
+    {
+        "id": 42,
+        "category": "Git Grundlagen::4. Branches",
+        "question": "Du bist auf 'main' und führst 'git merge feature' aus. Wann entsteht ein Fast-Forward, wann ein Merge-Commit?",
+        "answer": "**Fast-Forward**, wenn `main` seit der Abzweigung keine eigenen neuen Commits hat: Git schiebt den Zeiger `main` einfach auf den letzten Commit von `feature`. Ein **Merge-Commit** entsteht, wenn **beide** Branches neue Commits haben; dann führt Git sie in einem neuen Commit mit zwei Vorgängern zusammen.",
+        "validationType": "concept",
+        "topicId": 42,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\nFast-Forward = Zeiger vorschieben, Merge-Commit = zwei Linien zusammenführen.\n---\n> **Tux-Ansage:** Ist der Weg frei, marschierst du einfach weiter. Kommen zwei Trupps aus verschiedenen Richtungen, wird ein Treffpunkt vereinbart!\n---\n### 2. Deep Dive\n```bash\ngit switch main\ngit merge feature            # Fast-Forward, wenn möglich\ngit merge --no-ff feature    # immer einen Merge-Commit anlegen\ngit merge --ff-only feature  # nur Fast-Forward, sonst abbrechen\n```\nViele Teams erzwingen `--no-ff`, damit in der Historie sichtbar bleibt, dass eine Funktion als Ganzes hinzugekommen ist.\n---\n### 3. Schaubild\n```\nFast-Forward:            Merge-Commit:\nA--B--C  (feature)       A--B--C------M  (main)\n   ^                         \\       /\n  main --> wird auf C         D--E--+    (feature)\n           geschoben\n```"
+    },
+    {
+        "id": 242,
+        "category": "Git Grundlagen::4. Branches",
+        "question": "Warum soll man Branches regelmäßig mit dem aktuellen 'main' zusammenführen, statt wochenlang getrennt zu arbeiten?",
+        "answer": "Je länger ein Branch getrennt lebt, desto stärker laufen beide Stände auseinander. Beim späten Zusammenführen entstehen dann **viele und große Konflikte**, Fehler fallen spät auf, und andere bauen auf veraltetem Code auf. Kurze Branches und häufiges Einbinden von `main` (merge oder rebase) halten Konflikte klein und überschaubar.",
+        "validationType": "concept",
+        "topicId": 42,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\nKleine, kurzlebige Branches = kleine Konflikte. Lange Trennung = großes Integrationschaos.\n---\n> **Tux-Ansage:** Wer wochenlang allein im Wald übt, findet den Weg zur Truppe nicht mehr. Regelmäßig Verbindung halten!\n---\n### 2. Deep Dive\nGute Praxis:\n- Ein Branch pro Aufgabe, nach Tagen statt Wochen zurück nach `main`.\n- Zwischendurch `main` in den Branch holen:\n```bash\ngit switch feature\ngit fetch\ngit merge origin/main      # oder: git rebase origin/main (nur bei nicht geteilten Branches)\n```\n- Größere Vorhaben in mehrere kleine Schritte teilen, unfertige Teile hinter einem Schalter verstecken.\n---\n### 3. Schaubild\n```\nmain:    A--B--C--D--E--F--G--H\n              \\              \\\nfeature:       x--y--z ...... ?  <- spät: viele\n\nmain:    A--B--C--D--E--F\n              \\  \\     \\\nfeature:       x--M1--y--M2  <- regelmäßig: klein\n```"
+    },
+    {
+        "id": 143,
+        "category": "Git Grundlagen::5. Arbeiten mit Remotes",
+        "question": "Was ist 'origin' in Git?",
+        "answer": "`origin` ist der übliche **Name des Remote-Repositories**, von dem geklont wurde. Er ist nur ein Kurzname für eine Adresse und lässt sich umbenennen oder ändern.",
+        "validationType": "concept",
+        "topicId": 43,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\n`origin` = Spitzname für die Server-Adresse des Repos.\n---\n> **Tux-Ansage:** Origin ist kein Zauberwort, nur der Name der Heimatbasis. Merk dir, wohin er zeigt!\n---\n### 2. Deep Dive\n```bash\ngit remote -v                     # Remotes und Adressen anzeigen\ngit remote add backup https://git.example.org/team/app.git\ngit remote rename origin github\n```\nDie Branches des Remotes erscheinen lokal als `origin/main`, `origin/feature` usw. (Remote-Tracking-Branches).\n---\n### 3. Schaubild\n```\nlokales Repo                     Server\n+-------------+   origin     +-------------------------+\n| main        |------------->| git.example.org/team/app|\n| origin/main |  (Kurzname)  +-------------------------+\n+-------------+\n```"
+    },
+    {
+        "id": 43,
+        "category": "Git Grundlagen::5. Arbeiten mit Remotes",
+        "question": "Was ist der Unterschied zwischen 'git fetch' und 'git pull'?",
+        "answer": "`git fetch` **lädt** neue Commits und Branches vom Remote, ändert aber **nichts** an deinem Arbeitsverzeichnis oder deinen Branches (nur `origin/...`). `git pull` ist `fetch` **plus** Zusammenführen in den aktuellen Branch (merge oder rebase).",
+        "validationType": "concept",
+        "topicId": 43,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\nfetch = nachsehen und holen, pull = holen und einbauen.\n---\n> **Tux-Ansage:** Erst aufklären, dann vorrücken. Wer nur pullt, weiß nicht, was er sich gerade einbaut!\n---\n### 2. Deep Dive\n```bash\ngit fetch\ngit log --oneline main..origin/main   # was ist neu?\ngit merge origin/main                 # dann bewusst einbauen\n# oder kurz:\ngit pull --ff-only                    # nur, wenn ohne Merge-Commit möglich\n```\nAuf Servern (Konfiguration, Deployments) ist `git pull --ff-only` die sichere Wahl.\n---\n### 3. Schaubild\n```\n          git fetch               git merge\nServer ------------> origin/main ----------> main\n   |                                          ^\n   +--------------- git pull ------------------+\n                 (fetch + merge)\n```"
+    },
+    {
+        "id": 243,
+        "category": "Git Grundlagen::5. Arbeiten mit Remotes",
+        "question": "Dein 'git push' wird mit 'rejected (fetch first)' abgelehnt. Was ist passiert, und wie löst du es richtig?",
+        "answer": "Auf dem Remote liegen Commits, die du lokal noch nicht hast; dein Push würde sie überschreiben, daher lehnt der Server ab. Richtig: erst `git fetch`/`git pull` (merge oder rebase), eventuelle Konflikte lösen, testen und dann erneut `git push`. **Nicht** mit `git push --force` drüberbügeln, das löscht die Arbeit der anderen.",
+        "validationType": "concept",
+        "topicId": 43,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\n„rejected“ heißt: Der Server ist weiter als du. Erst holen und zusammenführen, dann pushen.\n---\n> **Tux-Ansage:** Mit `--force` walzt du die Arbeit deiner Kameraden platt. Das ist keine Lösung, das ist Sabotage!\n---\n### 2. Deep Dive\n```bash\ngit pull --rebase      # eigene Commits oben auf den Serverstand setzen\n# Konflikte lösen, dann:\ngit rebase --continue\ngit push\n```\nWenn Erzwingen doch nötig ist (z. B. eigener, nicht geteilter Branch nach einem Rebase), dann mit Sicherung: `git push --force-with-lease`. Das bricht ab, wenn jemand anders in der Zwischenzeit gepusht hat.\n---\n### 3. Schaubild\n```\nServer:  A--B--C--X        (X von einem Kollegen)\nLokal:   A--B--C--Y        (Y von dir)\npush Y  -> abgelehnt\npull --rebase:  A--B--C--X--Y'  -> push klappt\n```"
+    },
+    {
+        "id": 144,
+        "category": "Git Grundlagen::6. Merge-Konflikte",
+        "question": "Wann entsteht beim Zusammenführen in Git ein Merge-Konflikt?",
+        "answer": "Wenn **beide** Seiten dieselbe Stelle einer Datei unterschiedlich geändert haben (oder eine Seite die Datei gelöscht und die andere sie geändert hat). Git kann dann nicht entscheiden, welche Version richtig ist, und überlässt das dir.",
+        "validationType": "concept",
+        "topicId": 44,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\nKonflikt = gleiche Stelle, zwei verschiedene Änderungen. Git fragt dich, statt zu raten.\n---\n> **Tux-Ansage:** Ein Konflikt ist kein Fehler, sondern eine Rückfrage. Git will wissen, welcher Befehl gilt!\n---\n### 2. Deep Dive\nÄnderungen an **verschiedenen** Stellen derselben Datei führt Git selbstständig zusammen. Nur echte Überschneidungen werden zum Konflikt.\n\n```bash\ngit merge feature\n# CONFLICT (content): Merge conflict in config.txt\ngit status        # zeigt die betroffenen Dateien\n```\n---\n### 3. Schaubild\n```\n          main: Zeile 3 = \"port 80\"\nBasis ---<\n          feature: Zeile 3 = \"port 8080\"\n                  |\n                  v\n           KONFLIKT in Zeile 3\n```"
+    },
+    {
+        "id": 44,
+        "category": "Git Grundlagen::6. Merge-Konflikte",
+        "question": "In einer Datei stehen nach einem Merge die Zeichen '<<<<<<<', '=======' und '>>>>>>>'. Was bedeuten sie, und wie löst du den Konflikt?",
+        "answer": "Das sind **Konfliktmarker**: Zwischen `<<<<<<< HEAD` und `=======` steht deine Version (aktueller Branch), zwischen `=======` und `>>>>>>> feature` die andere. Lösen: Datei so bearbeiten, dass nur der richtige Inhalt bleibt und **alle Marker entfernt** sind, dann `git add datei` und `git commit`.",
+        "validationType": "concept",
+        "topicId": 44,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\nMarker zeigen beide Versionen, du entscheidest, entfernst die Marker, `git add` und `git commit` schließen ab.\n---\n> **Tux-Ansage:** Ein vergessener Marker im Code ist wie eine Sprengfalle im eigenen Lager. Alle entfernen, Rekrut!\n---\n### 2. Deep Dive\n```text\n<<<<<<< HEAD\nport 80\n=======\nport 8080\n>>>>>>> feature\n```\nNach dem Bearbeiten:\n```bash\ngit add config.txt\ngit commit            # schließt den Merge ab\n# Abbrechen und zurück zum Stand vor dem Merge:\ngit merge --abort\n```\nVor dem Commit prüfen: `grep -rn '<<<<<<<' .` darf nichts mehr finden.\n---\n### 3. Schaubild\n```\n<<<<<<< HEAD        <- Beginn: deine Version\nport 80\n=======             <- Trennlinie\nport 8080\n>>>>>>> feature     <- Ende: die andere Version\n```"
+    },
+    {
+        "id": 244,
+        "category": "Git Grundlagen::6. Merge-Konflikte",
+        "question": "Wie hältst du Merge-Konflikte im Team von vornherein klein?",
+        "answer": "Kurze, kleine Branches; regelmäßig `main` einbinden; kleine, thematisch saubere Commits; einheitliche Formatierung (Formatter, Zeilenenden) statt großer Umformatierungen; Aufgaben so verteilen, dass nicht alle dieselben Dateien bearbeiten; nach dem Lösen eines Konflikts testen, bevor man pusht.",
+        "validationType": "concept",
+        "topicId": 44,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\nKonflikte vermeidet man durch kleine, häufige Integration und gemeinsame Regeln, nicht durch Glück.\n---\n> **Tux-Ansage:** Gute Abstimmung vor dem Einsatz verhindert das Chaos im Einsatz. Redet miteinander!\n---\n### 2. Deep Dive\nTypische Ursachen großer Konflikte:\n- wochenlange Branches\n- „Aufräum-Commits“, die ganze Dateien umformatieren\n- unterschiedliche Zeilenenden (Windows/Linux, `core.autocrlf`)\n- mehrere Personen am selben Abschnitt ohne Absprache\n\nHilfreich:\n```bash\ngit config --global merge.conflictstyle zdiff3  # zeigt zusätzlich die gemeinsame Basis\ngit mergetool                                   # grafisches Werkzeug\n```\n---\n### 3. Schaubild\n```\nklein und häufig (viele leichte Merges):\n  --o--o--M--o--M--o--M-->\n\ngroß und selten (ein schwerer Merge):\n  --o--o--o--o--o--o--o--M\n```"
+    },
+    {
+        "id": 145,
+        "category": "Git Grundlagen::7. Rückgängig machen und ignorieren",
+        "question": "Du hast 'config.txt' geändert, aber noch nicht vorgemerkt. Wie verwirfst du die Änderung und holst den Stand des letzten Commits zurück?",
+        "answer": "`git restore config.txt`\n\n(Älter: `git checkout -- config.txt`) Achtung: Die nicht festgehaltene Änderung ist danach weg.",
+        "validationType": "command",
+        "solutions": [
+            "git\\s+restore\\s+(\\./)?config\\.txt",
+            "git\\s+checkout\\s+--\\s+(\\./)?config\\.txt"
+        ],
+        "topicId": 45,
+        "difficulty": "leicht",
+        "moreInfo": "### 1. tl;dr\n`git restore datei` setzt eine Datei auf den letzten festgehaltenen Stand zurück.\n---\n> **Tux-Ansage:** Zurück auf Ausgangsstellung! Aber was nicht festgehalten war, ist danach unwiederbringlich weg.\n---\n### 2. Deep Dive\n```bash\ngit restore config.txt             # Änderung im Arbeitsverzeichnis verwerfen\ngit restore --staged config.txt    # nur aus dem Staging nehmen, Änderung bleibt\ngit restore --source=HEAD~2 config.txt   # Stand von vor zwei Commits holen\n```\n---\n### 3. Schaubild\n```\nRepository (letzter Commit)\n      |\n      | git restore config.txt\n      v\nArbeitsverzeichnis: config.txt wie im Commit\n```"
+    },
+    {
+        "id": 45,
+        "category": "Git Grundlagen::7. Rückgängig machen und ignorieren",
+        "question": "Wozu dient die Datei '.gitignore', und was gehört typischerweise hinein?",
+        "answer": "In `.gitignore` stehen **Muster für Dateien, die Git nicht versionieren soll**. Sie erscheinen dann nicht als untracked und landen nicht versehentlich in einem Commit. Typisch: Logs, temporäre Dateien, Build-Ergebnisse, Abhängigkeiten (`node_modules/`), lokale Einstellungen und vor allem **Geheimnisse** wie `.env` oder Schlüssel.",
+        "validationType": "concept",
+        "topicId": 45,
+        "difficulty": "mittel",
+        "moreInfo": "### 1. tl;dr\n`.gitignore` schützt das Repo vor Müll und vor versehentlich eingecheckten Passwörtern.\n---\n> **Tux-Ansage:** Ein Passwort im Repo ist wie ein Generalschlüssel am schwarzen Brett. `.env` gehört in `.gitignore`!\n---\n### 2. Deep Dive\n```gitignore\n*.log\n/build/\nnode_modules/\n.env\n*.key\n```\nWichtig: `.gitignore` wirkt nur auf **noch nicht versionierte** Dateien. Ist eine Datei schon im Repo, erst aus der Versionierung nehmen:\n```bash\ngit rm --cached .env\n```\nWar ein Geheimnis schon gepusht, steckt es in der Historie: Schlüssel sofort austauschen, nicht nur löschen.\n---\n### 3. Schaubild\n```\nProjektordner          .gitignore          Repository\n app.js     ---------- (nicht gelistet) --> versioniert\n .env       ---------- .env -------------X  ignoriert\n debug.log  ---------- *.log ------------X  ignoriert\n```"
+    },
+    {
+        "id": 245,
+        "category": "Git Grundlagen::7. Rückgängig machen und ignorieren",
+        "question": "Was ist der Unterschied zwischen 'git revert' und 'git reset --hard', und welches nimmst du für einen fehlerhaften Commit, der schon auf 'main' gepusht ist?",
+        "answer": "`git revert <commit>` legt einen **neuen Commit** an, der die Änderungen des fehlerhaften Commits umkehrt; die Historie bleibt erhalten. `git reset --hard <commit>` setzt den Branch auf einen alten Stand zurück und **verwirft** alle späteren Commits und Änderungen (Historie wird umgeschrieben). Für bereits gepushte, geteilte Branches wie `main`: **`git revert`**.",
+        "validationType": "concept",
+        "topicId": 45,
+        "difficulty": "schwer",
+        "moreInfo": "### 1. tl;dr\nrevert = Fehler mit einem Gegen-Commit korrigieren (sicher für geteilte Branches), reset --hard = Vergangenheit löschen (nur lokal).\n---\n> **Tux-Ansage:** Einen Fehler im Dienstbuch korrigiert man mit einem Nachtrag, nicht durch Herausreißen der Seite!\n---\n### 2. Deep Dive\n```bash\ngit revert a1b2c3      # Gegen-Commit, danach normal pushen\ngit push\n\ngit reset --hard HEAD~1   # nur für lokale, noch nicht geteilte Commits\n```\n`reset` auf gepushten Commits zwingt alle anderen, ihre Kopien zu reparieren, und erfordert `push --force`.\nNotanker, wenn doch etwas verloren schien: `git reflog` zeigt, wo HEAD vorher stand.\n---\n### 3. Schaubild\n```\nrevert:  A--B--C(fehler)--D--C'\n         C' hebt C auf, alles bleibt sichtbar\n\nreset --hard B:\nbefore:  A--B--C--D\nafter:   A--B                     (C und D verworfen)\n```"
     }
 ];
