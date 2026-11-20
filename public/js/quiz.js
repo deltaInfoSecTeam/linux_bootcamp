@@ -305,6 +305,9 @@ function deriveKeywords(q) {
     return terms;
 }
 
+// Hinterlegte Kernbegriffe dürfen Alternativen enthalten ("staged|vorgemerkt"); angezeigt wird die erste
+function keywordLabel(kw) { return String(kw).split('|')[0].replace(/\\/g, ''); }
+
 function validateAnswer(q, input) {
     if (!input) {
         return {
@@ -394,10 +397,10 @@ function validateAnswer(q, input) {
         
         let tagsHtml = '<div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">';
         matched.forEach(kw => {
-            tagsHtml += `<span class="keyword-tag matched">+ ${escapeHtml(kw)}</span>`;
+            tagsHtml += `<span class="keyword-tag matched">+ ${escapeHtml(keywordLabel(kw))}</span>`;
         });
         unmatched.forEach(kw => {
-            tagsHtml += `<span class="keyword-tag unmatched">- ${escapeHtml(kw)}</span>`;
+            tagsHtml += `<span class="keyword-tag unmatched">- ${escapeHtml(keywordLabel(kw))}</span>`;
         });
         tagsHtml += '</div>';
         
