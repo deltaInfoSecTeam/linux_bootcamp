@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Linux Bootcamp PWA Lernplattform",
   "main": "server/index.js",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
     "start": "node server/index.js",
     "create-admin": "node scripts/create-admin.js"

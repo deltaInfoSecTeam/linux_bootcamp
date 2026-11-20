@@ -325,7 +325,11 @@ Alle Anbieter stellst du in der Seitenleiste unter **KI-Bewertung (API)** ein:
 
 ## `08` Lizenz
 
-Dieses Projekt ist Open-Source und für Bildungszwecke konzipiert.
+Das Linux Bootcamp ist quelloffen und für **nicht-kommerzielle Zwecke frei**: Privatpersonen, Schulen, Hochschulen, Behörden und gemeinnützige Organisationen dürfen es nutzen, verändern und weitergeben. Kommerzielle Nutzung, etwa als bezahltes Angebot oder als Teil eines verkauften Produkts, ist nur mit gesonderter schriftlicher Erlaubnis möglich.
+
+- Lizenz: [PolyForm Noncommercial 1.0.0](LICENSE)
+- Ausgenommen sind der Name deltaInfoSec, das Wappen und die Logos in `public/img/brand/` (alle Rechte vorbehalten) sowie Fremdbestandteile mit eigener Lizenz, z. B. die Schrift in `public/fonts/`.
+- Sicherheitslücken bitte vertraulich melden, siehe [SECURITY.md](SECURITY.md).
 
 <br>
 
