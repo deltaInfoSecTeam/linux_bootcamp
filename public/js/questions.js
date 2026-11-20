@@ -938,8 +938,9 @@ let QUESTIONS = [
     {
         "id": 132,
         "category": "Git::1. Klon und Spiegel",
-        "question": "Was ist der Unterschied zwischen 'git clone' und 'git clone --mirror'?",
-        "answer": "`git clone` legt ein Arbeitsverzeichnis mit ausgecheckten Dateien an. Lokal gibt es nur den Standard-Branch, alle anderen Branches kennt der Klon nur als Verweise auf das Remote (`origin/…`).\n\n`git clone --mirror` legt ein Bare-Repository ohne Arbeitsverzeichnis an und übernimmt **alle** Referenzen 1:1: Branches, Tags und weitere Refs. Das ist die richtige Wahl für Sicherungen und Umzüge.",
+        "question": "Ihr wollt die Repos eures Teams auf einen anderen Server umziehen. Ein Kollege fragt, ob dafür ein normales 'git clone' reicht oder ob es 'git clone --mirror' sein muss. Erkläre den Unterschied und was du für den Umzug nimmst.",
+        "answer": "**`git clone`** ist zum **Arbeiten** gedacht. Es legt ein Arbeitsverzeichnis mit ausgecheckten Dateien an. Lokal gibt es nur **einen Branch**, meist `main`. Alle anderen Branches kennt der Klon nur als Verweise auf den Server (`origin/dev`, `origin/test` …), nicht als eigene Branches.\n\n**`git clone --mirror`** ist eine **vollständige Kopie**. Es legt ein Repository ohne Arbeitsverzeichnis an (*bare*, Ordner `app.git`) und übernimmt **alle Referenzen** unverändert: alle Branches, alle Tags und weitere Refs des Servers.\n\nFür einen Umzug oder eine Sicherung nimmst du den **Spiegel**. Nur so kommt alles mit, was auf dem Server liegt. Mit einem normalen Klon fehlen am Ziel später Branches, ohne dass eine Fehlermeldung erscheint.",
+        "keywords": ["arbeitsverzeichnis|arbeiten|ausgecheckt", "ein branch|einen branch|nur main|lokaler branch", "mirror|spiegel", "alle branches|alle refs|alle referenzen|vollständig|komplett", "tags", "bare|ohne arbeitsverzeichnis"],
         "validationType": "concept",
         "topicId": 32,
         "difficulty": "leicht",
@@ -948,8 +949,9 @@ let QUESTIONS = [
     {
         "id": 32,
         "category": "Git::1. Klon und Spiegel",
-        "question": "Du klonst ein Repo mit 23 Branches ganz normal, kopierst den Ordner auf einen anderen Rechner und schiebst von dort mit 'git push --all' in ein neues, leeres Repo. Wie viele Branches kommen an, und warum?",
-        "answer": "Nur die **lokalen** Branches, nach einem frischen Klon also meist nur einer (z. B. `main`). Die übrigen 22 existieren im Klon nur als Remote-Tracking-Branches (`origin/…`), und die schiebt `git push --all` nicht mit.\n\nRichtig wäre ein Spiegel (`git clone --mirror`) oder ausdrücklich: `git push neu 'refs/remotes/origin/*:refs/heads/*'` plus `git push neu --tags`.",
+        "question": "Ein Repo hat 23 Branches. Du klonst es ganz normal, kopierst den Ordner auf einen anderen Rechner und schiebst von dort mit 'git push --all' in ein neues, leeres Repo. Wie viele Branches kommen dort an, und warum?",
+        "answer": "Es kommt **nur ein Branch** an, meist `main`.\n\nDer Grund: `git push --all` schiebt nur **lokale Branches** (`refs/heads/*`). Nach einem normalen Klon gibt es davon nur einen. Die anderen 22 Branches liegen im Klon nur als **Remote-Tracking-Branches** (`origin/dev`, `origin/test` …), also als Notiz, wo die Branches auf dem Server stehen. Die schiebt `--all` nicht mit.\n\nDas Tückische: Keine Meldung warnt davor. Am Ziel sieht alles normal aus, es fehlen nur 22 Branches.\n\nRichtig wäre:\n- gleich einen **Spiegel** nehmen (`git clone --mirror`), oder\n- die Remote-Tracking-Branches ausdrücklich als Branches schieben: `git push neu 'refs/remotes/origin/*:refs/heads/*'` und danach `git push neu --tags`.",
+        "keywords": ["ein branch|einer|nur main|1 branch", "lokal|refs/heads", "remote-tracking|origin/|remote tracking", "push --all|--all", "mirror|spiegel|refs/remotes"],
         "validationType": "concept",
         "topicId": 32,
         "difficulty": "mittel",
@@ -958,8 +960,9 @@ let QUESTIONS = [
     {
         "id": 232,
         "category": "Git::1. Klon und Spiegel",
-        "question": "Warum ist es keine gute Idee, ein Repo umzuziehen, indem man die Dateien eines Klons über die Weboberfläche des neuen Servers hochlädt oder den Ordner einfach kopiert?",
-        "answer": "Beim Hochladen der Dateien kommt nur der **aktuelle Stand** an: Die gesamte Historie (Commits, Autoren, Zeitpunkte, Signaturen), alle anderen Branches und alle Tags fehlen.\n\nBeim Kopieren des Ordners über Datenträger gehen leicht versteckte Dateien (`.git`), Dateirechte (z. B. das Ausführbar-Bit) oder Dateinamen mit Umlauten verloren, und die Vollständigkeit lässt sich bei tausenden Einzeldateien kaum prüfen. Sicher ist der Weg über Spiegel, `push --all`/`--tags` oder ein Bundle mit Prüfsumme.",
+        "question": "Ein Kollege schlägt vor, ein Repo umzuziehen, indem er die Dateien über die Weboberfläche des neuen Servers hochlädt oder den Projektordner einfach auf einen USB-Stick kopiert. Was geht bei beiden Wegen verloren, und welchen Weg empfiehlst du stattdessen?",
+        "answer": "**Dateien hochladen:** Am Ziel kommt nur der **aktuelle Stand** an. Es fehlen die gesamte **Historie** (Commits, Autoren, Zeitpunkte, Signaturen), alle anderen **Branches** und alle **Tags**. Für Git ist das ein neues Projekt, das bei null beginnt.\n\n**Ordner kopieren:** Die Historie wäre im versteckten Ordner `.git` zwar dabei, aber beim Kopieren gehen leicht Dinge verloren: versteckte Dateien, **Dateirechte** wie das Ausführbar-Bit oder Dateinamen mit Umlauten. Außerdem besteht ein Repo aus tausenden Einzeldateien. Ob alles vollständig angekommen ist, lässt sich kaum prüfen.\n\n**Besser:**\n- mit Netzverbindung: Spiegel (`git clone --mirror`) und `git push --all` plus `git push --tags` ins neue Repo,\n- ohne Netzverbindung: ein **Bundle**, also das ganze Repo in einer Datei, dazu eine **Prüfsumme**. Eine Datei lässt sich sicher transportieren und prüfen, und Git kontrolliert beim Einlesen jedes Objekt.",
+        "keywords": ["historie|commits|verlauf", "branches", "tags", "rechte|versteckt|\\.git|umlaute|vollständig", "bundle|mirror|spiegel", "prüfsumme|prüfen|sha256"],
         "validationType": "concept",
         "topicId": 32,
         "difficulty": "schwer",
@@ -968,12 +971,10 @@ let QUESTIONS = [
     {
         "id": 133,
         "category": "Git::2. Remotes und Zugang",
-        "question": "Wie stellst du die Adresse des Remotes 'origin' auf 'https://git.example.org/team/app.git' um?",
-        "answer": "`git remote set-url origin https://git.example.org/team/app.git`\n\nKontrolle mit `git remote -v`.",
+        "question": "Euer Repo ist umgezogen. In deinem lokalen Klon zeigt das Remote 'origin' noch auf die alte Adresse. Stelle es auf die neue Adresse 'https://git.example.org/team/app.git' um.",
+        "answer": "`git remote set-url origin https://git.example.org/team/app.git`\n\nDer Befehl ändert nur, **wohin** `git fetch`, `git pull` und `git push` künftig gehen. Deine Commits, Branches und Dateien bleiben unverändert, du musst also nicht neu klonen.\n\nKontrolle mit `git remote -v`: Beide Zeilen (fetch und push) müssen die neue Adresse zeigen. Danach testet `git fetch`, ob die neue Adresse erreichbar ist und die Anmeldung funktioniert.",
         "validationType": "command",
-        "solutions": [
-            "git\\s+remote\\s+set-url\\s+origin\\s+https://git\\.example\\.org/team/app\\.git"
-        ],
+        "solutions": ["git\\s+remote\\s+set-url\\s+origin\\s+https://git\\.example\\.org/team/app\\.git"],
         "topicId": 33,
         "difficulty": "leicht",
         "moreInfo": "### 1. tl;dr\n`git remote set-url <name> <adresse>` ändert, wohin `fetch` und `push` gehen. Historie und Branches bleiben unverändert.\n---\n> **Tux-Ansage:** Neuer Standort, neue Funkfrequenz! Wer nach dem Umzug die Remote nicht umstellt, funkt weiter ins Leere, äh, ins alte Lager.\n---\n### 2. Deep Dive\nNach einem Umzug muss jeder vorhandene Klon auf die neue Adresse zeigen:\n```bash\ngit remote -v                       # aktuelle Adresse\ngit remote set-url origin https://git.example.org/team/app.git\ngit fetch origin                    # Verbindung testen\n```\nVergisst man das, laufen Pushes weiter ins alte System, oder Automationen (Sync-Skripte, nächtliche Builds) holen nie wieder neue Stände."
@@ -981,8 +982,9 @@ let QUESTIONS = [
     {
         "id": 33,
         "category": "Git::2. Remotes und Zugang",
-        "question": "Beim Klonen über 'git@github.com:org/app.git' erscheint 'Permission denied (publickey)', obwohl 'gh auth status' dich als angemeldet anzeigt. Woran liegt das, und wie löst du es?",
-        "answer": "`gh` ist mit einem **Token über HTTPS** angemeldet und hat sich als Credential-Helper für `https://github.com` eingetragen. Eine Adresse der Form `git@github.com:…` nutzt aber **SSH**, und dafür ist bei GitHub kein Schlüssel hinterlegt.\n\nLösung: die HTTPS-Adresse verwenden (`https://github.com/org/app.git`) oder einen SSH-Schlüssel beim Konto hinterlegen.",
+        "question": "Du willst ein privates Repo über 'git@github.com:org/app.git' klonen und erhältst 'Permission denied (publickey)'. 'gh auth status' zeigt aber, dass du bei GitHub angemeldet bist. Woran liegt das, und wie löst du es?",
+        "answer": "Git kennt zwei Wege zum Server, jeder mit **eigener Anmeldung**:\n- **HTTPS** (`https://github.com/org/app.git`): Anmeldung mit einem **Token**.\n- **SSH** (`git@github.com:org/app.git`): Anmeldung mit einem **SSH-Schlüssel**.\n\n`gh auth login` hat dich über **HTTPS** angemeldet und sich als Credential-Helper eingetragen. Das gilt aber nur für HTTPS-Adressen. Deine Adresse `git@github.com:…` nutzt **SSH**, und dafür ist bei deinem Konto kein Schlüssel hinterlegt. Daher „publickey“.\n\nLösung, eine von beiden:\n- die **HTTPS-Adresse** verwenden: `git clone https://github.com/org/app.git`, oder\n- einen **SSH-Schlüssel** erzeugen (`ssh-keygen -t ed25519`) und beim Konto hinterlegen; testen mit `ssh -T git@github.com`.",
+        "keywords": ["ssh", "https", "token|gh|angemeldet", "schlüssel|key|publickey", "zwei wege|getrennt|unterschiedlich|anderer weg|eigene anmeldung"],
         "validationType": "concept",
         "topicId": 33,
         "difficulty": "mittel",
@@ -991,8 +993,9 @@ let QUESTIONS = [
     {
         "id": 233,
         "category": "Git::2. Remotes und Zugang",
-        "question": "Ein Server soll jede Nacht automatisch den neuesten Stand eines privaten Repos holen und daraus etwas bauen. Welche Art von Zugang richtest du ein, und warum?",
-        "answer": "Einen **Deploy-Key mit nur Lesezugriff**, der nur für dieses eine Repo gilt, eigens für diesen Server erzeugt wird und keine Passphrase braucht.\n\nKein persönlicher Schlüssel und kein persönliches Token: Die hätten Zugriff auf alle Repos und oft Schreibrechte. Wird der Server kompromittiert, kann der Angreifer mit einem Deploy-Key nur dieses eine Repo lesen. Zusätzlich holt der Server nur mit `git pull --ff-only`, damit er nie eigene Commits erzeugt.",
+        "question": "Ein Server soll jede Nacht automatisch den neuesten Stand eines privaten Repos holen und daraus die Anwendung bauen. Welche Art von Zugang richtest du dafür ein, und warum nimmst du nicht einfach dein persönliches Token?",
+        "answer": "Einen **Deploy-Key**: einen SSH-Schlüssel, der nur für **dieses eine Repo** gilt, nur **Lesezugriff** hat und eigens für **diesen Server** erzeugt wird. Weil der Abruf ohne Menschen läuft, hat der Schlüssel keine Passphrase. Umso wichtiger ist, dass er wenig darf.\n\n**Warum kein persönliches Token oder persönlicher Schlüssel?** Die gelten für **alle Repos**, auf die du Zugriff hast, und meist auch zum **Schreiben**. Wird der Server kompromittiert, hätte ein Angreifer damit Zugriff auf alles, was du darfst. Mit dem Deploy-Key kann er nur dieses eine Repo lesen. Außerdem hängt der Zugang dann nicht an deiner Person: Verlässt du das Team, läuft der Abruf weiter.\n\nZusätzlich holt der Server nur mit `git pull --ff-only`. So erzeugt er nie eigene Commits und bricht ab, falls die Historie auf dem Server unerwartet umgeschrieben wurde.",
+        "keywords": ["deploy-key|deploy key|deploykey", "lese|read|nur lesen|read-only", "ein repo|einzelnes repo|dieses repo|nur dieses", "persönlich|alle repos|schreib", "kompromittiert|angreifer|risiko|minimal|wenig rechte"],
         "validationType": "concept",
         "topicId": 33,
         "difficulty": "schwer",
@@ -1001,8 +1004,9 @@ let QUESTIONS = [
     {
         "id": 134,
         "category": "Git::3. Alle Repos spiegeln",
-        "question": "Warum funktioniert 'git clone --mirror https://github.com/org/*.git' nicht, und wie spiegelt man stattdessen alle Repos einer Organisation?",
-        "answer": "Git kennt keine Platzhalter für entfernte Repos: Jeder Klon braucht genau eine Adresse, und `*` wird nicht auf dem Server aufgelöst.\n\nMan holt sich die Liste der Repos über die API des Anbieters, z. B. `gh repo list org --limit 500 --json name -q '.[].name' > repos.txt`, und spiegelt dann in einer Schleife jedes Repo einzeln.",
+        "question": "Du sollst alle Repos einer GitHub-Organisation spiegeln und versuchst 'git clone --mirror https://github.com/org/*.git'. Warum funktioniert das nicht, und wie gehst du stattdessen vor?",
+        "answer": "Git kennt **keine Platzhalter** für entfernte Repos. Ein Klon braucht genau **eine Adresse**. Das `*` wird weder von Git noch vom Server aufgelöst, sondern als Teil der Adresse gesendet, und ein Repo mit diesem Namen gibt es nicht.\n\nStattdessen in zwei Schritten:\n1. **Liste der Repos holen**, über die API des Anbieters, z. B. mit dem GitHub-Werkzeug `gh`:\n```bash\ngh repo list org --limit 500 --json name -q '.[].name' > repos.txt\n```\n2. **In einer Schleife** jedes Repo einzeln spiegeln:\n```bash\nwhile read -r r; do\n  git clone --mirror \"https://github.com/org/$r.git\"\ndone < repos.txt\n```\nDie Liste `repos.txt` dient später auch als Checkliste für die Gegenprobe.",
+        "keywords": ["platzhalter|wildcard|stern|\\*", "eine adresse|einzeln|jedes repo", "liste|api|gh repo list", "schleife|loop|while|for"],
         "validationType": "concept",
         "topicId": 34,
         "difficulty": "leicht",
@@ -1011,13 +1015,10 @@ let QUESTIONS = [
     {
         "id": 34,
         "category": "Git::3. Alle Repos spiegeln",
-        "question": "Du stehst im Spiegel 'app.git' und hast das neue Ziel als Remote 'neu' eingetragen. Wie schiebst du **alle Branches** (noch ohne Tags) dorthin?",
-        "answer": "`git push --all neu`\n\nDanach die Tags mit `git push --tags neu`.",
+        "question": "Du stehst im Spiegel 'app.git' und hast das neue Ziel als Remote 'neu' eingetragen. Schiebe alle Branches dorthin. Die Tags folgen in einem zweiten Schritt.",
+        "answer": "`git push --all neu`\n\n`--all` schiebt **alle Branches** (`refs/heads/*`) zum Remote `neu`. Weil du in einem Spiegel stehst, sind das wirklich alle Branches des alten Servers, nicht nur einer wie nach einem normalen Klon.\n\nTags gehören nicht dazu. Die schiebst du danach mit `git push --tags neu`. Zusammen ergibt das den vollständigen Code-Stand, ohne fremde Refs wie GitHubs `refs/pull/*`.",
         "validationType": "command",
-        "solutions": [
-            "git\\s+push\\s+--all\\s+neu",
-            "git\\s+push\\s+neu\\s+--all"
-        ],
+        "solutions": ["git\\s+push\\s+--all\\s+neu", "git\\s+push\\s+neu\\s+--all"],
         "topicId": 34,
         "difficulty": "mittel",
         "moreInfo": "### 1. tl;dr\n`--all` schiebt alle Branches (`refs/heads/*`), `--tags` alle Tags. Zusammen ergibt das den vollständigen Code-Stand.\n---\n> **Tux-Ansage:** Erst die Truppe, dann die Orden! Wer die Tags vergisst, steht beim nächsten Release ohne Versionsnummern da.\n---\n### 2. Deep Dive\nStatt eines eingetragenen Remotes geht auch direkt die Adresse:\n```bash\ngit -C app.git push --all  https://git.example.org/team/app.git\ngit -C app.git push --tags https://git.example.org/team/app.git\n```\nDas Ziel-Repo muss leer sein (ohne README oder Lizenz-Commit). Sonst lehnt der Server den Push ab, weil die Historien nicht zusammenpassen."
@@ -1025,8 +1026,9 @@ let QUESTIONS = [
     {
         "id": 234,
         "category": "Git::3. Alle Repos spiegeln",
-        "question": "Beim Umzug von GitHub wird 'git push --all' plus 'git push --tags' statt 'git push --mirror' empfohlen. Warum?",
-        "answer": "`--mirror` schiebt **alle** Refs des Spiegels, auch GitHubs interne `refs/pull/*` (die Pull-Request-Stände). Viele Server lehnen solche Refs ab, und der Push scheitert ganz oder teilweise.\n\nAußerdem **löscht** `--mirror` am Ziel alle Refs, die es im Spiegel nicht gibt. Ist das Ziel nicht leer, gehen dort Branches verloren. `--all` und `--tags` schieben nur Branches und Tags und löschen nichts.",
+        "question": "Für den Umzug von GitHub auf einen eigenen Server wird 'git push --all' plus 'git push --tags' empfohlen und nicht 'git push --mirror'. Erkläre, welche zwei Probleme '--mirror' dabei verursachen kann.",
+        "answer": "**1. Fremde Refs:** `--mirror` schiebt **alle** Refs des Spiegels. Bei GitHub gehören dazu auch die internen `refs/pull/*`, die Stände aller Pull Requests, oft tausende. Viele Server lehnen solche Refs ab, der Push scheitert ganz oder teilweise. Und selbst wenn er klappt, liegt am Ziel Ballast, mit dem dort niemand etwas anfangen kann.\n\n**2. Löschen am Ziel:** `--mirror` macht das Ziel zu einer exakten Kopie und **löscht** dort alle Refs, die es im Spiegel nicht gibt. Ist das Ziel nicht leer, etwa weil dort schon jemand einen Branch angelegt hat, ist dieser danach weg.\n\n`--all` und `--tags` schieben dagegen nur **Branches und Tags** und **löschen nichts**. Das ist genau der Code-Stand, den man umziehen will.",
+        "keywords": ["refs/pull|pull request|fremde refs|interne refs|alle refs", "abgelehnt|lehnt|scheitert|fehler", "lösch", "nur branches|branches und tags", "ziel"],
         "validationType": "concept",
         "topicId": 34,
         "difficulty": "schwer",
@@ -1035,8 +1037,9 @@ let QUESTIONS = [
     {
         "id": 135,
         "category": "Git::4. Bundles",
-        "question": "Was ist ein Git-Bundle, und wofür setzt man es ein?",
-        "answer": "Ein Bundle ist **eine einzelne Datei**, die Commits und Referenzen (Branches, Tags) eines Repos enthält. Git kann sie wie ein Remote benutzen: klonen, fetchen, prüfen.\n\nMan setzt sie ein, wenn es keine direkte Netzverbindung zwischen Quelle und Ziel gibt, z. B. beim Transport über USB-Stick oder eine Datenschleuse in ein abgeschottetes Netz.",
+        "question": "Der Zielserver steht in einem abgeschotteten Netz ohne Verbindung zur Quelle. Was ist ein Git-Bundle, und warum eignet es sich für diesen Fall besser als ein kopierter Projektordner?",
+        "answer": "Ein **Bundle** ist ein ganzes Git-Repository in **einer einzigen Datei**: alle Commits sowie die Branches und Tags, die man beim Erstellen auswählt. Git kann die Datei wie einen Server benutzen, also daraus **klonen** oder **fetchen**.\n\nSo läuft der Transport:\n```bash\n# Quelle\ngit -C app.git bundle create /pfad/app.bundle --branches --tags\n# Ziel, nach dem Transport per USB\ngit clone --mirror app.bundle app.git\n```\n\nVorteile gegenüber einem kopierten Ordner:\n- **eine Datei** statt tausender: einfach zu transportieren,\n- **eine Prüfsumme** genügt, um die Unversehrtheit zu belegen,\n- Git **prüft beim Einlesen** jedes Objekt und meldet Beschädigungen.",
+        "keywords": ["eine datei|einzelne datei|einer datei", "ohne netz|offline|usb|datenträger|schleuse", "klonen|clone|fetch", "commits|branches|tags|historie", "prüfsumme|prüft|vollständig"],
         "validationType": "concept",
         "topicId": 35,
         "difficulty": "leicht",
@@ -1046,13 +1049,9 @@ let QUESTIONS = [
         "id": 35,
         "category": "Git::4. Bundles",
         "question": "Erstelle aus dem Repo im aktuellen Verzeichnis ein Bundle 'app.bundle', das alle Branches und alle Tags enthält.",
-        "answer": "`git bundle create app.bundle --branches --tags`\n\n`--all` würde zusätzlich alle weiteren Refs mitnehmen, bei GitHub-Spiegeln z. B. `refs/pull/*`.",
+        "answer": "`git bundle create app.bundle --branches --tags`\n\n`git bundle create` erwartet zuerst den Dateinamen, danach die Refs, die hinein sollen. `--branches` nimmt alle Branches, `--tags` alle Tags.\n\n`--all` würde zusätzlich alle weiteren Refs mitnehmen, bei GitHub-Spiegeln z. B. die vielen `refs/pull/*`, die man am Ziel nicht braucht. Danach prüfst du das Bundle mit `git bundle verify app.bundle`, und zwar innerhalb eines Repos.",
         "validationType": "command",
-        "solutions": [
-            "git\\s+bundle\\s+create\\s+app\\.bundle\\s+--branches\\s+--tags",
-            "git\\s+bundle\\s+create\\s+app\\.bundle\\s+--tags\\s+--branches",
-            "git\\s+bundle\\s+create\\s+app\\.bundle\\s+--all"
-        ],
+        "solutions": ["git\\s+bundle\\s+create\\s+app\\.bundle\\s+--branches\\s+--tags", "git\\s+bundle\\s+create\\s+app\\.bundle\\s+--tags\\s+--branches", "git\\s+bundle\\s+create\\s+app\\.bundle\\s+--all"],
         "topicId": 35,
         "difficulty": "mittel",
         "moreInfo": "### 1. tl;dr\n`git bundle create <datei> <refs>`: Welche Refs hinein sollen, bestimmen Optionen wie `--branches`, `--tags` oder `--all`.\n---\n> **Tux-Ansage:** Pack, was gebraucht wird, nicht den ganzen Müll aus der Stube! `--branches --tags` ist das saubere Marschgepäck.\n---\n### 2. Deep Dive\nDie Ref-Angaben funktionieren wie bei `git rev-list`. Es gehen also auch einzelne Branches oder Bereiche:\n```bash\ngit bundle create nur-main.bundle main\ngit bundle create neu-seit-v1.bundle v1.0..main   # inkrementell\n```\nEin inkrementelles Bundle setzt voraus, dass das Ziel `v1.0` schon hat. Das prüft `git bundle verify` im Ziel-Repo.\n\nHinweis: Ein Repo ganz ohne Commits lässt sich nicht bündeln. Leere Repos legt man am Ziel einfach neu an."
@@ -1060,8 +1059,9 @@ let QUESTIONS = [
     {
         "id": 235,
         "category": "Git::4. Bundles",
-        "question": "Du rufst im Ordner 'mirror/' den Befehl 'git -C app.git bundle create ../usb/app.bundle --all' auf und erhältst „Konnte '…/app.git/../usb/app.bundle.lock' nicht erstellen“, obwohl 'usb/' neben 'mirror/' existiert. Außerdem meldet 'git bundle verify app.bundle' außerhalb eines Repos einen Fehler. Erkläre beide Effekte.",
-        "answer": "1. `git -C app.git` wechselt **vor** der Ausführung in den Ordner `app.git`. Relative Pfade gelten dann ab dort: `../usb` zeigt auf `mirror/usb`, nicht auf den `usb/`-Ordner neben `mirror/`. Lösung: absolute Pfade verwenden.\n\n2. `git bundle verify` braucht ein Repository, weil es prüft, ob die Voraussetzungen (Prerequisites) des Bundles in der Objektdatenbank vorhanden sind. Außerhalb eines Repos schlägt der Aufruf fehl, obwohl das Bundle in Ordnung ist. Alternative: das Bundle testweise klonen und Branches und Tags zählen.",
+        "question": "Du stehst im Ordner 'mirror/' und rufst 'git -C app.git bundle create ../usb/app.bundle --all' auf. Git meldet, dass es '…/app.git/../usb/app.bundle.lock' nicht erstellen kann, obwohl der Ordner 'usb/' direkt neben 'mirror/' liegt. Später meldet 'git bundle verify app.bundle' außerhalb eines Repos ebenfalls einen Fehler. Erkläre beide Fehler.",
+        "answer": "**1. Der Pfad:** `git -C app.git` wechselt **vor** der Ausführung in den Ordner `app.git`. Alle relativen Pfade gelten dann **ab dort**:\n- `../usb` von `mirror/app.git` aus ergibt `mirror/usb`, und den gibt es nicht.\n- Gemeint war `usb/` neben `mirror/`, von `app.git` aus also `../../usb`.\n\nLösung: bei `-C` immer **absolute Pfade** verwenden, z. B. `~/umzug/usb/app.bundle`.\n\n**2. Die Prüfung:** `git bundle verify` braucht ein **Repository**. Es prüft nämlich, ob die Voraussetzungen des Bundles (Commits, auf denen es aufbaut) in der Objektdatenbank vorhanden sind. Außerhalb eines Repos gibt es keine Objektdatenbank, also schlägt der Aufruf fehl, obwohl das Bundle in Ordnung ist.\n\nLösung: `verify` im Spiegel selbst aufrufen (`git -C app.git bundle verify …`) oder das Bundle testweise klonen und Branches und Tags zählen.",
+        "keywords": ["-c|wechselt|verzeichnis|ordner", "relativ", "absolut", "repository|repo|objektdatenbank", "verify|voraussetzung|prerequisite", "klonen|clone|testklon"],
         "validationType": "concept",
         "topicId": 35,
         "difficulty": "schwer",
@@ -1070,12 +1070,10 @@ let QUESTIONS = [
     {
         "id": 136,
         "category": "Git::5. Transport über eine Datenschleuse",
-        "question": "Erzeuge im aktuellen Ordner für alle '.bundle'-Dateien eine Prüfsummendatei 'SHA256SUMS'.",
-        "answer": "`sha256sum *.bundle > SHA256SUMS`\n\nAm Ziel prüfen mit `sha256sum -c SHA256SUMS`, alle Zeilen müssen `OK` melden.",
+        "question": "Bevor die Bundles per USB-Stick transportiert werden, sollen sie überprüfbar sein. Erzeuge im aktuellen Ordner für alle '.bundle'-Dateien eine Prüfsummendatei 'SHA256SUMS'.",
+        "answer": "`sha256sum *.bundle > SHA256SUMS`\n\nFür jede Datei berechnet `sha256sum` einen Fingerabdruck und schreibt ihn mit dem Dateinamen in `SHA256SUMS`. Ändert sich unterwegs auch nur ein Bit, ergibt sich ein völlig anderer Wert.\n\nAm Ziel prüfst du mit `sha256sum -c SHA256SUMS`. Jede Zeile muss `OK` melden. Ein `FAILED` heißt: Diese Datei ist beschädigt oder verändert und darf nicht verwendet werden.",
         "validationType": "command",
-        "solutions": [
-            "sha256sum\\s+\\*\\.bundle\\s*>\\s*SHA256SUMS"
-        ],
+        "solutions": ["sha256sum\\s+\\*\\.bundle\\s*>\\s*SHA256SUMS"],
         "topicId": 36,
         "difficulty": "leicht",
         "moreInfo": "### 1. tl;dr\n`sha256sum` erzeugt Prüfsummen, `sha256sum -c` vergleicht sie. Eine geänderte Datei fällt sofort auf.\n---\n> **Tux-Ansage:** Was du nicht nachgezählt hast, hast du nicht übergeben! Prüfsumme drauf, sonst ist der Transport Glückssache.\n---\n### 2. Deep Dive\n```bash\ncd ~/umzug/usb\nsha256sum *.bundle repos.txt > SHA256SUMS\nsha256sum SHA256SUMS          # diese eine Zeile separat notieren\n```\nAm Ziel:\n```bash\nsha256sum SHA256SUMS          # muss zur Notiz passen\nsha256sum -c SHA256SUMS       # alle Dateien OK?\n```\nUnter Windows ohne Zusatzsoftware:\n```powershell\nGet-FileHash .\\app.bundle -Algorithm SHA256\n```"
@@ -1083,8 +1081,9 @@ let QUESTIONS = [
     {
         "id": 36,
         "category": "Git::5. Transport über eine Datenschleuse",
-        "question": "Warum notiert man die Prüfsumme der Datei 'SHA256SUMS' auf einem zweiten Weg (z. B. als Foto) und legt sie nicht nur mit auf den Stick?",
-        "answer": "Wer die Dateien auf dem Stick manipulieren kann, kann auch `SHA256SUMS` passend neu berechnen. Dann meldet `sha256sum -c` trotzdem überall `OK`.\n\nNur ein Vergleich mit einem Wert, der **über einen anderen Kanal** mitgekommen ist, deckt das auf. Eine Prüfsumme schützt vor Übertragungsfehlern, gegen Manipulation hilft sie nur mit unabhängigem Vergleichswert oder einer Signatur.",
+        "question": "Die Datei 'SHA256SUMS' liegt zusammen mit den Bundles auf dem USB-Stick. Trotzdem soll ihre eigene Prüfsumme zusätzlich auf einem zweiten Weg zum Ziel, z. B. als Foto oder per Telefon. Warum reicht der Stick allein nicht?",
+        "answer": "Eine Prüfsumme auf dem Stick schützt nur vor **zufälligen Fehlern**, also vor defekten Sticks oder abgebrochenen Kopien.\n\nGegen **absichtliche Manipulation** hilft sie nicht: Wer unterwegs eine Datei auf dem Stick verändern kann, kann auch `SHA256SUMS` passend neu berechnen. Dann meldet `sha256sum -c` am Ziel trotzdem überall `OK`.\n\nDas deckt nur ein Vergleichswert auf, der **über einen anderen Kanal** kommt. Der Angreifer müsste dann beide Wege gleichzeitig fälschen. Deshalb:\n- auf der Quellseite `sha256sum SHA256SUMS` notieren und getrennt übermitteln (Foto, Telefon, Zettel),\n- am Ziel denselben Wert berechnen und vergleichen.\n\nNoch besser ist eine **Signatur** (`gpg --detach-sign SHA256SUMS`). Dann braucht es keinen zweiten Kanal mehr, sobald der öffentliche Schlüssel einmal sicher übergeben wurde.",
+        "keywords": ["manipul|verändert|fälsch|angreifer", "neu berechnen|anpassen|mitändern|ebenfalls ändern", "zweiter kanal|anderer kanal|getrennt|unabhängig|zweiten weg", "übertragungsfehler|defekt|zufällig|beschädigt", "signatur|gpg|signieren"],
         "validationType": "concept",
         "topicId": 36,
         "difficulty": "mittel",
@@ -1093,8 +1092,9 @@ let QUESTIONS = [
     {
         "id": 236,
         "category": "Git::5. Transport über eine Datenschleuse",
-        "question": "Die Daten müssen per USB über einen Windows-11-Schleusenrechner **ohne Admin-Rechte** auf ein Linux-System im internen Netz. Wie verschlüsselst du den Transport, und welche Verfahren scheiden aus?",
-        "answer": "Der Windows-Rechner wird nur **Durchreiche**: Er muss die Datei nicht öffnen. Verschlüsselt wird auf der Quellseite, entschlüsselt erst auf dem Linux-System, z. B. mit `gpg --symmetric --cipher-algo AES256` oder einem 7z-Archiv mit AES-256 und verschlüsselten Dateinamen (`7z a -p -mhe=on`).\n\nVeraCrypt scheidet aus, weil es zum Einbinden einen Treiber und damit Admin-Rechte braucht. Die eingebaute ZIP-Verschlüsselung des Explorers ist zu schwach. BitLocker To Go ließe sich ohne Admin entsperren, muss aber auf einem Windows mit Pro- oder Enterprise-Lizenz eingerichtet werden. Vorher klären: Viele Schleusen lassen verschlüsselte Archive nicht durch, weil der Virenscanner nicht hineinsehen kann.",
+        "question": "Die Bundles müssen per USB-Stick über einen Windows-11-Schleusenrechner, auf dem du keine Admin-Rechte hast, auf ein Linux-System im internen Netz. Wie verschlüsselst du den Transport, und welche Verfahren scheiden aus?",
+        "answer": "**Grundidee:** Der Windows-Rechner ist nur eine **Durchreiche**. Er muss die Datei weder öffnen noch entschlüsseln. Verschlüsselt wird auf der **Quellseite**, entschlüsselt erst auf dem **Linux-Ziel**, also dort, wo die Werkzeuge vorhanden sind.\n\nGeeignet:\n- `gpg --symmetric --cipher-algo AES256`: ein Passwort, AES-256, auf Linux überall vorhanden.\n- ein **7z-Archiv** mit AES-256 und verschlüsselten Dateinamen: `7z a -p -mhe=on`.\n\nScheiden aus:\n- **VeraCrypt**: Zum Einbinden eines Containers braucht es einen Treiber und damit **Admin-Rechte**.\n- **ZIP-Verschlüsselung des Explorers**: Das alte ZipCrypto-Verfahren ist **zu schwach**.\n- **BitLocker To Go**: Entsperren geht ohne Admin, aber eingerichtet werden muss es auf einem Windows mit Pro- oder Enterprise-Lizenz, und auf Linux braucht man Zusatzwerkzeuge.\n\nVorher mit dem Betrieb der Schleuse klären: Viele Schleusen lassen **verschlüsselte Archive nicht durch**, weil der Virenscanner nicht hineinsehen kann.",
+        "keywords": ["durchreiche|nur durch|weiterreichen|nicht entschlüssel", "quelle|vorher verschlüssel|linux", "gpg|7z|7-zip|aes", "veracrypt", "admin|treiber", "zip|zu schwach|schwach"],
         "validationType": "concept",
         "topicId": 36,
         "difficulty": "schwer",
@@ -1103,8 +1103,9 @@ let QUESTIONS = [
     {
         "id": 137,
         "category": "Git::6. Gegenprobe und Umstellung",
-        "question": "Was kommt bei einem Git-Umzug über Spiegel oder Bundles **nicht** mit?",
-        "answer": "Alles, was nicht im Git-Repository selbst steckt, sondern auf der Plattform: Issues, Pull bzw. Merge Requests mit Kommentaren, Releases mit Anhängen, Wiki (ein eigenes Repo `<repo>.wiki.git`), Git-LFS-Dateien (eigener Speicher), Deploy-Keys, Secrets, Webhooks und Einstellungen wie geschützte Branches.",
+        "question": "Ihr zieht eure Repos per Spiegel oder Bundle auf einen neuen Server um. Ein Kollege geht davon aus, dass damit alles umgezogen ist. Was kommt dabei nicht mit, und warum?",
+        "answer": "Spiegel und Bundle transportieren nur, was **im Git-Repository selbst** steckt: Commits, Branches und Tags. Vieles andere gehört nicht zu Git, sondern zur **Plattform** (GitHub, GitLab …). Das kommt nicht mit:\n- **Issues** sowie **Pull bzw. Merge Requests** mit allen Kommentaren,\n- **Releases** mit ihren angehängten Dateien,\n- das **Wiki**: Es ist ein eigenes Repo (`<repo>.wiki.git`) und muss extra gespiegelt werden,\n- **Git-LFS-Dateien**: große Dateien liegen in einem eigenen Speicher; im Repo stehen nur Verweise,\n- **Deploy-Keys, Secrets, Webhooks**,\n- **Einstellungen** wie geschützte Branches und Berechtigungen.\n\nDeshalb vor dem Umzug eine Liste machen, was davon gebraucht wird, und es eigens übertragen oder am Ziel neu anlegen.",
+        "keywords": ["issues|tickets", "pull request|merge request|kommentare", "wiki", "lfs", "secrets|deploy-key|webhook|einstellungen|berechtigungen", "plattform|nicht im repo|nicht in git"],
         "validationType": "concept",
         "topicId": 37,
         "difficulty": "leicht",
@@ -1113,12 +1114,10 @@ let QUESTIONS = [
     {
         "id": 37,
         "category": "Git::6. Gegenprobe und Umstellung",
-        "question": "Wie listest du die Branches des Repos 'https://git.example.org/team/app.git' auf, ohne es zu klonen?",
-        "answer": "`git ls-remote --heads https://git.example.org/team/app.git`\n\nMit `| wc -l` erhältst du die Anzahl, mit `--tags` die Tags.",
+        "question": "Nach dem Umzug willst du prüfen, ob alle Branches am neuen Server angekommen sind. Liste die Branches des Repos 'https://git.example.org/team/app.git' auf, ohne es zu klonen.",
+        "answer": "`git ls-remote --heads https://git.example.org/team/app.git`\n\n`git ls-remote` fragt beim Server nur die **Liste der Refs** ab, mit Commit-Hash und Namen. Es lädt keine Dateien und legt kein Repo an, deshalb geht es auch bei großen Repos schnell. `--heads` beschränkt die Liste auf Branches.\n\nFür die Gegenprobe zählst du mit `| wc -l` und vergleichst mit der Quelle. Stimmen Anzahl und Hashes überein, ist der Stand identisch. Tags listet `--tags` auf.",
         "validationType": "command",
-        "solutions": [
-            "git\\s+ls-remote\\s+(--heads|-h|--branches)\\s+https://git\\.example\\.org/team/app\\.git"
-        ],
+        "solutions": ["git\\s+ls-remote\\s+(--heads|-h|--branches)\\s+https://git\\.example\\.org/team/app\\.git"],
         "topicId": 37,
         "difficulty": "mittel",
         "moreInfo": "### 1. tl;dr\n`git ls-remote` fragt die Refs eines Servers ab, ohne etwas herunterzuladen. Ideal für die Gegenprobe nach dem Umzug.\n---\n> **Tux-Ansage:** Nach der Verlegung wird durchgezählt! Wer nicht nachzählt, merkt erst beim Appell, dass die Hälfte fehlt.\n---\n### 2. Deep Dive\nGegenprobe Quelle gegen Ziel:\n```bash\nfor r in app web api; do\n  printf '%-6s Branches %3s Tags %3s\\n' \"$r\" \\\n    \"$(git ls-remote --heads https://git.example.org/team/$r.git | wc -l)\" \\\n    \"$(git ls-remote --tags  https://git.example.org/team/$r.git | grep -vc '\\^{}')\"\ndone\n```\n`grep -vc '\\^{}'` blendet die zusätzlichen Zeilen aus, die annotierte Tags in der Ausgabe erzeugen. Die Zahlen werden mit dem Spiegel verglichen (`git -C app.git branch | wc -l`)."
@@ -1126,8 +1125,9 @@ let QUESTIONS = [
     {
         "id": 237,
         "category": "Git::6. Gegenprobe und Umstellung",
-        "question": "Die Repos liegen jetzt im internen Git. Welche Schritte gehören zu einer sauberen Umstellung, bevor die alten Repos gelöscht werden?",
-        "answer": "1. **Gegenprobe:** Branches und Tags je Repo zählen und mit der Quelle vergleichen, Standard-Branch prüfen.\n2. **Klone umstellen:** auf allen Rechnern `git remote set-url origin <neu>`.\n3. **Automationen umstellen:** Sync-Skripte, CI und nächtliche Builds auf die neue Adresse, mit neuen Deploy-Keys (nur Lesen).\n4. **Plattform-Inhalte** übernehmen, soweit nötig (Issues, Wiki, Releases, Schutzregeln für Branches).\n5. **Alte Repos archivieren** (schreibgeschützt), nicht sofort löschen, als Rückweg.\n6. **Aufräumen:** Stick, Schleusenkopie und entpackte Dateien löschen, alte Tokens und Deploy-Keys widerrufen.",
+        "question": "Alle Repos liegen jetzt im internen Git. Beschreibe die Schritte einer sauberen Umstellung, bevor die alten Repos gelöscht werden dürfen, und begründe, warum nicht sofort gelöscht wird.",
+        "answer": "1. **Gegenprobe:** Für jedes Repo Branches und Tags an Quelle und Ziel zählen und vergleichen (`git ls-remote`), den Standard-Branch prüfen.\n2. **Klone umstellen:** auf allen Rechnern `git remote set-url origin <neue-adresse>`.\n3. **Automationen umstellen:** Sync-Skripte, CI und nächtliche Builds auf die neue Adresse, mit neuen Deploy-Keys (nur Lesen).\n4. **Plattform-Inhalte** übernehmen, soweit nötig: Issues, Wiki, Releases, Schutzregeln für Branches.\n5. **Alte Repos archivieren**, also schreibgeschützt stellen, statt sie zu löschen.\n6. **Aufräumen:** Stick, Kopien auf der Schleuse und entpackte Dateien löschen, alte Tokens und Deploy-Keys widerrufen.\n\n**Warum nicht sofort löschen?** Solange nicht nachgewiesen ist, dass am neuen Ort alles vollständig ist und alle Abläufe laufen, ist das alte Repo der **Rückweg**. Durch die Archivierung arbeitet niemand mehr versehentlich auf dem alten Stand, aber nichts ist verloren. Gelöscht wird erst nach einer vereinbarten Frist.",
+        "keywords": ["gegenprobe|zählen|vergleich|prüfen", "set-url|umstellen|klone", "automation|ci|skript|build|deploy", "archiv|schreibgeschützt", "aufräumen|widerruf|tokens|löschen", "rückweg|zurück|sicherheit|nachweis"],
         "validationType": "concept",
         "topicId": 37,
         "difficulty": "schwer",
@@ -1136,12 +1136,10 @@ let QUESTIONS = [
     {
         "id": 138,
         "category": "Git::7. Aktualisieren",
-        "question": "Hole den neuesten Stand vom Remote, aber nur, wenn dein Branch einfach vorgespult werden kann (ohne Merge-Commit).",
-        "answer": "`git pull --ff-only`\n\nIst ein Vorspulen nicht möglich, bricht der Befehl ab, statt einen Merge-Commit zu erzeugen.",
+        "question": "Auf einem Server soll ein Repo aktualisiert werden. Hole den neuesten Stand vom Remote, aber nur, wenn dein Branch einfach vorgespult werden kann, ohne dass ein Merge-Commit entsteht.",
+        "answer": "`git pull --ff-only`\n\n*ff* steht für **Fast-Forward**, also Vorspulen. Der Befehl übernimmt die neuen Commits nur, wenn dein lokaler Stand ein **direkter Vorgänger** des Remote-Stands ist. Dann rückt dein Branch einfach nach vorn.\n\nIst das nicht möglich, weil lokal eigene Commits liegen oder die Historie auf dem Remote umgeschrieben wurde, **bricht der Befehl ab**, statt einen Merge-Commit zu erzeugen. Auf einem Server ist das genau richtig: Dort sollte niemand entwickeln, ein Abbruch ist also ein Warnsignal, dem man erst nachgeht.",
         "validationType": "command",
-        "solutions": [
-            "git\\s+pull\\s+--ff-only"
-        ],
+        "solutions": ["git\\s+pull\\s+--ff-only"],
         "topicId": 38,
         "difficulty": "leicht",
         "moreInfo": "### 1. tl;dr\n`--ff-only` übernimmt neue Commits nur, wenn dein Stand ein direkter Vorgänger ist. Auf Servern ist das der sichere Standard.\n---\n> **Tux-Ansage:** Auf dem Server wird nicht improvisiert, Rekrut! Entweder der neue Stand passt glatt drauf, oder es wird abgebrochen und nachgesehen.\n---\n### 2. Deep Dive\nEin normales `git pull` erzeugt einen Merge-Commit, wenn lokal und auf dem Remote unterschiedliche Commits liegen. Auf einem Server, an dem niemand entwickeln sollte, ist das ein Warnsignal: Jemand hat dort etwas geändert, oder die Historie auf dem Remote wurde umgeschrieben.\n\n```bash\ngit pull --ff-only\n# oder dauerhaft für dieses Repo:\ngit config pull.ff only\n```\n\nBricht `--ff-only` ab, erst nachsehen (`git status`, `git log --oneline --graph --all -n 20`), bevor irgendetwas überschrieben wird.\n---\n### 3. Schaubild\n```\nFast-Forward möglich:       nicht möglich:\nlokal:  A--B                lokal:  A--B--L\nremote: A--B--C--D          remote: A--B--C\n=> main rückt auf D         => --ff-only bricht ab\n```"
@@ -1149,8 +1147,9 @@ let QUESTIONS = [
     {
         "id": 38,
         "category": "Git::7. Aktualisieren",
-        "question": "Bevor du eine Installation aktualisierst, willst du sehen, ob und was sich auf dem Remote geändert hat, ohne schon etwas zu übernehmen. Wie gehst du vor?",
-        "answer": "1. `git fetch` holt die neuen Commits, ändert aber nichts an deinen Dateien.\n2. `git status` zeigt, ob dein Stand hinterherhängt („behind by n commits“) und ob lokale Änderungen da sind.\n3. `git log --oneline HEAD..origin/main` listet die neuen Commits, `git diff --stat HEAD origin/main` die geänderten Dateien.\n4. Erst danach `git pull --ff-only` und den Dienst neu bauen bzw. starten.",
+        "question": "Bevor du eine Installation auf einem Server aktualisierst, willst du sehen, ob und was sich auf dem Remote geändert hat, ohne schon etwas zu übernehmen. Beschreibe dein Vorgehen mit den passenden Befehlen.",
+        "answer": "1. **`git fetch`** holt die neuen Commits vom Remote, ändert aber **nichts** an deinen Dateien. Nur `origin/main` rückt nach.\n2. **`git status`** zeigt, ob dein Stand hinterherhängt („behind by 3 commits“) und ob es lokale Änderungen gibt, die bei einem Update stören würden.\n3. **Ansehen, was kommt:**\n```bash\ngit log --oneline HEAD..origin/main     # die neuen Commits\ngit diff --stat HEAD origin/main        # welche Dateien sich ändern\n```\n4. **Erst dann übernehmen:** `git pull --ff-only` und den Dienst neu bauen bzw. neu starten.\n\nSo weißt du **vorher**, was das Update mitbringt, etwa eine geänderte Konfiguration oder ein Datenbank-Update, und kannst dich darauf einstellen.",
+        "keywords": ["fetch", "status", "log|diff", "nichts|ohne zu übernehmen|unverändert|keine änderung", "pull|übernehmen|danach"],
         "validationType": "concept",
         "topicId": 38,
         "difficulty": "mittel",
@@ -1159,8 +1158,9 @@ let QUESTIONS = [
     {
         "id": 238,
         "category": "Git::7. Aktualisieren",
-        "question": "Nach einem Update auf dem Server sehen manche Nutzer einer installierten Web-App (PWA) noch den alten Stand, z. B. ohne die neuen Fragen. Woran liegt das, und was hilft?",
-        "answer": "Der **Service Worker** der PWA hält die Dateien der App im Cache des Geräts. Bleibt sein Cache-Name gleich, liefert er weiter die alten Dateien aus, auch wenn der Server längst neue hat.\n\nAbhilfe: Bei jedem Update die **Cache-Version** im Service Worker erhöhen (z. B. `CACHE_NAME = 'app-v189'`). Dann installiert der Browser den neuen Service Worker, löscht den alten Cache und lädt die aktuellen Dateien. Für einzelne Geräte hilft auch, die App einmal ganz zu schließen und neu zu öffnen.",
+        "question": "Nach einem Update auf dem Server sehen manche Nutzer einer installierten Web-App (PWA) noch den alten Stand, z. B. ohne die neuen Fragen. Andere sehen schon den neuen. Woran liegt das, und was hilft dauerhaft?",
+        "answer": "Eine PWA hat einen **Service Worker**. Er speichert die Dateien der App im **Cache** des Geräts, damit sie schnell und auch offline lädt. Bei jedem Aufruf liefert er die Dateien aus diesem Cache, nicht frisch vom Server.\n\nEin neuer Service Worker wird nur installiert, wenn sich die Datei `sw.js` selbst geändert hat. Bleiben ihr Inhalt und damit der **Cache-Name** gleich, liefert der alte Service Worker weiter die **alten Dateien**, auch wenn der Server längst neue hat. Wer die App frisch installiert hat oder deren Cache gelöscht wurde, sieht dagegen schon den neuen Stand.\n\n**Dauerhafte Abhilfe:** bei jedem Update die **Cache-Version** in `sw.js` erhöhen, z. B. von `app-v188` auf `app-v189`. Dann erkennt der Browser einen neuen Service Worker, installiert ihn, löscht den alten Cache und lädt die aktuellen Dateien.\n\nEinzelnen Nutzern hilft kurzfristig, die App einmal ganz zu schließen und neu zu öffnen.",
+        "keywords": ["service worker|serviceworker|sw\\.js", "cache", "alte|alter stand|veraltet", "version|cache-name|cache name", "erhöhen|ändern|hochzählen|neue version"],
         "validationType": "concept",
         "topicId": 38,
         "difficulty": "schwer",
@@ -1169,8 +1169,9 @@ let QUESTIONS = [
     {
         "id": 139,
         "category": "Git Grundlagen::1. Was ist Git?",
-        "question": "Was ist Git, und wofür setzt man es ein?",
-        "answer": "Git ist ein **Versionsverwaltungssystem**. Es speichert jeden festgehaltenen Stand eines Projekts (Commit), sodass man Änderungen nachvollziehen, vergleichen, rückgängig machen und mit anderen zusammenführen kann.",
+        "question": "Ein neuer Kollege fragt dich, wozu euer Team Git benutzt. Erkläre ihm, was Git ist und welche drei Aufgaben es in einem Projekt übernimmt.",
+        "answer": "**Git ist ein Versionsverwaltungssystem.** Es merkt sich jeden Stand eines Projekts, den du bewusst festhältst. So ein festgehaltener Stand heißt **Commit**.\n\nDamit übernimmt Git drei Aufgaben:\n- **Nachvollziehen:** Zu jeder Änderung steht fest, wer sie wann und warum gemacht hat (`git log`).\n- **Zurückgehen:** Jeder frühere Stand lässt sich wiederherstellen, wenn etwas kaputtgeht.\n- **Zusammenarbeiten:** Mehrere Personen arbeiten gleichzeitig am selben Projekt, Git führt ihre Änderungen zusammen.\n\nGit ist nicht auf Programmcode beschränkt. Konfigurationsdateien, Skripte und Dokumentation lassen sich genauso versionieren.",
+        "keywords": ["versionsverwaltung|versionskontrolle", "commit|stand|version|schnappschuss", "nachvollziehen|historie|verlauf|änderungen", "zurück|wiederherstellen|rückgängig", "zusammenarbeit|team|mehrere|gemeinsam|zusammenführen"],
         "validationType": "concept",
         "topicId": 39,
         "difficulty": "leicht",
@@ -1179,8 +1180,9 @@ let QUESTIONS = [
     {
         "id": 39,
         "category": "Git Grundlagen::1. Was ist Git?",
-        "question": "Was ist der Unterschied zwischen einer zentralen Versionsverwaltung (z. B. Subversion) und einer verteilten wie Git?",
-        "answer": "Bei **zentraler** Versionsverwaltung liegt die Historie nur auf einem Server; ohne Verbindung kann man nicht committen oder in die Historie schauen. Bei **verteilter** Versionsverwaltung hat jeder Klon die **vollständige Historie**. Man arbeitet lokal (commit, log, diff, branch) und tauscht Änderungen nur bei Bedarf mit anderen aus.",
+        "question": "Mit Subversion, einer zentralen Versionsverwaltung, kannst du ohne Verbindung zum Server nicht committen, mit Git schon. Erkläre den Unterschied zwischen zentraler und verteilter Versionsverwaltung und warum Git deshalb auch offline funktioniert.",
+        "answer": "**Zentral (z. B. Subversion):** Die Historie liegt nur auf einem Server. Auf deinem Rechner hast du nur den aktuellen Stand der Dateien. Für Commit, Log oder den Vergleich mit alten Ständen brauchst du eine Verbindung zum Server. Fällt er aus, kann niemand weiterarbeiten.\n\n**Verteilt (Git):** Jeder Klon enthält die **vollständige Historie** im Ordner `.git`. Commit, Log, Diff und Branches laufen **lokal**. Deshalb funktioniert Git offline und ist schnell. Mit anderen tauschst du Änderungen erst aus, wenn du willst: `git push` schickt deine Commits, `git pull` holt die der anderen.\n\nDer Server, z. B. bei GitHub oder GitLab, ist bei Git nur ein **gemeinsamer Treffpunkt**. Nebeneffekt: Jeder Klon ist zugleich eine komplette Sicherung.",
+        "keywords": ["zentral", "verteilt|dezentral", "vollständig|komplett|ganze historie|gesamte historie", "lokal|offline", "server", "push|pull|austausch"],
         "validationType": "concept",
         "topicId": 39,
         "difficulty": "mittel",
@@ -1189,8 +1191,9 @@ let QUESTIONS = [
     {
         "id": 239,
         "category": "Git Grundlagen::1. Was ist Git?",
-        "question": "Was ist ein Commit in Git technisch, und warum kann man einen Commit nach dem Teilen nicht einfach unbemerkt verändern?",
-        "answer": "Ein Commit ist ein Objekt mit einem **Schnappschuss** des Projekts (Verweis auf einen Tree), Autor, Zeit, Nachricht und dem Verweis auf seinen **Vorgänger**. Seine ID ist eine Prüfsumme (Hash) über genau diese Inhalte. Ändert man etwas, entsteht ein **neuer** Commit mit neuer ID, und alle Nachfolger ändern sich mit. Wer den alten Stand schon hat, sieht die Abweichung sofort.",
+        "question": "Ein bereits gepushter Commit wird nachträglich verändert und erneut gepusht. Erkläre, was ein Commit technisch ist und warum alle, die den alten Stand haben, diese Änderung bemerken.",
+        "answer": "Ein Commit ist ein gespeichertes Objekt mit:\n- einem **Schnappschuss** aller Dateien (Verweis auf einen *Tree*),\n- Autor, Zeitpunkt und Commit-Nachricht,\n- dem Verweis auf seinen **Vorgänger** (Parent).\n\nSeine ID ist eine **Prüfsumme (Hash)**, die Git aus genau diesen Inhalten berechnet, z. B. `9a8b7c…`. Ändert man auch nur ein Zeichen, ergibt sich ein anderer Hash, also ein **neuer Commit**. Weil jeder Nachfolger den Hash seines Vorgängers enthält, bekommen auch **alle späteren Commits neue IDs**.\n\nWer den alten Stand hat, sieht deshalb sofort, dass die Historie nicht mehr zusammenpasst: `git pull` meldet auseinanderlaufende Branches, und `git push` wird ohne `--force` abgelehnt. Nachträglich ändern geht also nur sichtbar, nie heimlich.",
+        "keywords": ["hash|prüfsumme|sha|checksumme", "vorgänger|parent|eltern", "schnappschuss|snapshot|tree|inhalt", "neuer commit|neue id|anderer hash|andere id", "nachfolger|kette|alle späteren|folgende"],
         "validationType": "concept",
         "topicId": 39,
         "difficulty": "schwer",
@@ -1199,12 +1202,10 @@ let QUESTIONS = [
     {
         "id": 140,
         "category": "Git Grundlagen::2. Erste Schritte",
-        "question": "Mit welchem Befehl legst du im aktuellen Verzeichnis ein neues Git-Repository an?",
-        "answer": "`git init`\n\nDanach gibt es den versteckten Ordner `.git` mit der gesamten Versionsverwaltung.",
+        "question": "Du stehst im Terminal im Ordner 'projekt', der ein paar Skripte enthält. Mit welchem Befehl machst du daraus ein Git-Repository?",
+        "answer": "`git init`\n\nDer Befehl legt im aktuellen Ordner den versteckten Unterordner `.git` an. Darin speichert Git alles: Commits, Branches und Einstellungen. Deine vorhandenen Dateien bleiben unverändert und sind zunächst **untracked**, also noch nicht versioniert. Erst mit `git add` und `git commit` kommt der erste Stand in die Historie.\n\nEin bestehendes Repository von einem Server holst du dagegen mit `git clone <adresse>`. Dafür brauchst du kein `git init`.",
         "validationType": "command",
-        "solutions": [
-            "git\\s+init"
-        ],
+        "solutions": ["git\\s+init"],
         "topicId": 40,
         "difficulty": "leicht",
         "moreInfo": "### 1. tl;dr\n`git init` macht aus einem normalen Verzeichnis ein Git-Repository.\n---\n> **Tux-Ansage:** Erst wird das Lager eingerichtet, dann wird eingelagert. Ohne `git init` kein Git, Rekrut!\n---\n### 2. Deep Dive\n```bash\nmkdir projekt && cd projekt\ngit init\ngit status\n```\nDer Ordner `.git` enthält Historie, Branches und Einstellungen dieses Repos. Löschst du ihn, ist die Versionsverwaltung weg, die Dateien bleiben.\n\nMit `git init -b main` legst du den ersten Branch gleich mit dem Namen `main` an."
@@ -1212,12 +1213,10 @@ let QUESTIONS = [
     {
         "id": 40,
         "category": "Git Grundlagen::2. Erste Schritte",
-        "question": "Wie trägst du für Git deinen Namen 'Max Muster' und die E-Mail 'max@example.com' für alle Repositories dieses Benutzers ein?",
-        "answer": "```bash\ngit config --global user.name \"Max Muster\"\ngit config --global user.email \"max@example.com\"\n```\nDiese Angaben landen in jedem Commit als Autor.",
+        "question": "Bevor du deinen ersten Commit machst, muss Git wissen, wer du bist. Trage den Namen 'Max Muster' so ein, dass er für alle Repositories deines Benutzerkontos gilt.",
+        "answer": "```bash\ngit config --global user.name \"Max Muster\"\ngit config --global user.email \"max@example.com\"\n```\nGit schreibt Name und E-Mail in **jeden Commit** als Autor. Fehlen sie, bricht `git commit` mit einer Aufforderung ab. Die E-Mail-Adresse trägst du auf dieselbe Weise ein.\n\n`--global` speichert die Werte in `~/.gitconfig`, sie gelten damit für alle Repositories deines Benutzers. Ohne `--global` gilt die Einstellung nur im aktuellen Repository (`.git/config`), z. B. für eine dienstliche Adresse in einem einzelnen Projekt. Was gerade gilt, zeigt `git config --list --show-origin`.",
         "validationType": "command",
-        "solutions": [
-            "git\\s+config\\s+--global\\s+user\\.(name|email)"
-        ],
+        "solutions": ["git\\s+config\\s+--global\\s+user\\.name\\s+[\"']?max\\s+muster[\"']?$"],
         "topicId": 40,
         "difficulty": "mittel",
         "moreInfo": "### 1. tl;dr\n`git config --global` speichert Einstellungen für alle Repos des Benutzers in `~/.gitconfig`.\n---\n> **Tux-Ansage:** Ein Commit ohne Namen ist wie ein Funkspruch ohne Rufzeichen. Keiner weiß, wer da gesprochen hat!\n---\n### 2. Deep Dive\nGit kennt drei Ebenen, die spätere überschreibt die frühere:\n- `--system`: für alle Benutzer (`/etc/gitconfig`)\n- `--global`: für deinen Benutzer (`~/.gitconfig`)\n- `--local`: nur dieses Repo (`.git/config`), Standard ohne Option\n\n```bash\ngit config --list --show-origin   # was gilt woher?\n```\nFür ein dienstliches Repo kannst du lokal eine andere E-Mail setzen als global.\n---\n### 3. Schaubild\n```\n--system  (/etc/gitconfig)\n   |  wird überschrieben von\n--global  (~/.gitconfig)\n   |  wird überschrieben von\n--local   (.git/config)\n```"
@@ -1225,8 +1224,9 @@ let QUESTIONS = [
     {
         "id": 240,
         "category": "Git Grundlagen::2. Erste Schritte",
-        "question": "'git status' meldet eine Datei als 'Untracked'. Was bedeutet das, und welche Zustände kann eine Datei in Git insgesamt haben?",
-        "answer": "**Untracked** heißt: Git kennt die Datei noch nicht, sie ist in keinem Commit. Zustände: **untracked** (unbekannt), **unmodified** (wie im letzten Commit), **modified** (geändert, noch nicht vorgemerkt), **staged** (für den nächsten Commit vorgemerkt). Mit `git add` wird eine Datei vorgemerkt, mit `git commit` festgehalten.",
+        "question": "'git status' zeigt eine neue Datei unter 'Untracked files'. Erkläre, was das bedeutet, und beschreibe die vier Zustände, die eine Datei in Git haben kann, jeweils mit dem Befehl, der sie in den nächsten Zustand bringt.",
+        "answer": "**Untracked** heißt: Git kennt die Datei noch nicht. Sie steht in keinem Commit, und Git verfolgt ihre Änderungen nicht.\n\nDie vier Zustände:\n1. **untracked**: neu, noch nicht versioniert. `git add` merkt sie vor.\n2. **staged**: für den nächsten Commit vorgemerkt. `git commit` hält sie fest.\n3. **unmodified**: genau wie im letzten Commit, es gibt nichts zu tun.\n4. **modified**: seit dem letzten Commit geändert, aber noch nicht vorgemerkt. `git add` macht sie wieder zu staged.\n\nDer Kreislauf lautet also: ändern, `git add`, `git commit`. Wichtig: `git add` merkt den Stand **zum Zeitpunkt des Befehls** vor. Änderst du die Datei danach noch einmal, ist sie gleichzeitig staged (alte Änderung) und modified (neue Änderung).",
+        "keywords": ["untracked|unbekannt|nicht versioniert", "staged|vorgemerkt|staging|index", "unmodified|unverändert", "modified|geändert", "git add", "git commit"],
         "validationType": "concept",
         "topicId": 40,
         "difficulty": "schwer",
@@ -1235,12 +1235,10 @@ let QUESTIONS = [
     {
         "id": 141,
         "category": "Git Grundlagen::3. Änderungen festhalten",
-        "question": "Du hast die Datei 'readme.md' geändert. Mit welchem Befehl merkst du sie für den nächsten Commit vor?",
-        "answer": "`git add readme.md`\n\nDanach steht sie im Staging-Bereich und kommt mit dem nächsten `git commit` in die Historie.",
+        "question": "Du hast die Datei 'readme.md' geändert und willst die Änderung im nächsten Commit haben. Mit welchem Befehl merkst du sie dafür vor?",
+        "answer": "`git add readme.md`\n\nGit übernimmt Änderungen nicht automatisch in einen Commit. Mit `git add` legst du die Datei in den **Staging-Bereich**, also auf die Liste für den nächsten Commit. Erst `git commit -m \"Readme ergänzt\"` hält sie dann in der Historie fest.\n\n`git status` zeigt die Datei danach unter „Changes to be committed“. `git add .` merkt alle geänderten Dateien auf einmal vor; meist ist es aber besser, gezielt auszuwählen.",
         "validationType": "command",
-        "solutions": [
-            "git\\s+add\\s+(\\./)?readme\\.md"
-        ],
+        "solutions": ["git\\s+add\\s+(\\./)?readme\\.md"],
         "topicId": 41,
         "difficulty": "leicht",
         "moreInfo": "### 1. tl;dr\n`git add` legt den aktuellen Inhalt einer Datei in den Staging-Bereich.\n---\n> **Tux-Ansage:** Vormerken heißt nicht festhalten. Erst `git commit` schreibt es ins Dienstbuch!\n---\n### 2. Deep Dive\n```bash\ngit add readme.md     # eine Datei\ngit add .             # alle Änderungen im aktuellen Verzeichnis\ngit add -p            # Änderungen stückweise auswählen\n```\nÄnderst du die Datei nach `git add` noch einmal, ist nur der Stand von vorher vorgemerkt. Dann erneut `git add`."
@@ -1248,8 +1246,9 @@ let QUESTIONS = [
     {
         "id": 41,
         "category": "Git Grundlagen::3. Änderungen festhalten",
-        "question": "Wozu gibt es in Git den Staging-Bereich zwischen Arbeitsverzeichnis und Commit?",
-        "answer": "Der Staging-Bereich (Index) erlaubt es, **genau auszuwählen, was in den nächsten Commit kommt**. So entstehen kleine, thematisch saubere Commits, auch wenn im Arbeitsverzeichnis mehrere unabhängige Änderungen liegen.",
+        "question": "Du hast in 'login.js' einen Fehler behoben und nebenbei an der Dokumentation im Ordner 'docs/' gearbeitet. Wie hilft dir der Staging-Bereich, daraus saubere Commits zu machen, und wie gehst du vor?",
+        "answer": "Der Staging-Bereich (auch **Index**) liegt zwischen deinen Dateien und der Historie. In ihm legst du fest, **was genau in den nächsten Commit kommt**. So teilst du zwei unabhängige Änderungen in **zwei getrennte Commits** auf:\n\n```bash\ngit add login.js\ngit commit -m \"Login: Fehler bei leerem Passwort behoben\"\ngit add docs/\ngit commit -m \"Doku: Anmeldung beschrieben\"\n```\n\nVorteil: Jeder Commit hat genau ein Thema. Die Historie bleibt lesbar, und muss der Fix später zurückgenommen werden (`git revert`), bleibt die Dokumentation unberührt. Mit `git add -p` kannst du sogar einzelne Abschnitte einer Datei vormerken.",
+        "keywords": ["staging|index|vormerken", "auswählen|auswahl|gezielt|festlegen|bestimmen", "getrennt|zwei commits|aufteilen|einzeln", "thema|sauber|übersicht|nachvollziehbar|lesbar", "git add"],
         "validationType": "concept",
         "topicId": 41,
         "difficulty": "mittel",
@@ -1258,8 +1257,9 @@ let QUESTIONS = [
     {
         "id": 241,
         "category": "Git Grundlagen::3. Änderungen festhalten",
-        "question": "Was zeigt 'git log --oneline --graph --all', und was ist dabei HEAD?",
-        "answer": "Es zeigt die Historie **aller Branches** kompakt mit einer Zeile pro Commit und als **Grafik** der Verzweigungen und Zusammenführungen. **HEAD** ist der Zeiger auf den Stand, an dem du gerade arbeitest, normalerweise auf einen Branch, der wiederum auf seinen neuesten Commit zeigt.",
+        "question": "Du sollst dir einen Überblick über ein Repository mit mehreren Branches verschaffen und nutzt 'git log --oneline --graph --all'. Was zeigt dir der Befehl, und was bedeutet die Markierung HEAD in der Ausgabe?",
+        "answer": "Der Befehl zeigt die Historie als kompakten Baum:\n- `--oneline`: eine Zeile pro Commit, mit kurzem Hash und Nachricht,\n- `--graph`: Verzweigungen und Zusammenführungen als Linien,\n- `--all`: **alle Branches** und Tags, nicht nur den aktuellen.\n\n**HEAD** zeigt, **wo du gerade stehst**. Normalerweise zeigt HEAD auf einen Branch, z. B. `HEAD -> main`, und dieser Branch zeigt auf seinen neuesten Commit. Ein neuer Commit landet dort, wo HEAD steht, und der Branch rückt mit.\n\nZeigt HEAD direkt auf einen Commit statt auf einen Branch (*detached HEAD*, z. B. nach `git checkout a1b2c3`), gehören neue Commits zu keinem Branch und gehen beim Wechseln leicht verloren.",
+        "keywords": ["alle branches|--all|sämtliche", "graph|baum|verzweigung|grafik|linien", "eine zeile|oneline|kompakt", "head", "aktuell|gerade|wo du stehst|position|zeiger"],
         "validationType": "concept",
         "topicId": 41,
         "difficulty": "schwer",
@@ -1268,13 +1268,10 @@ let QUESTIONS = [
     {
         "id": 142,
         "category": "Git Grundlagen::4. Branches",
-        "question": "Lege einen neuen Branch 'feature' an und wechsle direkt dorthin.",
-        "answer": "`git switch -c feature`\n\n(Älter, gleiche Wirkung: `git checkout -b feature`)",
+        "question": "Du willst eine neue Funktion entwickeln, ohne 'main' zu verändern. Lege einen Branch 'feature' an und wechsle mit einem einzigen Befehl direkt dorthin.",
+        "answer": "`git switch -c feature`\n\n`-c` steht für *create*: Git legt den Branch an, und du stehst sofort darauf. Er beginnt bei dem Commit, auf dem du gerade warst. Neue Commits landen ab jetzt auf `feature`, `main` bleibt unverändert.\n\nÄltere Schreibweise mit gleicher Wirkung: `git checkout -b feature`. Zurück geht es mit `git switch main`.",
         "validationType": "command",
-        "solutions": [
-            "git\\s+switch\\s+-c\\s+feature",
-            "git\\s+checkout\\s+-b\\s+feature"
-        ],
+        "solutions": ["git\\s+switch\\s+-c\\s+feature", "git\\s+checkout\\s+-b\\s+feature"],
         "topicId": 42,
         "difficulty": "leicht",
         "moreInfo": "### 1. tl;dr\n`git switch -c name` legt einen Branch an und wechselt hinein.\n---\n> **Tux-Ansage:** Neue Mission, eigener Abschnitt! Experimente gehören in einen eigenen Branch, nicht an die Front von main.\n---\n### 2. Deep Dive\n```bash\ngit branch            # Branches anzeigen, * = aktuell\ngit switch -c feature # anlegen und wechseln\ngit switch main       # zurück\ngit branch -d feature # löschen (nach dem Zusammenführen)\n```\nEin Branch ist nur ein beweglicher Zeiger auf einen Commit. Ihn anzulegen kostet praktisch nichts.\n---\n### 3. Schaubild\n```\n          main\n           |\na1b2c3 <- d4e5f6\n           |\n          feature  (neu, zeigt auf denselben Commit)\n```"
@@ -1282,8 +1279,9 @@ let QUESTIONS = [
     {
         "id": 42,
         "category": "Git Grundlagen::4. Branches",
-        "question": "Du bist auf 'main' und führst 'git merge feature' aus. Wann entsteht ein Fast-Forward, wann ein Merge-Commit?",
-        "answer": "**Fast-Forward**, wenn `main` seit der Abzweigung keine eigenen neuen Commits hat: Git schiebt den Zeiger `main` einfach auf den letzten Commit von `feature`. Ein **Merge-Commit** entsteht, wenn **beide** Branches neue Commits haben; dann führt Git sie in einem neuen Commit mit zwei Vorgängern zusammen.",
+        "question": "Du stehst auf 'main' und führst 'git merge feature' aus. Manchmal entsteht dabei ein zusätzlicher Merge-Commit, manchmal nicht. Erkläre, wann es einen Fast-Forward gibt und wann einen Merge-Commit.",
+        "answer": "Das hängt davon ab, ob sich `main` seit dem Abzweigen von `feature` verändert hat.\n\n**Fast-Forward:** `main` hat **keine eigenen neuen Commits**. Dann liegt `feature` einfach „vor“ `main`, und Git schiebt den Zeiger `main` nur nach vorn auf den letzten Commit von `feature`. Es entsteht kein neuer Commit, die Historie bleibt eine gerade Linie.\n\n**Merge-Commit:** **Beide** Branches haben neue Commits, die Historie hat sich also verzweigt. Git führt beide Stände zusammen und legt dafür einen neuen Commit mit **zwei Vorgängern** an.\n\nWer immer einen Merge-Commit möchte, damit später sichtbar bleibt, dass ein Feature zusammengeführt wurde, nutzt `git merge --no-ff feature`.",
+        "keywords": ["fast-forward|fast forward|vorspulen", "keine eigenen|keine neuen|unverändert", "beide|verzweigt|auseinander", "zeiger|verschieben|schiebt|nach vorn", "merge-commit|merge commit|neuer commit", "zwei vorgänger|zwei eltern"],
         "validationType": "concept",
         "topicId": 42,
         "difficulty": "mittel",
@@ -1292,8 +1290,9 @@ let QUESTIONS = [
     {
         "id": 242,
         "category": "Git Grundlagen::4. Branches",
-        "question": "Warum soll man Branches regelmäßig mit dem aktuellen 'main' zusammenführen, statt wochenlang getrennt zu arbeiten?",
-        "answer": "Je länger ein Branch getrennt lebt, desto stärker laufen beide Stände auseinander. Beim späten Zusammenführen entstehen dann **viele und große Konflikte**, Fehler fallen spät auf, und andere bauen auf veraltetem Code auf. Kurze Branches und häufiges Einbinden von `main` (merge oder rebase) halten Konflikte klein und überschaubar.",
+        "question": "Ein Kollege arbeitet seit sechs Wochen auf seinem Branch, ohne Änderungen aus 'main' zu übernehmen. Welche Probleme drohen beim Zusammenführen, und wie hätte er sie vermeiden können?",
+        "answer": "Während er getrennt arbeitet, entwickeln andere `main` weiter. Beide Stände laufen immer weiter auseinander. Beim späten Zusammenführen drohen:\n- **viele und große Konflikte**, oft in Code, den er gar nicht mehr im Kopf hat,\n- **Fehler, die erst spät auffallen**, weil sein Code nie zusammen mit den neuen Änderungen getestet wurde,\n- **doppelte Arbeit**, weil er Dinge baut, die in `main` inzwischen anders gelöst sind.\n\nVermeiden lässt sich das mit **kurzen Branches**, die nach Tagen statt Wochen zurückfließen, und indem er **regelmäßig `main` einbindet**:\n```bash\ngit switch feature\ngit merge main      # oder: git rebase main\n```\nViele kleine Konflikte sind schnell gelöst, ein riesiger am Ende kostet Tage.",
+        "keywords": ["konflikt", "auseinander|abweichen|veraltet", "spät|am ende", "regelmäßig|häufig|oft|täglich", "kurz|klein", "merge main|rebase|einbinden|aktualisieren"],
         "validationType": "concept",
         "topicId": 42,
         "difficulty": "schwer",
@@ -1302,8 +1301,9 @@ let QUESTIONS = [
     {
         "id": 143,
         "category": "Git Grundlagen::5. Arbeiten mit Remotes",
-        "question": "Was ist 'origin' in Git?",
-        "answer": "`origin` ist der übliche **Name des Remote-Repositories**, von dem geklont wurde. Er ist nur ein Kurzname für eine Adresse und lässt sich umbenennen oder ändern.",
+        "question": "Nach 'git clone' taucht in vielen Befehlen der Name 'origin' auf, z. B. in 'git push origin main'. Was ist 'origin', und wo kommt der Name her?",
+        "answer": "`origin` ist der **Kurzname für das Remote-Repository**, von dem du geklont hast, also für dessen Adresse auf dem Server. Git legt ihn beim **Klonen** automatisch an, damit du nicht jedes Mal die volle Adresse tippen musst.\n\n`git push origin main` heißt also: Schicke den Branch `main` zum Remote mit dem Namen `origin`.\n\nDer Name ist nur eine Konvention und lässt sich ändern. `git remote -v` zeigt Namen und Adressen an. Ein Repository kann auch mehrere Remotes haben, z. B. `origin` und `backup`.",
+        "keywords": ["remote|entfernt", "kurzname|name|alias|bezeichnung", "adresse|url|server", "klon|clone|geklont"],
         "validationType": "concept",
         "topicId": 43,
         "difficulty": "leicht",
@@ -1312,8 +1312,9 @@ let QUESTIONS = [
     {
         "id": 43,
         "category": "Git Grundlagen::5. Arbeiten mit Remotes",
-        "question": "Was ist der Unterschied zwischen 'git fetch' und 'git pull'?",
-        "answer": "`git fetch` **lädt** neue Commits und Branches vom Remote, ändert aber **nichts** an deinem Arbeitsverzeichnis oder deinen Branches (nur `origin/...`). `git pull` ist `fetch` **plus** Zusammenführen in den aktuellen Branch (merge oder rebase).",
+        "question": "Du willst wissen, ob es auf dem Server neue Commits gibt, ohne dass sich an deinen Dateien etwas ändert. Nimmst du 'git fetch' oder 'git pull'? Begründe und erkläre den Unterschied.",
+        "answer": "**`git fetch`** ist hier richtig. Es **lädt** neue Commits und Branches vom Server und aktualisiert nur die Remote-Branches wie `origin/main`. Deine eigenen Branches und Dateien bleiben **unverändert**. Danach kannst du in Ruhe ansehen, was neu ist:\n```bash\ngit fetch\ngit log --oneline main..origin/main\n```\n\n**`git pull`** ist `fetch` **plus Zusammenführen**: Es übernimmt die neuen Commits sofort in deinen aktuellen Branch (Merge oder Rebase) und ändert damit deine Dateien. Dabei können Konflikte entstehen.\n\nMerke: `fetch` heißt nachsehen, `pull` heißt übernehmen.",
+        "keywords": ["fetch", "lädt|herunterladen|holt|laden", "unverändert|ändert nichts|nicht verändert", "pull", "zusammenführen|merge|rebase|übernimmt"],
         "validationType": "concept",
         "topicId": 43,
         "difficulty": "mittel",
@@ -1322,8 +1323,9 @@ let QUESTIONS = [
     {
         "id": 243,
         "category": "Git Grundlagen::5. Arbeiten mit Remotes",
-        "question": "Dein 'git push' wird mit 'rejected (fetch first)' abgelehnt. Was ist passiert, und wie löst du es richtig?",
-        "answer": "Auf dem Remote liegen Commits, die du lokal noch nicht hast; dein Push würde sie überschreiben, daher lehnt der Server ab. Richtig: erst `git fetch`/`git pull` (merge oder rebase), eventuelle Konflikte lösen, testen und dann erneut `git push`. **Nicht** mit `git push --force` drüberbügeln, das löscht die Arbeit der anderen.",
+        "question": "Dein 'git push' wird mit der Meldung 'rejected ... (fetch first)' abgelehnt. Was ist passiert, wie behebst du es richtig, und warum ist 'git push --force' hier die falsche Lösung?",
+        "answer": "Auf dem Server liegen **Commits, die du lokal noch nicht hast**, meist von Kollegen. Dein Branch und der auf dem Server haben sich auseinanderentwickelt. Würde der Server deinen Push annehmen, wären ihre Commits weg. Darum lehnt er ab.\n\nRichtig ist:\n```bash\ngit pull --rebase   # fremde Commits holen, deine obendrauf setzen\n# Konflikte lösen, falls nötig, dann testen\ngit push\n```\nStatt `--rebase` geht auch ein normales `git pull` mit Merge-Commit.\n\n`git push --force` überschreibt den Branch auf dem Server mit deinem Stand. Die **Commits der anderen gehen verloren**, und wer sie schon geholt hat, bekommt Probleme. Auf gemeinsamen Branches wie `main` ist das tabu.",
+        "keywords": ["neue commits|nicht lokal|kollegen|andere", "pull|fetch", "rebase|merge|zusammenführen", "force", "überschreibt|verloren|löscht|weg"],
         "validationType": "concept",
         "topicId": 43,
         "difficulty": "schwer",
@@ -1332,18 +1334,20 @@ let QUESTIONS = [
     {
         "id": 144,
         "category": "Git Grundlagen::6. Merge-Konflikte",
-        "question": "Wann entsteht beim Zusammenführen in Git ein Merge-Konflikt?",
-        "answer": "Wenn **beide** Seiten dieselbe Stelle einer Datei unterschiedlich geändert haben (oder eine Seite die Datei gelöscht und die andere sie geändert hat). Git kann dann nicht entscheiden, welche Version richtig ist, und überlässt das dir.",
+        "question": "Zwei Kollegen haben in 'config.txt' dieselbe Zeile 'port 80' geändert, einer auf 'port 8080', der andere auf 'port 8443'. Beim Zusammenführen meldet Git einen Konflikt. Warum kann Git das nicht selbst lösen?",
+        "answer": "Ein **Merge-Konflikt** entsteht, wenn **beide Seiten dieselbe Stelle** einer Datei **unterschiedlich** geändert haben. Git sieht zwei gleichberechtigte Änderungen an derselben Zeile und kann nicht wissen, welche fachlich richtig ist. Diese **Entscheidung** muss ein Mensch treffen.\n\nÄndern beide Seiten dagegen **verschiedene Stellen**, zum Beispiel der eine Zeile 3 und der andere Zeile 20, führt Git das automatisch zusammen.\n\nWeitere Konfliktfälle: Eine Seite löscht eine Datei, die die andere geändert hat, oder beide legen eine Datei mit gleichem Namen und unterschiedlichem Inhalt an.",
+        "keywords": ["dieselbe|gleiche|selbe", "stelle|zeile", "unterschiedlich|verschieden|beide", "entscheiden|entscheidung|welche|richtig|mensch"],
         "validationType": "concept",
         "topicId": 44,
         "difficulty": "leicht",
-        "moreInfo": "### 1. tl;dr\nKonflikt = gleiche Stelle, zwei verschiedene Änderungen. Git fragt dich, statt zu raten.\n---\n> **Tux-Ansage:** Ein Konflikt ist kein Fehler, sondern eine Rückfrage. Git will wissen, welcher Befehl gilt!\n---\n### 2. Deep Dive\nÄnderungen an **verschiedenen** Stellen derselben Datei führt Git selbstständig zusammen. Nur echte Überschneidungen werden zum Konflikt.\n\n```bash\ngit merge feature\n# CONFLICT (content): Merge conflict in config.txt\ngit status        # zeigt die betroffenen Dateien\n```\n---\n### 3. Schaubild\n```\n          main: Zeile 3 = \"port 80\"\nBasis ---<\n          feature: Zeile 3 = \"port 8080\"\n                  |\n                  v\n           KONFLIKT in Zeile 3\n```"
+        "moreInfo": "### 1. tl;dr\nKonflikt = gleiche Stelle, zwei verschiedene Änderungen. Git fragt dich, statt zu raten.\n---\n> **Tux-Ansage:** Ein Konflikt ist kein Fehler, sondern eine Rückfrage. Git will wissen, welcher Befehl gilt!\n---\n### 2. Deep Dive\nÄnderungen an **verschiedenen** Stellen derselben Datei führt Git selbstständig zusammen. Nur echte Überschneidungen werden zum Konflikt.\n\n```bash\ngit merge feature\n# CONFLICT (content): Merge conflict in config.txt\ngit status        # zeigt die betroffenen Dateien\n```\n---\n### 3. Schaubild\n```\n          main:    \"port 8080\"\nBasis ---<\n\"port 80\" feature: \"port 8443\"\n                  |\n                  v\n          KONFLIKT: dieselbe Zeile\n```"
     },
     {
         "id": 44,
         "category": "Git Grundlagen::6. Merge-Konflikte",
-        "question": "In einer Datei stehen nach einem Merge die Zeichen '<<<<<<<', '=======' und '>>>>>>>'. Was bedeuten sie, und wie löst du den Konflikt?",
-        "answer": "Das sind **Konfliktmarker**: Zwischen `<<<<<<< HEAD` und `=======` steht deine Version (aktueller Branch), zwischen `=======` und `>>>>>>> feature` die andere. Lösen: Datei so bearbeiten, dass nur der richtige Inhalt bleibt und **alle Marker entfernt** sind, dann `git add datei` und `git commit`.",
+        "question": "Nach einem Merge stehen in einer Datei plötzlich die Zeichen '<<<<<<<', '=======' und '>>>>>>>'. Was bedeuten diese Markierungen, und mit welchen Schritten löst du den Konflikt?",
+        "answer": "Das sind **Konfliktmarker**. Git schreibt beide Versionen der umstrittenen Stelle in die Datei:\n- zwischen `<<<<<<< HEAD` und `=======`: **deine Version** (aktueller Branch),\n- zwischen `=======` und `>>>>>>> feature`: die **Version des anderen Branches**.\n\nLösen in drei Schritten:\n1. Datei bearbeiten: entscheiden, was bleibt (eine Version, beide oder eine Mischung), und **alle Markerzeilen löschen**.\n2. `git add datei` meldet Git, dass der Konflikt gelöst ist.\n3. `git commit` schließt den Merge ab.\n\nWer abbrechen will, kommt mit `git merge --abort` zum Stand vor dem Merge zurück.",
+        "keywords": ["konfliktmarker|markierung|marker", "deine|eigene|head|aktuell", "andere|feature|fremde", "bearbeiten|entfernen|löschen", "git add", "commit"],
         "validationType": "concept",
         "topicId": 44,
         "difficulty": "mittel",
@@ -1352,8 +1356,9 @@ let QUESTIONS = [
     {
         "id": 244,
         "category": "Git Grundlagen::6. Merge-Konflikte",
-        "question": "Wie hältst du Merge-Konflikte im Team von vornherein klein?",
-        "answer": "Kurze, kleine Branches; regelmäßig `main` einbinden; kleine, thematisch saubere Commits; einheitliche Formatierung (Formatter, Zeilenenden) statt großer Umformatierungen; Aufgaben so verteilen, dass nicht alle dieselben Dateien bearbeiten; nach dem Lösen eines Konflikts testen, bevor man pusht.",
+        "question": "Euer Team verliert regelmäßig Zeit mit Merge-Konflikten. Nenne mindestens vier Maßnahmen, mit denen ihr Konflikte von vornherein klein haltet, und begründe jede kurz.",
+        "answer": "- **Kurze Branches:** Sie fließen schnell zurück nach `main`, es kann also wenig auseinanderlaufen.\n- **Regelmäßig `main` einbinden** (`git merge main` oder `git rebase main`): Konflikte tauchen früh und klein auf statt spät und groß.\n- **Kleine, thematische Commits:** Ein Konflikt lässt sich leichter verstehen und gezielt lösen.\n- **Einheitliche Formatierung** durch einen Formatter und gleiche Zeilenenden: Sonst erzeugen reine Umformatierungen Konflikte in Zeilen, an denen sich inhaltlich nichts geändert hat.\n- **Arbeit absprechen:** nicht zu mehreren gleichzeitig an denselben Dateien arbeiten, große Umbauten vorher ankündigen.\n- **Nach dem Lösen testen**, bevor man pusht: Ein sauber aufgelöster Konflikt kann trotzdem fachlich falsch sein.",
+        "keywords": ["kurz|klein", "regelmäßig|häufig|oft|früh", "main einbinden|merge main|rebase|aktualisieren", "format|zeilenende|einheitlich", "absprechen|absprache|kommunikation|aufteilen|verteilen", "test"],
         "validationType": "concept",
         "topicId": 44,
         "difficulty": "schwer",
@@ -1362,13 +1367,10 @@ let QUESTIONS = [
     {
         "id": 145,
         "category": "Git Grundlagen::7. Rückgängig machen und ignorieren",
-        "question": "Du hast 'config.txt' geändert, aber noch nicht vorgemerkt. Wie verwirfst du die Änderung und holst den Stand des letzten Commits zurück?",
-        "answer": "`git restore config.txt`\n\n(Älter: `git checkout -- config.txt`) Achtung: Die nicht festgehaltene Änderung ist danach weg.",
+        "question": "Du hast in 'config.txt' herumprobiert und willst alles verwerfen, was du seit dem letzten Commit an der Datei geändert hast. Die Änderung ist noch nicht vorgemerkt. Wie lautet der Befehl?",
+        "answer": "`git restore config.txt`\n\nGit ersetzt die Datei durch den Stand aus dem letzten Commit. **Achtung:** Die verworfene Änderung ist danach endgültig weg, weil sie nie in einem Commit stand.\n\nÄltere Schreibweise: `git checkout -- config.txt`. Hast du die Datei schon mit `git add` vorgemerkt, nimmst du sie zuerst mit `git restore --staged config.txt` aus dem Staging-Bereich heraus.",
         "validationType": "command",
-        "solutions": [
-            "git\\s+restore\\s+(\\./)?config\\.txt",
-            "git\\s+checkout\\s+--\\s+(\\./)?config\\.txt"
-        ],
+        "solutions": ["git\\s+restore\\s+(\\./)?config\\.txt$", "git\\s+checkout\\s+--\\s+(\\./)?config\\.txt"],
         "topicId": 45,
         "difficulty": "leicht",
         "moreInfo": "### 1. tl;dr\n`git restore datei` setzt eine Datei auf den letzten festgehaltenen Stand zurück.\n---\n> **Tux-Ansage:** Zurück auf Ausgangsstellung! Aber was nicht festgehalten war, ist danach unwiederbringlich weg.\n---\n### 2. Deep Dive\n```bash\ngit restore config.txt             # Änderung im Arbeitsverzeichnis verwerfen\ngit restore --staged config.txt    # nur aus dem Staging nehmen, Änderung bleibt\ngit restore --source=HEAD~2 config.txt   # Stand von vor zwei Commits holen\n```"
@@ -1376,8 +1378,9 @@ let QUESTIONS = [
     {
         "id": 45,
         "category": "Git Grundlagen::7. Rückgängig machen und ignorieren",
-        "question": "Wozu dient die Datei '.gitignore', und was gehört typischerweise hinein?",
-        "answer": "In `.gitignore` stehen **Muster für Dateien, die Git nicht versionieren soll**. Sie erscheinen dann nicht als untracked und landen nicht versehentlich in einem Commit. Typisch: Logs, temporäre Dateien, Build-Ergebnisse, Abhängigkeiten (`node_modules/`), lokale Einstellungen und vor allem **Geheimnisse** wie `.env` oder Schlüssel.",
+        "question": "In deinem Projekt entstehen Logdateien, ein Ordner 'node_modules/' und eine Datei '.env' mit Zugangsdaten. Wie verhinderst du, dass diese Dateien versehentlich committet werden, und was gilt für Dateien, die schon versioniert sind?",
+        "answer": "Du trägst passende Muster in die Datei **`.gitignore`** im Projektordner ein:\n```gitignore\n*.log\nnode_modules/\n.env\n```\nPassende Dateien zeigt `git status` nicht mehr als untracked, und `git add .` nimmt sie nicht auf. Die `.gitignore` selbst wird committet, damit sie für alle im Team gilt.\n\nTypisch gehören hinein: Logs, temporäre Dateien, Build-Ergebnisse, Abhängigkeiten, lokale Einstellungen und vor allem **Geheimnisse** wie Passwörter und Schlüssel.\n\n**Wichtig:** `.gitignore` wirkt nur auf Dateien, die **noch nicht versioniert** sind. Eine schon committete Datei nimmst du mit `git rm --cached .env` aus der Versionierung, auf der Platte bleibt sie erhalten. War ein Geheimnis schon gepusht, steht es in der Historie: Zugangsdaten sofort austauschen.",
+        "keywords": ["gitignore", "muster|eintrag|eintragen", "noch nicht versioniert|nicht versioniert|ignoriert", "rm --cached|cached|entfernen", "geheim|passwort|passwörter|zugangsdaten|schlüssel|env"],
         "validationType": "concept",
         "topicId": 45,
         "difficulty": "mittel",
@@ -1386,11 +1389,12 @@ let QUESTIONS = [
     {
         "id": 245,
         "category": "Git Grundlagen::7. Rückgängig machen und ignorieren",
-        "question": "Was ist der Unterschied zwischen 'git revert' und 'git reset --hard', und welches nimmst du für einen fehlerhaften Commit, der schon auf 'main' gepusht ist?",
-        "answer": "`git revert <commit>` legt einen **neuen Commit** an, der die Änderungen des fehlerhaften Commits umkehrt; die Historie bleibt erhalten. `git reset --hard <commit>` setzt den Branch auf einen alten Stand zurück und **verwirft** alle späteren Commits und Änderungen (Historie wird umgeschrieben). Für bereits gepushte, geteilte Branches wie `main`: **`git revert`**.",
+        "question": "Ein fehlerhafter Commit ist schon auf 'main' gepusht und wurde von Kollegen geholt. Erkläre den Unterschied zwischen 'git revert' und 'git reset --hard' und begründe, welchen Befehl du hier nimmst.",
+        "answer": "**`git revert <commit>`** legt einen **neuen Commit** an, der die Änderungen des fehlerhaften Commits genau umkehrt. Der alte Commit bleibt in der Historie, alles bleibt nachvollziehbar. Für alle anderen ist das ein ganz normaler neuer Commit.\n\n**`git reset --hard <commit>`** setzt den Branch auf einen älteren Commit zurück und **verwirft alle späteren Commits** samt nicht gesicherter Änderungen im Arbeitsverzeichnis. Die Historie wird **umgeschrieben**. Um das zu pushen, bräuchte man `git push --force`, und bei den Kollegen passt die Historie danach nicht mehr.\n\nHier also: **`git revert`**. `reset --hard` kommt nur für lokale Commits infrage, die noch niemand hat.",
+        "keywords": ["revert", "neuer commit|umkehrt|rückgängig|gegencommit", "reset", "verwirft|löscht|verloren|weg", "umschreiben|umgeschrieben|historie", "force|gepusht|kollegen|andere|geteilt"],
         "validationType": "concept",
         "topicId": 45,
         "difficulty": "schwer",
-        "moreInfo": "### 1. tl;dr\nrevert = Fehler mit einem Gegen-Commit korrigieren (sicher für geteilte Branches), reset --hard = Vergangenheit löschen (nur lokal).\n---\n> **Tux-Ansage:** Einen Fehler im Dienstbuch korrigiert man mit einem Nachtrag, nicht durch Herausreißen der Seite!\n---\n### 2. Deep Dive\n```bash\ngit revert a1b2c3      # Gegen-Commit, danach normal pushen\ngit push\n\ngit reset --hard HEAD~1   # nur für lokale, noch nicht geteilte Commits\n```\n`reset` auf gepushten Commits zwingt alle anderen, ihre Kopien zu reparieren, und erfordert `push --force`.\nNotanker, wenn doch etwas verloren schien: `git reflog` zeigt, wo HEAD vorher stand.\n---\n### 3. Schaubild\n```\nrevert:  A--B--C(fehler)--D--C'\n         C' hebt C auf, alles bleibt sichtbar\n\nreset --hard B:\nbefore:  A--B--C--D\nafter:   A--B                     (C und D verworfen)\n```"
+        "moreInfo": "### 1. tl;dr\nrevert = Fehler mit einem Gegen-Commit korrigieren (sicher für geteilte Branches), reset --hard = Vergangenheit löschen (nur lokal).\n---\n> **Tux-Ansage:** Einen Fehler im Dienstbuch korrigiert man mit einem Nachtrag, nicht durch Herausreißen der Seite!\n---\n### 2. Deep Dive\n```bash\ngit revert a1b2c3      # Gegen-Commit, danach normal pushen\ngit push\n\ngit reset --hard HEAD~1   # nur für lokale, noch nicht geteilte Commits\n```\n`reset` auf gepushten Commits zwingt alle anderen, ihre Kopien zu reparieren, und erfordert `push --force`.\nNotanker, wenn doch etwas verloren schien: `git reflog` zeigt, wo HEAD vorher stand.\n---\n### 3. Schaubild\n```\nrevert:  A--B--C(fehler)--D--C'\n         C' hebt C auf, alles bleibt sichtbar\n\nreset --hard B:\nvorher:  A--B--C--D\nnachher: A--B                     (C und D verworfen)\n```"
     }
 ];
