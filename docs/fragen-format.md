@@ -46,8 +46,14 @@ Erklärung mit Hintergrund, Befehlen und Beispielen (Codeblöcke).
 Eine Textgrafik im Codeblock, wenn das Thema davon profitiert.
 ```
 
-**Schaubild:** Wenn es zum Thema passt (Abläufe, Zustände, Datenflüsse, Aufbau), endet die Vertiefung
-mit einem Schaubild. Die Vertiefung erlaubt aus Sicherheitsgründen kein HTML und keine Bilder; das
+**Schaubild:** Nur dann, wenn es das Verständnis spürbar verbessert, endet die Vertiefung mit einem
+Schaubild. Kein Schaubild um des Schaubilds willen. Hilfreich ist es bei Abläufen, Zuständen,
+Datenflüssen, Commit-Graphen, Vergleichen und Aufbau, also bei allem, was sich in Worten schwer
+vorstellen lässt. Kein Schaubild, wenn es nur einen Befehl, eine Liste oder einen Codeblock aus dem
+Deep Dive wiederholt oder dasselbe Bild schon bei einer anderen Frage des Kapitels steht. Dann fällt
+der Abschnitt „3. Schaubild“ ganz weg.
+
+Die Vertiefung erlaubt aus Sicherheitsgründen kein HTML und keine Bilder; das
 Schaubild ist deshalb eine **Textgrafik im Codeblock** aus Zeichen (`-->`, `|`, `+---+`). Das passt zum
 Terminal-Look, funktioniert offline und auf dem Handy. Höchstens etwa 60 Zeichen breit, damit es auf
 schmalen Bildschirmen lesbar bleibt. Beispiel:
