@@ -717,6 +717,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- System: Update über den Host-Agenten ---
     let updTimer = null, updWasRunning = false;
+    // Manuelle Prüfung: Ergebnis als Meldung zeigen, sobald der Agent geantwortet hat
+    let updLastChecked = null, updCheckWait = null;
     const updEsc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const updDate = s => { const d = new Date(s); return isNaN(d) ? '–' : d.toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }); };
     function stopUpdatePolling() { clearTimeout(updTimer); updTimer = null; }
@@ -797,7 +799,19 @@ document.addEventListener("DOMContentLoaded", () => {
         $u('upd-empty').textContent = !d.agent ? 'Erst den Update-Agenten auf dem Server einrichten (siehe unten).'
             : s.error ? s.error
             : s.behind > 0 ? '' : 'Keine neuen Änderungen. Das Bootcamp ist auf dem neuesten Stand.';
-        $u('btn-upd-check').disabled = !d.agent || running || d.pending.includes('check.req');
+        const checking = d.pending.includes('check.req');
+        $u('btn-upd-check').disabled = !d.agent || running || checking;
+        $u('btn-upd-check').textContent = checking ? 'Prüfe …' : 'Auf Updates prüfen';
+        if (updCheckWait && !checking && (s.checked_at !== updCheckWait.prev || s.error)) {
+            updCheckWait = null;
+            if (s.error) showToast('Prüfung fehlgeschlagen: ' + s.error, 'error');
+            else if (s.behind > 0) showToast(`${s.behind} neue Änderung${s.behind === 1 ? '' : 'en'} verfügbar. „Jetzt aktualisieren“ spielt sie ein.`, 'warning');
+            else showToast('Geprüft: Das Bootcamp ist auf dem neuesten Stand.', 'success');
+        } else if (updCheckWait && Date.now() - updCheckWait.since > 90000) {
+            updCheckWait = null;
+            showToast('Der Update-Agent hat nicht geantwortet. Läuft er auf dem Server?', 'warning');
+        }
+        updLastChecked = s.checked_at || null;
         $u('btn-upd-apply').disabled = !d.agent || running || !(s.behind > 0);
         if (running) {
             if (r.state === 'running' && r.started_at && !updStart) updStart = Date.parse(r.started_at) || null;
@@ -819,7 +833,11 @@ document.addEventListener("DOMContentLoaded", () => {
         updTimer = setTimeout(loadUpdateStatus, running || d.pending.length ? 3000 : 30000);
     }
     document.getElementById('btn-upd-check')?.addEventListener('click', async () => {
-        try { await updApi('/check', true); showToast('Prüfung angefordert.', 'info'); } catch (e) { showToast(e.message, 'error'); }
+        try {
+            await updApi('/check', true);
+            updCheckWait = { prev: updLastChecked, since: Date.now() };
+            showToast('Suche nach Updates …', 'info');
+        } catch (e) { showToast(e.message, 'error'); }
         loadUpdateStatus();
     });
     document.getElementById('btn-upd-apply')?.addEventListener('click', async () => {
