@@ -823,7 +823,7 @@ document.addEventListener("DOMContentLoaded", () => {
         loadUpdateStatus();
     });
     document.getElementById('btn-upd-apply')?.addEventListener('click', async () => {
-        if (!confirm('Bootcamp jetzt aktualisieren? Der Server holt die neue Version und startet das Bootcamp neu. Es ist dabei etwa 1 bis 2 Minuten nicht erreichbar.')) return;
+        // Keine Rückfrage: Die Fortschrittsanzeige zeigt den Ablauf inklusive kurzer Unterbrechung beim Neustart
         try { await updApi('/apply', true); updWasRunning = true; showToast('Update angefordert.', 'info'); } catch (e) { showToast(e.message, 'error'); }
         loadUpdateStatus();
     });
