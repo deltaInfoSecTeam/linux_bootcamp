@@ -14,16 +14,30 @@
 
 set -euo pipefail
 
-# --- Hilfsfunktionen ------------------------------------------------------
-if [ -t 1 ]; then
-    C_OK=$'\e[32m'; C_WARN=$'\e[33m'; C_ERR=$'\e[31m'; C_INFO=$'\e[36m'; C_OFF=$'\e[0m'
+# --- Ausgabe ---------------------------------------------------------------
+# Terminal-Design aus scripts/lib/dis-term.sh (Kopie aus dem Corporate Design),
+# fehlt die Datei, genügt eine schlichte Ausgabe ohne Farben.
+LIB="$(dirname "${BASH_SOURCE[0]}")/lib/dis-term.sh"
+if [ -r "$LIB" ]; then
+    # shellcheck disable=SC1090
+    . "$LIB"
 else
-    C_OK=''; C_WARN=''; C_ERR=''; C_INFO=''; C_OFF=''
+    dis_ok()     { printf ' [  OK  ] %s\n' "$*"; }
+    dis_warn()   { printf ' [  !!  ] %s\n' "$*"; }
+    dis_fail()   { printf ' [ FAIL ] %s\n' "$*" >&2; }
+    dis_info()   { printf ' [  ii  ] %s\n' "$*"; }
+    dis_die()    { dis_fail "$*"; exit 1; }
+    dis_kv()     { printf '          %-14s %s\n' "$1" "$2"; }
+    dis_cmd()    { printf '          $ %s\n' "$*"; }
+    dis_step()   { printf '\n> SCHRITT %02d/%02d  %s\n' "$1" "$2" "$3"; }
+    dis_banner() { printf '\n   %s\n   %s\n\n' "$1" "${3:-}"; }
+    dis_box()    { printf '\n == %s ==\n' "$1"; shift; printf '    %s\n' "$@"; }
+    C_TEXT3='' C_OFF=''
 fi
-info() { printf '%s==>%s %s\n' "$C_INFO" "$C_OFF" "$*"; }
-ok()   { printf '%s ✔ %s %s\n' "$C_OK" "$C_OFF" "$*"; }
-warn() { printf '%s ! %s %s\n' "$C_WARN" "$C_OFF" "$*" >&2; }
-die()  { printf '%s ✘ %s %s\n' "$C_ERR" "$C_OFF" "$*" >&2; exit 1; }
+info() { dis_info "$*"; }
+ok()   { dis_ok "$*"; }
+warn() { dis_warn "$*" >&2; }
+die()  { dis_die "$*"; }
 
 usage() {
     sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
@@ -69,9 +83,13 @@ fi
 # Der Container läuft als Nutzer "node" (UID/GID 1000), siehe Dockerfile
 CONTAINER_UID=1000
 
-info "Projektordner: $REPO_DIR (Besitzer: $OWNER)"
+[ -r "$REPO_DIR/scripts/banner.txt" ] && DIS_BANNER_FILE="$REPO_DIR/scripts/banner.txt"
+dis_banner "Linux Bootcamp" "bootcamp" "Installation / Update"
+dis_kv "Projektordner" "$REPO_DIR"
+dis_kv "Besitzer" "$OWNER"
 
 # --- 1. Docker ------------------------------------------------------------
+dis_step 1 6 "Docker"
 need_pkgs=()
 if command -v docker >/dev/null 2>&1; then
     ok "Docker vorhanden: $(docker --version 2>/dev/null | head -1)"
@@ -130,6 +148,7 @@ else
 fi
 
 # --- 2. Dateirechte -------------------------------------------------------
+dis_step 2 6 "Dateirechte"
 # data/ und tls/ haben eigene Besitzer (Container bzw. root) und bleiben außen vor
 if [ "$(stat -c %U "$REPO_DIR")" != "$OWNER" ] || find "$REPO_DIR" \( -path "$REPO_DIR/data" -o -path "$REPO_DIR/tls" \) -prune -o ! -user "$OWNER" -print -quit | grep -q .; then
     info "Übertrage Projektordner an $OWNER"
@@ -147,6 +166,7 @@ $SUDO chmod 700 "$REPO_DIR/data"
 ok "Rechte gesetzt (data/ gehört UID $CONTAINER_UID)"
 
 # --- 3. Konfiguration -----------------------------------------------------
+dis_step 3 6 "Konfiguration"
 if [ ! -f "$REPO_DIR/.env" ]; then
     $SUDO install -m 600 -o "$OWNER" -g "$(id -gn "$OWNER")" "$REPO_DIR/.env.example" "$REPO_DIR/.env"
     ok ".env aus .env.example angelegt"
@@ -165,6 +185,7 @@ BIND_ADDRESS="$(env_value BIND_ADDRESS)"; BIND_ADDRESS="${BIND_ADDRESS:-127.0.0.
 HOST_PORT="$(env_value HOST_PORT)"; HOST_PORT="${HOST_PORT:-8000}"
 
 # --- 4. HTTPS (optional) -------------------------------------------------
+dis_step 4 6 "HTTPS"
 # Einmal mit --tls eingerichtet, wird das Zertifikat bei jedem weiteren Lauf
 # geprüft und bei Bedarf erneuert (Ablauf, neue IP-Adresse, neuer Hostname).
 TLS_ACTIVE=0
@@ -179,6 +200,7 @@ fi
 $SUDO install -d -m 700 -o "$CONTAINER_UID" -g "$CONTAINER_UID" "$REPO_DIR/tls/server" 2>/dev/null \
     || $SUDO mkdir -p "$REPO_DIR/tls/server"
 CERT_BEFORE=""
+[ "$TLS_ACTIVE" -eq 0 ] && info "HTTPS nicht eingerichtet (bei Bedarf --tls)"
 if [ "$TLS_ACTIVE" -eq 1 ]; then
     CERT_BEFORE="$($SUDO sha256sum "$REPO_DIR/tls/server/server.crt" 2>/dev/null || true)"
     $SUDO env SUDO_USER="$OWNER" bash "$REPO_DIR/scripts/tls.sh" setup
@@ -189,7 +211,9 @@ if [ "$TLS_ACTIVE" -eq 1 ]; then
 fi
 
 # --- 5. Bauen und starten -------------------------------------------------
-info "Baue und starte den Container (beim ersten Mal dauert das einige Minuten)"
+dis_step 5 6 "Container"
+info "Beim ersten Mal dauert das einige Minuten"
+dis_cmd "$DOCKER compose up -d --build"
 $DOCKER compose up -d --build
 if [ "$TLS_ACTIVE" -eq 1 ] && [ -n "$CERT_BEFORE" ] \
    && [ "$CERT_BEFORE" != "$($SUDO sha256sum "$REPO_DIR/tls/server/server.crt" 2>/dev/null || true)" ]; then
@@ -212,20 +236,28 @@ fi
 ok "Container läuft und ist gesund"
 
 # --- 6. Optional: Admin ---------------------------------------------------
+dis_step 6 6 "Admin"
 SETUP_CODE=""
 if [ -n "$ADMIN_NAME" ]; then
     info "Lege Admin \"$ADMIN_NAME\" an"
     $DOCKER compose exec -T bootcamp node scripts/create-admin.js "$ADMIN_NAME"
+    ok "Admin angelegt"
 else
     # Ohne Admin erzeugt der Server beim Start einen Setup-Code für die Einrichtung im Browser
     SETUP_CODE="$($DOCKER compose exec -T bootcamp cat /app/data/setup-code 2>/dev/null | tr -d '[:space:]' || true)"
+    if [ -n "$SETUP_CODE" ]; then info "Kein Admin angegeben, Einrichtung im Browser mit Setup-Code"
+    else info "Admin bereits vorhanden"; fi
 fi
 
 # --- Zusammenfassung ------------------------------------------------------
-echo
 PROTO=http; [ "$TLS_ACTIVE" -eq 1 ] && PROTO=https
 if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then SHOW_HOST=localhost; else SHOW_HOST="$(hostname -s)"; fi
-ok "Linux Bootcamp ist bereit: $PROTO://$SHOW_HOST:$HOST_PORT"
+box=("${C_TEXT3}Seite   ${C_OFF} $PROTO://$SHOW_HOST:$HOST_PORT")
+[ "$TLS_ACTIVE" -eq 1 ] && box+=("${C_TEXT3}CA      ${C_OFF} tls/linux-bootcamp-ca.crt")
+if [ -n "$ADMIN_NAME" ]; then box+=("${C_TEXT3}Admin   ${C_OFF} $ADMIN_NAME")
+elif [ -n "$SETUP_CODE" ]; then box+=("${C_TEXT3}Admin   ${C_OFF} im Browser einrichten (Setup-Code unten)"); fi
+dis_box "Linux Bootcamp BEREIT" "${box[@]}"
+echo
 if [ "$TLS_ACTIVE" -eq 1 ]; then
     CA_FP="$($SUDO openssl x509 -in "$REPO_DIR/tls/linux-bootcamp-ca.crt" -noout -fingerprint -sha256 | cut -d= -f2)"
     # Name, unter dem andere Geräte den Server erreichen: erster TLS_HOSTNAMES-Eintrag, sonst Hostname
