@@ -330,11 +330,18 @@ if [ -z "$CLIENT_HOST" ]; then
 fi
 if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then SHOW_HOST=localhost; else SHOW_HOST="$CLIENT_HOST"; fi
 SETUP_URL=""; [ -n "$SETUP_TOKEN" ] && SETUP_URL="$PROTO://$SHOW_HOST:$HOST_PORT/#setup=$SETUP_TOKEN"
-# Befehl für einen Kasten über mehrere Zeilen mit \ aufbereiten, bleibt so auch im schmalen Terminal kopierbar
-#   ca_cmd "erste Zeile" "Fortsetzung" …   (hängt an das Feld ca an)
-ca_cmd() {
-    ca+=("  $1"); shift
-    local a; for a in "$@"; do ca[-1]+=" \\"; ca+=("      $a"); done
+# Befehl über mehrere Zeilen mit \ aufbereiten, bleibt so auch im schmalen Terminal kopierbar
+#   cmd_lines "erste Zeile" "Fortsetzung" …   (hängt an das Feld copy an)
+cmd_lines() {
+    copy+=("$1"); shift
+    local a; for a in "$@"; do copy[-1]+=" \\"; copy+=("    $a"); done
+}
+# Befehle und Links unter dem Kasten ausgeben: ohne Rahmenzeichen, nur eingerückt,
+# damit beim Markieren im Terminal kein │ mitkopiert wird
+print_copy() {
+    [ "${#copy[@]}" -gt 0 ] || return 0
+    printf '\n'; printf '   %s\n' "${copy[@]}"
+    copy=()
 }
 summary() {
 if [ "$TLS_ACTIVE" -eq 1 ]; then
@@ -354,6 +361,7 @@ if [ "$TLS_ACTIVE" -eq 1 ]; then
     ssh_path="$REPO_DIR/scripts/trust-ca.sh"
     [ -n "$owner_home" ] && [[ "$ssh_path" == "$owner_home"/* ]] && ssh_path="~/${ssh_path#"$owner_home"/}"
     # Eigener Kasten, damit die Schritte nicht im Protokoll untergehen
+    copy=()
     ca=("${C_TEXT3}CA-Fingerabdruck (SHA-256)${C_OFF}" "  ${CA_FP:0:48}" "  ${CA_FP:48}" "")
     if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then
         ca+=("Auf diesem Rechner ist die CA schon hinterlegt (System, Firefox, Chrome).")
@@ -361,25 +369,28 @@ if [ "$TLS_ACTIVE" -eq 1 ]; then
         ca+=("${C_TEXT3}Andere Linux-Rechner (System, Firefox, Chromium), dort ausführen.${C_OFF}"
             "${C_TEXT3}Holt das Skript per SSH, prüft den Fingerabdruck, trägt die CA ein${C_OFF}")
         if [ -n "$SETUP_URL" ]; then
-            ca+=("${C_TEXT3}und öffnet danach die Einrichtung im Browser:${C_OFF}")
+            ca+=("${C_TEXT3}und öffnet danach die Einrichtung im Browser.${C_OFF}")
         else
-            ca+=("${C_TEXT3}in System und Browser:${C_OFF}")
+            ca+=("${C_TEXT3}in System und Browser.${C_OFF}")
         fi
-        ca_cmd "ssh $OWNER@$CLIENT_HOST cat $ssh_path" "| bash -s -- ${trust_opts[0]}" "${trust_opts[@]:1}"
+        ca+=("${C_TEXT3}Befehl unter diesem Kasten.${C_OFF}")
+        cmd_lines "ssh $OWNER@$CLIENT_HOST cat $ssh_path" "| bash -s -- ${trust_opts[0]}" "${trust_opts[@]:1}"
         ca+=("" "${C_TEXT3}Handy/Windows/macOS:${C_OFF} https://$CLIENT_HOST:$HOST_PORT/ca.crt laden,"
             "Fingerabdruck vergleichen und als vertrauenswürdige Zertifizierungsstelle"
             "importieren (siehe README). Sperrt der Browser schon /ca.crt (Seite früher"
             "mit anderer CA besucht), tls/$APP_SLUG-ca.crt per scp oder USB holen.")
     fi
     dis_box "SCHRITT 1: CA VERTRAUEN UND EINRICHTEN" "${ca[@]}"
+    print_copy
 fi
+copy=()
 box=("${C_TEXT3}Installationsstatus${C_OFF} ${C_MATRIX:-}[ INSTALLIERT ]${C_OFF}" "")
 box+=("${C_TEXT3}Seite   ${C_OFF} $PROTO://$SHOW_HOST:$HOST_PORT")
 [ "$TLS_ACTIVE" -eq 1 ] && box+=("${C_TEXT3}CA      ${C_OFF} tls/$APP_SLUG-ca.crt")
 if [ "$ADMIN_STATUS" = exists ]; then
     box+=("${C_TEXT3}Admin   ${C_OFF} besteht bereits, Passwort unverändert")
-    box+=("" "${C_TEXT3}Passwort vergessen? Neues Einmal-Passwort mit:${C_OFF}")
-    box+=("$DOCKER compose exec app \\" "  node scripts/create-admin.js <name> --reset")
+    box+=("" "${C_TEXT3}Passwort vergessen? Neues Einmal-Passwort, Befehl unter dem Kasten.${C_OFF}")
+    cmd_lines "$DOCKER compose exec app" "node scripts/create-admin.js <name> --reset"
 elif [ "$ADMIN_STATUS" = setup ]; then
     box+=("${C_TEXT3}Admin   ${C_OFF} im Browser einrichten")
     box+=("${C_TEXT3}Setup-Code${C_OFF} $C_BOLD$SETUP_CODE$C_OFF")
@@ -392,11 +403,11 @@ elif [ -n "$ADMIN_STATUS" ]; then box+=("${C_TEXT3}Admin   ${C_OFF} $ADMIN_NAME"
             # Der Recovery-Schlüssel entsteht erst in der Einrichtung neu und wird dort gesichert
             box+=("${C_TEXT3}Recovery${C_OFF} folgt in der Einrichtung")
             if [ "$TLS_ACTIVE" -eq 1 ] && [ "$BIND_ADDRESS" != 127.0.0.1 ]; then
-                box+=("" "${C_TEXT3}Einrichtungslink, öffnet Schritt 1 selbst (gilt 30 Minuten):${C_OFF}")
+                box+=("" "${C_TEXT3}Einrichtungslink unter dem Kasten, öffnet Schritt 1 selbst (gilt 30 Minuten).${C_OFF}")
             else
-                box+=("" "${C_TEXT3}Einrichtung im Browser (Link gilt 30 Minuten):${C_OFF}")
+                box+=("" "${C_TEXT3}Einrichtungslink unter dem Kasten (gilt 30 Minuten).${C_OFF}")
             fi
-            box+=("$SETUP_URL")
+            copy+=("$SETUP_URL")
             box+=("" "${C_TEXT3}Läuft der Link ab: mit dem Passwort anmelden, die${C_OFF}")
             box+=("${C_TEXT3}Einrichtung startet dann ebenso.${C_OFF}")
         else
@@ -407,6 +418,7 @@ elif [ -n "$ADMIN_STATUS" ]; then box+=("${C_TEXT3}Admin   ${C_OFF} $ADMIN_NAME"
     fi
 fi
 dis_box "$APP_NAME" "${box[@]}"
+print_copy
 echo
 if [ "$BIND_ADDRESS" = 127.0.0.1 ]; then
     echo "   Nur lokal erreichbar. Für Zugriff von außen einen Reverse Proxy mit HTTPS"
