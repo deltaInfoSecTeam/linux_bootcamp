@@ -5,6 +5,7 @@
 # und startet den Container. Mehrfach ausführbar, Erledigtes wird übersprungen. Fehlt ein Admin,
 # wird einer angelegt; sein Einmal-Passwort steht nur im Kasten am Ende (oder in DIS_SUMMARY_FILE,
 # falls ein umgebendes Skript es setzt) und muss beim ersten Login geändert werden.
+# Liegt scripts/update-agent.sh im Projekt (Modul update), wird der Update-Agent eingerichtet.
 # Unterstützt Debian, Ubuntu, Raspberry Pi OS und Kali (apt-basiert).
 #
 # Aufruf:
@@ -113,7 +114,9 @@ CONTAINER_UID=1000
 info "Projektordner: $REPO_DIR (Besitzer: $OWNER)"
 
 # --- 1. Docker ------------------------------------------------------------
-dis_step 1 6 "Docker"
+# Mit Modul update kommt der Update-Agent als letzter Schritt dazu
+STEPS=6; [ -f "$REPO_DIR/scripts/update-agent.sh" ] && STEPS=7
+dis_step 1 "$STEPS" "Docker"
 need_pkgs=()
 if command -v docker >/dev/null 2>&1; then
     ok "Docker vorhanden: $(docker --version 2>/dev/null | head -1)"
@@ -172,7 +175,7 @@ else
 fi
 
 # --- 2. Dateirechte -------------------------------------------------------
-dis_step 2 6 "Dateirechte"
+dis_step 2 "$STEPS" "Dateirechte"
 # data/ und tls/server/ haben eigene Besitzer (Container) und bleiben außen vor
 if [ "$(stat -c %U "$REPO_DIR")" != "$OWNER" ] || find "$REPO_DIR" \( -path "$REPO_DIR/data" -o -path "$REPO_DIR/tls" \) -prune -o ! -user "$OWNER" -print -quit | grep -q .; then
     info "Übertrage Projektordner an $OWNER"
@@ -190,7 +193,7 @@ $SUDO chmod 700 "$REPO_DIR/data"
 ok "Rechte gesetzt (data/ gehört UID $CONTAINER_UID)"
 
 # --- 3. Konfiguration -----------------------------------------------------
-dis_step 3 6 "Konfiguration"
+dis_step 3 "$STEPS" "Konfiguration"
 if [ ! -f "$REPO_DIR/.env" ]; then
     $SUDO install -m 600 -o "$OWNER" -g "$(id -gn "$OWNER")" "$REPO_DIR/.env.example" "$REPO_DIR/.env"
     ok ".env aus .env.example angelegt"
@@ -216,7 +219,7 @@ BIND_ADDRESS="$(env_value BIND_ADDRESS)"; BIND_ADDRESS="${BIND_ADDRESS:-127.0.0.
 HOST_PORT="$(env_value HOST_PORT)"; HOST_PORT="${HOST_PORT:-8000}"
 
 # --- 4. HTTPS (optional) -------------------------------------------------
-dis_step 4 6 "HTTPS"
+dis_step 4 "$STEPS" "HTTPS"
 # Einmal mit --tls eingerichtet, wird das Zertifikat bei jedem weiteren Lauf
 # geprüft und bei Bedarf erneuert (Ablauf, neue IP-Adresse, neuer Hostname).
 TLS_ACTIVE=0
@@ -259,7 +262,7 @@ if [ "$TLS_ACTIVE" -eq 1 ]; then
 fi
 
 # --- 5. Bauen und starten -------------------------------------------------
-dis_step 5 6 "Container"
+dis_step 5 "$STEPS" "Container"
 # Docker-Ausgabe (BuildKit, Compose) ins eigene Protokoll, im Terminal nur Statusmarken
 mkdir -p "$REPO_DIR/logs"
 DIS_LOG="$REPO_DIR/logs/docker-$(date +%F-%H%M%S).log"
@@ -291,7 +294,7 @@ fi
 DIS_LOG=/dev/null
 
 # --- 6. Admin -------------------------------------------------------------
-dis_step 6 6 "Admin"
+dis_step 6 "$STEPS" "Admin"
 ADMIN_STATUS="" ADMIN_PW="" ADMIN_RECOVERY="" SETUP_TOKEN="" SETUP_CODE=""
 if [ ! -f "$REPO_DIR/scripts/create-admin.js" ]; then
     info "Ohne Login-Modul, kein Admin nötig"
@@ -317,6 +320,25 @@ else
         setup)    ok "Noch kein Admin, Einrichtung im Browser mit Setup-Code (Kasten am Ende)" ;;
         *)        die "Unerwartete Antwort von create-admin.js" ;;
     esac
+fi
+
+# Update-Agent für den Knopf „Jetzt aktualisieren“: ist er schon aktiv, bleibt er, wie er ist
+# (nach einem Update installiert er sich bei Bedarf selbst neu). Ein Fehler bricht nicht ab.
+AGENT_STATUS=""
+if [ "$STEPS" -eq 7 ]; then
+    dis_step 7 "$STEPS" "Update-Agent"
+    if ! command -v systemctl >/dev/null; then
+        AGENT_STATUS=manual; warn "Ohne systemd kein Update-Agent, Updates von Hand"
+    elif [ -e /usr/local/sbin/bootcamp-update-agent ] || [ -e /etc/systemd/system/bootcamp-update.path ]; then
+        # Alter Agent (vor der Umbenennung): nicht zusätzlich einrichten, sonst laufen zwei auf denselben Auftrag
+        AGENT_STATUS=legacy; warn "Alter Update-Agent aktiv, Befehl zum Umstellen steht unter dem Kasten"
+    elif systemctl is-enabled --quiet "$APP_SLUG-update.path" 2>/dev/null; then
+        AGENT_STATUS=active; ok "Update-Agent aktiv, nichts geändert"
+    elif $SUDO bash "$REPO_DIR/scripts/update-agent.sh" install; then
+        AGENT_STATUS=active
+    else
+        AGENT_STATUS=missing; warn "Update-Agent nicht eingerichtet, Befehl steht unter dem Kasten"
+    fi
 fi
 
 # --- Zusammenfassung ------------------------------------------------------
@@ -387,6 +409,15 @@ copy=()
 box=("${C_TEXT3}Installationsstatus${C_OFF} ${C_MATRIX:-}[ INSTALLIERT ]${C_OFF}" "")
 box+=("${C_TEXT3}Seite   ${C_OFF} $PROTO://$SHOW_HOST:$HOST_PORT")
 [ "$TLS_ACTIVE" -eq 1 ] && box+=("${C_TEXT3}CA      ${C_OFF} tls/$APP_SLUG-ca.crt")
+if [ "$AGENT_STATUS" = active ]; then box+=("${C_TEXT3}Update  ${C_OFF} Agent aktiv")
+elif [ "$AGENT_STATUS" = missing ]; then
+    box+=("${C_TEXT3}Update  ${C_OFF} kein Agent, Befehl unter dem Kasten")
+    copy+=("sudo ./scripts/update-agent.sh install")
+elif [ "$AGENT_STATUS" = legacy ]; then
+    box+=("${C_TEXT3}Update  ${C_OFF} alter Agent, Befehl zum Umstellen unter dem Kasten")
+    cmd_lines "sudo /usr/local/sbin/bootcamp-update-agent uninstall" "&& sudo ./scripts/update-agent.sh install"
+elif [ "$AGENT_STATUS" = manual ]; then box+=("${C_TEXT3}Update  ${C_OFF} von Hand, ohne systemd")
+fi
 if [ "$ADMIN_STATUS" = exists ]; then
     box+=("${C_TEXT3}Admin   ${C_OFF} besteht bereits, Passwort unverändert")
     box+=("" "${C_TEXT3}Passwort vergessen? Neues Einmal-Passwort, Befehl unter dem Kasten.${C_OFF}")
