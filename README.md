@@ -204,7 +204,7 @@ Eigene Fragen liegen in der Datenbank (`data/bootcamp.db`) und gelten für alle 
 
 Unter **Management / System** zeigt das Bootcamp den laufenden Programmstand, ob es im Repo neue Änderungen gibt, und bietet **„Jetzt aktualisieren“**.
 
-Der Container aktualisiert sich dabei nicht selbst; dafür bräuchte er Zugriff auf Docker, und das wäre root auf dem ganzen Server. Stattdessen legt der Knopf nur einen Auftrag in `data/update/` ab. Ein kleiner **Update-Agent** auf dem Server führt ihn mit festen Befehlen aus (`git pull --ff-only`, dann `./scripts/install.sh --yes`) und meldet das Ergebnis zurück. Einmalig einrichten, im Projektordner auf dem Server:
+Der Container aktualisiert sich dabei nicht selbst; dafür bräuchte er Zugriff auf Docker, und das wäre root auf dem ganzen Server. Stattdessen legt der Knopf nur einen Auftrag in `data/update/` ab. Ein kleiner **Update-Agent** auf dem Server führt ihn mit festen Befehlen aus (`git pull --ff-only`, dann `./scripts/install.sh --yes`) und meldet das Ergebnis zurück. `./scripts/install.sh` richtet den Agenten als letzten Schritt selbst ein; ist er schon aktiv, bleibt er unverändert. Klappt das nicht (etwa ohne systemd), steht der Befehl unter dem Kasten am Ende, im Projektordner auf dem Server:
 
 ```bash
 sudo ./scripts/update-agent.sh install
@@ -214,11 +214,11 @@ sudo ./scripts/update-agent.sh install
 - Git läuft als Besitzer des Projektordners, nicht als root. Aus dem Auftrag wird nur der Benutzername fürs Protokoll gelesen.
 - Höchstens ein Update je 10 Minuten. Gibt es im Projektordner lokale Änderungen, bricht das Update ab und der bisherige Stand läuft weiter.
 - Während des Updates ist das Bootcamp etwa 1 bis 2 Minuten nicht erreichbar; die Seite verbindet sich danach selbst wieder.
-- Bringt ein Update eine geänderte `scripts/update-agent.sh` mit, installiert sich der Agent danach selbst neu (Kopie und systemd-Units). Von Hand ist `sudo ./scripts/update-agent.sh install` nur beim ersten Einrichten nötig. Entfernen: `sudo ./scripts/update-agent.sh uninstall`.
+- Bringt ein Update eine geänderte `scripts/update-agent.sh` mit, installiert sich der Agent danach selbst neu (Kopie und systemd-Units). Von Hand ist `sudo ./scripts/update-agent.sh install` nur nötig, wenn install.sh ihn nicht einrichten konnte. Entfernen: `sudo ./scripts/update-agent.sh uninstall`.
 
 Ohne Agent geht es wie bisher von Hand: `git pull --ff-only && ./scripts/install.sh`.
 
-**Bestehende Installation mit altem Agenten:** Der Agent heißt jetzt `linux-bootcamp-update-agent` (Units `linux-bootcamp-update.*`). Damit nicht zwei Agenten denselben Auftrag ausführen, den alten einmal entfernen und den neuen einrichten:
+**Bestehende Installation mit altem Agenten:** Der Agent heißt jetzt `linux-bootcamp-update-agent` (Units `linux-bootcamp-update.*`). Damit nicht zwei Agenten denselben Auftrag ausführen, richtet `./scripts/install.sh` den neuen nicht ein, solange der alte da ist, und zeigt stattdessen diesen Befehl, der den alten einmal entfernt und den neuen einrichtet:
 
 ```bash
 sudo /usr/local/sbin/bootcamp-update-agent uninstall && sudo ./scripts/update-agent.sh install
