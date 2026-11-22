@@ -312,7 +312,7 @@ function validateAnswer(q, input) {
     if (!input) {
         return {
             rating: 'wrong',
-            text: '<span class="dis-mark dis-mark--warn">!!</span> <strong>Keine Antwort eingegeben.</strong> Du hast das Textfeld leer gelassen.'
+            text: '<span class="dis-mark dis-mark--warn">WARN</span> <strong>Keine Antwort eingegeben.</strong> Du hast das Textfeld leer gelassen.'
         };
     }
 
@@ -345,7 +345,7 @@ function validateAnswer(q, input) {
             if (hasCommandName) {
                 return {
                     rating: 'partial',
-                    text: `<span class="dis-mark dis-mark--warn">!!</span> <strong>Teilweise korrekt.</strong> Du hast den richtigen Befehl (\`${cmdName}\`) verwendet, aber die Parameter oder Pfade weichen ab. Vergleiche deine Eingabe mit der Musterlösung.`
+                    text: `<span class="dis-mark dis-mark--warn">WARN</span> <strong>Teilweise korrekt.</strong> Du hast den richtigen Befehl (\`${cmdName}\`) verwendet, aber die Parameter oder Pfade weichen ab. Vergleiche deine Eingabe mit der Musterlösung.`
                 };
             } else {
                 return {
@@ -377,7 +377,7 @@ function validateAnswer(q, input) {
         if (totalCount === 0) {
             return {
                 rating: 'partial',
-                text: '<span class="dis-mark dis-mark--info">ii</span> <strong>Keine automatische Prüfung möglich.</strong> Für diese Frage sind keine Kernbegriffe hinterlegt. Vergleiche deine Antwort mit der Musterlösung und bewerte dich selbst.'
+                text: '<span class="dis-mark dis-mark--info">INFO</span> <strong>Keine automatische Prüfung möglich.</strong> Für diese Frage sind keine Kernbegriffe hinterlegt. Vergleiche deine Antwort mit der Musterlösung und bewerte dich selbst.'
             };
         }
 
@@ -389,7 +389,7 @@ function validateAnswer(q, input) {
             ratingText = '<span class="dis-mark dis-mark--ok">OK</span> <strong>Super.</strong> Du hast die wichtigsten Kernbegriffe in deiner Erklärung genannt.';
         } else if (matchedCount >= 1) {
             rating = 'partial';
-            ratingText = '<span class="dis-mark dis-mark--warn">!!</span> <strong>Guter Ansatz.</strong> Du hast einige wichtige Aspekte genannt, aber es fehlen noch wichtige Details.';
+            ratingText = '<span class="dis-mark dis-mark--warn">WARN</span> <strong>Guter Ansatz.</strong> Du hast einige wichtige Aspekte genannt, aber es fehlen noch wichtige Details.';
         } else {
             rating = 'wrong';
             ratingText = '<span class="dis-mark dis-mark--fail">FAIL</span> <strong>Wiederholen.</strong> Deine Antwort enthält leider keinen der erwarteten Kernbegriffe.';

@@ -235,9 +235,9 @@ function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     // Status mark instead of an emoji (deltaInfoSec CD: .dis-mark)
-    let mark = ['info', 'ii'];
+    let mark = ['info', 'INFO'];
     if (type === 'success') mark = ['ok', 'OK'];
-    if (type === 'warning') mark = ['warn', '!!'];
+    if (type === 'warning') mark = ['warn', 'WARN'];
     if (type === 'danger' || type === 'error') mark = ['fail', 'FAIL'];
 
     const iconEl = document.createElement('span');
