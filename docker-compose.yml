@@ -1,5 +1,5 @@
 services:
-  bootcamp:
+  app:
     build: .
     container_name: linux_bootcamp
     restart: unless-stopped

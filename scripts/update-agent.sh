@@ -1,34 +1,59 @@
 #!/usr/bin/env bash
-# Linux Bootcamp – Update-Agent für den Knopf „Jetzt aktualisieren“ unter Management / System
+# update-agent – Update-Agent für den Knopf „Jetzt aktualisieren“ unter Management / System
 #
-# Der Container darf sich nicht selbst aktualisieren (dafür bräuchte er Zugriff auf Docker,
-# das wäre root auf dem ganzen Server). Der Knopf legt deshalb nur einen Auftrag in
-# data/update/ ab. Dieser Agent läuft auf dem Host (systemd), erledigt den Auftrag mit festen
-# Befehlen und schreibt den Stand zurück, den Management / System anzeigt.
+# Der Container darf sich nicht selbst aktualisieren (dafür bräuchte er Docker, also root auf dem
+# Server). Der Knopf legt nur einen Auftrag in data/update/ ab; dieser Agent auf dem Host (systemd)
+# erledigt ihn mit festen Befehlen: git pull --ff-only, dann scripts/install.sh --yes. Aus dem
+# Auftrag liest er nur den Benutzernamen fürs Protokoll, nie einen Befehl.
 #
-#   sudo ./scripts/update-agent.sh install     Agent einrichten (systemd-Units, einmalig)
-#   sudo ./scripts/update-agent.sh uninstall   Agent entfernen
-#   ./scripts/update-agent.sh check            nach neuer Version suchen (auch per Timer)
-#   ./scripts/update-agent.sh run              offene Aufträge abarbeiten (vom systemd-Pfad)
+# Aufruf:
+#   ./scripts/update-agent.sh BEFEHL
 #
-# Aktualisieren heißt: git pull --ff-only im Projektordner, dann scripts/install.sh --yes.
-# Aus dem Auftrag wird nur der Benutzername für das Protokoll gelesen, nie ein Befehl.
-
+# Befehle:
+#   install        Agent einrichten (systemd-Units, einmalig, sudo)
+#   uninstall      Agent entfernen (sudo)
+#   check          nach neuer Version suchen (läuft auch per Timer)
+#   run            offene Aufträge abarbeiten (vom systemd-Pfad)
+#
+# Optionen:
+#   -h, --help     diese Hilfe
+#
+# Beispiele:
+#   sudo ./scripts/update-agent.sh install   Agent und Units einrichten
+#   ./scripts/update-agent.sh check          nach neuer Version suchen
+#   journalctl -u <slug>-update -f           laufendes Update mitlesen
 set -euo pipefail
+# Hilfe = Kopfkommentar ab Zeile 2 bis zur ersten Zeile ohne #
+usage() { awk 'NR > 1 { if (!/^#/) exit; sub(/^# ?/, ""); print }' "$0"; exit "${1:-0}"; }
 umask 022
 
-AGENT_DEST=/usr/local/sbin/bootcamp-update-agent
 UNIT_DIR=/etc/systemd/system
 MIN_GAP=600                     # höchstens ein Update je 10 Minuten
 CONTAINER_UID=1000              # Nutzer "node" im Container, gehört data/
 
 # Projektordner: beim installierten Agenten fest eingetragen, sonst der Ordner dieses Skripts
-REPO_DIR="${BOOTCAMP_DIR:-__REPO_DIR__}"
+REPO_DIR="${APP_DIR:-__REPO_DIR__}"
 case "$REPO_DIR" in __REPO*) REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)" ;; esac
+# App-Identität aus app.conf (APP_NAME, APP_SLUG)
+APP_NAME="App"; APP_SLUG="app"
+# shellcheck disable=SC1091
+[ -r "$REPO_DIR/app.conf" ] && . "$REPO_DIR/app.conf"
+AGENT_DEST="/usr/local/sbin/$APP_SLUG-update-agent"
+UNIT="$APP_SLUG-update"
 UPD="$REPO_DIR/data/update"
 OWNER="$(stat -c %U "$REPO_DIR")"
 
-die() { echo "update-agent: $*" >&2; exit 1; }
+# Ausgabe über lib/dis-term.sh (Modul install), fehlt sie, schlichte Marken ohne Farbe
+if [ -r "$REPO_DIR/scripts/lib/dis-term.sh" ]; then
+    # shellcheck disable=SC1091
+    . "$REPO_DIR/scripts/lib/dis-term.sh"
+else
+    dis_ok()    { printf ' [  OK  ] %s\n' "$*"; }
+    dis_warn()  { printf ' [ WARN ] %s\n' "$*"; }
+    dis_error() { printf ' [ FAIL ] %s\n' "$*" >&2; }
+    dis_info()  { printf ' [ INFO ] %s\n' "$*"; }
+fi
+die() { dis_error "update-agent: $*"; exit 1; }
 now() { date -Is; }
 
 # Git immer als Besitzer des Projektordners, nie als root
@@ -93,11 +118,11 @@ self_update() {
     local src="$REPO_DIR/scripts/update-agent.sh"
     [ -f "$src" ] || return 0
     if sed "s|__REPO_DIR__|$REPO_DIR|" "$src" | cmp -s - "$AGENT_DEST"; then
-        echo "Update-Agent ist aktuell."
+        dis_ok "Update-Agent ist aktuell."
         return 0
     fi
-    echo "Update-Agent hat sich geändert, installiere die neue Version …"
-    bash "$src" install || echo "Hinweis: Der Update-Agent konnte sich nicht selbst aktualisieren. Bitte einmal von Hand: sudo ./scripts/update-agent.sh install"
+    dis_info "Update-Agent hat sich geändert, installiere die neue Version …"
+    bash "$src" install || dis_warn "Der Update-Agent konnte sich nicht selbst aktualisieren. Bitte einmal von Hand: sudo ./scripts/update-agent.sh install"
 }
 
 run_state() {   # state message by started finished step(1 holen, 2 bauen/neu starten, 3 fertig)
@@ -124,12 +149,16 @@ do_apply() {
         fi
         as_owner git -C "$REPO_DIR" pull --ff-only
         as_owner git -C "$REPO_DIR" log -1 --format='Neuer Stand: %h %s'
-        run_state running "Container wird neu gebaut und gestartet. Das Bootcamp ist dabei kurz nicht erreichbar." "$by" "$started" "" 2
+        run_state running "Container wird neu gebaut und gestartet. Die App ist dabei kurz nicht erreichbar." "$by" "$started" "" 2
         # Der Build läuft als root im Ordner des Besitzers. Git (in docker compose build) verweigert dort
         # sonst die Commit-Info ("dubious ownership"). Nur für diesen Aufruf als vertrauenswürdig angeben.
         SUDO_USER="$OWNER" GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$REPO_DIR" \
             bash "$REPO_DIR/scripts/install.sh" --yes
         self_update
+        # Apps mit eigenem Datenbau (z. B. $APP_SLUG-build.service) gleich anstoßen, Fortschritt im Journal
+        if systemctl cat "$APP_SLUG-build.service" >/dev/null 2>&1; then
+            systemctl start --no-block "$APP_SLUG-build.service" && echo "Datenbau gestartet (journalctl -u $APP_SLUG-build)"
+        fi
         echo "== $(now) fertig"
     ) > "$log" 2>&1 || rc=$?
     ensure_dir
@@ -141,12 +170,12 @@ do_apply() {
         run_state failed "Update fehlgeschlagen (Code $rc). Der bisherige Stand läuft weiter, Details im Protokoll." "$by" "$started" "$(now)"
         rm -f "$UPD/.last-apply"   # nach einem Fehler sofort erneut versuchen dürfen
     fi
-    logger -t bootcamp-update "Update von $by: rc=$rc" 2>/dev/null || true
+    logger -t "$UNIT" "Update von $by: rc=$rc" 2>/dev/null || true
 }
 
 do_run() {
     ensure_dir
-    { exec 9>/run/bootcamp-update.lock; } 2>/dev/null || exec 9>"/tmp/bootcamp-update.lock"
+    { exec 9>/run/${UNIT}.lock; } 2>/dev/null || exec 9>"/tmp/${UNIT}.lock"
     flock -n 9 || exit 0
     local by
     if by="$(take apply.req)"; then take check.req >/dev/null || true; do_apply "$by"; do_check; fi
@@ -159,38 +188,38 @@ do_install() {
     [ "$OWNER" != root ] || die "Der Projektordner gehört root. Bitte als normaler Nutzer klonen (siehe README)."
     sed "s|__REPO_DIR__|$REPO_DIR|" "$REPO_DIR/scripts/update-agent.sh" > "$AGENT_DEST.part"
     chown root:root "$AGENT_DEST.part"; chmod 755 "$AGENT_DEST.part"; mv -f "$AGENT_DEST.part" "$AGENT_DEST"
-    cat > "$UNIT_DIR/bootcamp-update.service" <<EOF
+    cat > "$UNIT_DIR/${UNIT}.service" <<EOF
 [Unit]
-Description=Linux Bootcamp: Update-Auftrag aus Management / System ausführen
+Description=$APP_NAME: Update-Auftrag aus Management / System ausführen
 After=docker.service network-online.target
 
 [Service]
 Type=oneshot
 ExecStart=$AGENT_DEST run
 EOF
-    cat > "$UNIT_DIR/bootcamp-update.path" <<EOF
+    cat > "$UNIT_DIR/${UNIT}.path" <<EOF
 [Unit]
-Description=Linux Bootcamp: auf Update-Aufträge aus Management / System warten
+Description=$APP_NAME: auf Update-Aufträge aus Management / System warten
 
 [Path]
 PathExistsGlob=$UPD/*.req
-Unit=bootcamp-update.service
+Unit=${UNIT}.service
 
 [Install]
 WantedBy=multi-user.target
 EOF
-    cat > "$UNIT_DIR/bootcamp-update-check.service" <<EOF
+    cat > "$UNIT_DIR/${UNIT}-check.service" <<EOF
 [Unit]
-Description=Linux Bootcamp: nach neuer Version suchen
+Description=$APP_NAME: nach neuer Version suchen
 After=network-online.target
 
 [Service]
 Type=oneshot
 ExecStart=$AGENT_DEST check
 EOF
-    cat > "$UNIT_DIR/bootcamp-update-check.timer" <<EOF
+    cat > "$UNIT_DIR/${UNIT}-check.timer" <<EOF
 [Unit]
-Description=Linux Bootcamp: regelmäßig nach neuer Version suchen
+Description=$APP_NAME: regelmäßig nach neuer Version suchen
 
 [Timer]
 OnBootSec=5min
@@ -201,20 +230,20 @@ WantedBy=timers.target
 EOF
     ensure_dir
     systemctl daemon-reload
-    systemctl enable --now bootcamp-update.path bootcamp-update-check.timer
+    systemctl --quiet enable --now ${UNIT}.path ${UNIT}-check.timer
     "$AGENT_DEST" check
-    echo "Update-Agent eingerichtet. Unter Management / System steht jetzt der Programmstand."
-    echo "Nach Änderungen an diesem Skript erneut ausführen: sudo $0 install"
+    dis_ok "Update-Agent eingerichtet. Unter Management / System steht jetzt der Programmstand."
+    dis_info "Nach Änderungen an diesem Skript erneut ausführen: sudo $0 install"
 }
 
 do_uninstall() {
     [ "$(id -u)" -eq 0 ] || die "Bitte mit sudo ausführen: sudo $0 uninstall"
-    systemctl disable --now bootcamp-update.path bootcamp-update-check.timer 2>/dev/null || true
-    rm -f "$UNIT_DIR"/bootcamp-update.service "$UNIT_DIR"/bootcamp-update.path \
-          "$UNIT_DIR"/bootcamp-update-check.service "$UNIT_DIR"/bootcamp-update-check.timer "$AGENT_DEST"
+    systemctl --quiet disable --now ${UNIT}.path ${UNIT}-check.timer 2>/dev/null || true
+    rm -f "$UNIT_DIR"/${UNIT}.service "$UNIT_DIR"/${UNIT}.path \
+          "$UNIT_DIR"/${UNIT}-check.service "$UNIT_DIR"/${UNIT}-check.timer "$AGENT_DEST"
     systemctl daemon-reload
     rm -f "$UPD/status.json"
-    echo "Update-Agent entfernt."
+    dis_ok "Update-Agent entfernt."
 }
 
 case "${1:-}" in
@@ -222,5 +251,6 @@ case "${1:-}" in
     uninstall) do_uninstall ;;
     check) do_check ;;
     run) do_run ;;
-    *) sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+    -h|--help) usage ;;
+    *) usage 1 ;;
 esac

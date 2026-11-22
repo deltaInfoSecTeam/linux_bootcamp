@@ -70,7 +70,7 @@ cp .env.example .env && sudo chown -R 1000:1000 data && docker compose up -d --b
 
 ### Ersten Admin im Browser einrichten
 
-Gibt es noch keinen Admin, erzeugt der Server bei jedem Start einen einmaligen **Setup-Code**. `install.sh` zeigt ihn am Ende an, außerdem steht er im Container-Log (`docker compose logs bootcamp`) und in `data/setup-code`. Beim ersten Aufruf der Seite öffnet sich automatisch der Dialog „Ersten Admin einrichten“: Setup-Code, Benutzername und Passwort eingeben, fertig.
+Gibt es noch keinen Admin, erzeugt der Server bei jedem Start einen einmaligen **Setup-Code**. `install.sh` zeigt ihn am Ende an, außerdem steht er im Container-Log (`docker compose logs app`) und in `data/setup-code`. Beim ersten Aufruf der Seite öffnet sich automatisch der Dialog „Ersten Admin einrichten“: Setup-Code, Benutzername und Passwort eingeben, fertig.
 
 - Ohne den Code kann niemand Admin werden, auch nicht, wer die Seite zufällig als Erster öffnet.
 - Sobald ein Admin existiert, ist die Einrichtung dauerhaft geschlossen und der Code gelöscht.
@@ -83,7 +83,7 @@ Nach der Registrierung oder Einrichtung erscheint der Recovery-Token **einmalig*
 ### Weitere Admins und Notfall-Reset
 
 ```bash
-sudo docker compose exec bootcamp node scripts/create-admin.js <username>
+sudo docker compose exec app node scripts/create-admin.js <username>
 ```
 
 Existiert der Nutzer schon, wird er zum Admin. Sonst wird er neu angelegt, und Passwort plus Recovery-Token werden **einmalig** ausgegeben.
@@ -91,7 +91,7 @@ Existiert der Nutzer schon, wird er zum Admin. Sonst wird er neu angelegt, und P
 Hat ein Nutzer Passwort und Recovery-Token verloren, setzt ein Admin mit Zugriff auf den Server beides neu. Alle Sitzungen des Nutzers werden dabei abgemeldet:
 
 ```bash
-sudo docker compose exec bootcamp node scripts/create-admin.js <username> --reset
+sudo docker compose exec app node scripts/create-admin.js <username> --reset
 ```
 
 ### Zugriff von außen (Server / LAN)
@@ -115,13 +115,13 @@ Ohne öffentliche Domain gibt es kein Zertifikat von Let's Encrypt. Dafür bring
 ```
 
 Das Skript
-1. erzeugt eine eigene CA und damit ein Zertifikat für `localhost`, den Hostnamen, `<hostname>.local` und die IP-Adressen des Rechners,
+1. erzeugt eine eigene CA (gemeinsam für alle deltaInfoSec-Apps des Servers, unter `/etc/deltainfosec/tls/ca`) und damit ein Zertifikat für `localhost`, den Hostnamen, `<hostname>.local` und die IP-Adressen des Rechners,
 2. hinterlegt die CA als vertrauenswürdig im System (`curl`, `wget` …) sowie in Firefox und Chrome/Chromium des Nutzers, der das Skript startet (installiert dafür `libnss3-tools`),
 3. trägt `TLS_CERT_PATH` und `TLS_KEY_PATH` in `.env` ein und startet den Container mit HTTPS.
 
 Danach den Browser einmal neu starten. `https://localhost:8000` zeigt dann ein gültiges Zertifikat ohne Warnung.
 
-**Sicherheit:** Die CA ist per *Name Constraints* auf lokale Namen (`localhost`, `.local`, `.lan`, `.home.arpa`, `.internal`, `.intern`, den Hostnamen) und private IP-Bereiche (`10/8`, `172.16/12`, `192.168/16`, `127/8`, `fc00::/7`) beschränkt. Selbst wenn ihr privater Schlüssel (`tls/ca/ca.key`, nur für root lesbar) in falsche Hände gerät, lassen sich damit keine Zertifikate für fremde Websites fälschen.
+**Sicherheit:** Die CA ist per *Name Constraints* auf lokale Namen (`localhost`, `.local`, `.lan`, `.home.arpa`, `.internal`, `.intern`, den Hostnamen) und private IP-Bereiche (`10/8`, `172.16/12`, `192.168/16`, `127/8`, `fc00::/7`) beschränkt. Selbst wenn ihr privater Schlüssel (`/etc/deltainfosec/tls/ca/ca.key`, nur für root lesbar) in falsche Hände gerät, lassen sich damit keine Zertifikate für fremde Websites fälschen.
 
 **Weitere Hostnamen**, z. B. eine interne Domain: in `.env` eintragen und das Skript erneut ausführen. Öffentliche Domains werden bewusst nur so aufgenommen. Jeder Eintrag erlaubt der CA auch alle Subdomains, deshalb nur eigene, vollständige Namen eintragen (z. B. `schule.lan`, nicht `lan` oder `com`); ungültige Einträge lehnt das Skript ab.
 
@@ -136,14 +136,14 @@ TLS_HOSTNAMES=bootcamp.intern.example.org,schule.lan
 **Linux-Rechner per Skript:** `scripts/trust-ca.sh` läuft auf dem Client:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/trust-ca.sh | bash -s -- --server <name> --fingerprint <SHA-256>
+curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/trust-ca.sh | bash -s -- --name "Linux Bootcamp" --slug linux-bootcamp --server <name> --fingerprint <SHA-256>
 ```
 
 - lädt `ca.crt` vom Server und **bricht ab, wenn der Fingerabdruck nicht exakt passt**,
 - installiert nur eine echte CA **mit kritischen Name Constraints**,
 - trägt sie ins System ein (Debian/Ubuntu/Kali, Fedora/RHEL, Arch) und in **jedes Firefox-Profil** sowie **Chromium/Chrome**, jeweils als vertrauenswürdig für Webseiten (installiert dafür bei Bedarf `certutil`),
 - `--ip <adresse>` legt einen `/etc/hosts`-Eintrag an, falls der Name nicht auflösbar ist, `--port` für einen anderen Port als 443,
-- `--replace-old` entfernt ältere Bootcamp-CAs (z. B. nach einem Neuaufsetzen des Servers), `--dry-run` zeigt nur an, `--uninstall` macht alles rückgängig.
+- `--replace-old` entfernt ältere CAs des Bootcamps oder der gemeinsamen deltaInfoSec-CA (z. B. nach einem Neuaufsetzen des Servers), `--dry-run` zeigt nur an, `--uninstall` macht alles rückgängig.
 
 **Andere Systeme manuell** (`https://<server>/ca.crt` laden, Fingerabdruck vergleichen):
 - **Android:** Einstellungen → Sicherheit → Verschlüsselung & Anmeldedaten → Zertifikat installieren → CA-Zertifikat
@@ -179,6 +179,7 @@ Dazu `TRUST_PROXY=1` in `.env`. Wird das Zertifikat erneuert, lädt `tls.sh` ngi
 ```bash
 ./scripts/tls.sh status           # Zertifikate und Ablaufdaten anzeigen
 sudo ./scripts/tls.sh untrust     # CA aus System und Browsern entfernen
+sudo ./scripts/tls.sh release     # Bootcamp von der CA abmelden, die letzte App entfernt die CA
 ```
 
 ### Inhalte zentral pflegen (Management / Content)
@@ -217,6 +218,12 @@ sudo ./scripts/update-agent.sh install
 
 Ohne Agent geht es wie bisher von Hand: `git pull --ff-only && ./scripts/install.sh`.
 
+**Bestehende Installation mit altem Agenten:** Der Agent heißt jetzt `linux-bootcamp-update-agent` (Units `linux-bootcamp-update.*`). Damit nicht zwei Agenten denselben Auftrag ausführen, den alten einmal entfernen und den neuen einrichten:
+
+```bash
+sudo /usr/local/sbin/bootcamp-update-agent uninstall && sudo ./scripts/update-agent.sh install
+```
+
 ### Update von v1.0.0
 
 ```bash
@@ -224,6 +231,17 @@ docker compose down && git pull && ./scripts/install.sh
 ```
 
 Das Skript verschiebt eine vorhandene `bootcamp.db` automatisch nach `data/`. Beim ersten Start werden die alten Recovery-Codes gehasht und die API-Keys verschlüsselt. Alle Nutzer müssen sich einmal neu anmelden.
+
+### Entfernen und Wiederherstellen
+
+```bash
+./scripts/uninstall.sh --backup        # sichern, dann Container, Units und Projektordner entfernen
+./scripts/restore.sh                   # Sicherung zurückspielen (--help zeigt die Optionen)
+```
+
+`--full` meldet das Bootcamp zusätzlich von der gemeinsamen CA ab. `scripts/banners.sh` baut die Startbilder neu, falls sich das Kürzel in `app.conf` ändert.
+
+**Hinweis zum Update:** Der Docker-Dienst heißt jetzt `app` statt `bootcamp` (Container-Name und `./data` bleiben). `install.sh` ersetzt den alten Container beim ersten Lauf einmalig.
 
 ### Entwicklung ohne Docker
 
@@ -252,11 +270,12 @@ npm start
 │   ├── fonts/         JetBrains Mono (selbst gehostet, SIL OFL)
 │   ├── img/brand/     wappen.svg (zentrales Wappen), App-Icons
 │   └── js/            theme, brand, boot, auth, core, questions, quiz, llm, stats, flashcards, main, generator, content
-├── scripts/           install.sh, update-agent.sh, tls.sh, create-admin.js, healthcheck.js
+├── scripts/           install.sh, uninstall.sh, restore.sh, update-agent.sh, tls.sh, trust-ca.sh,
+│                      banners.sh (+ banner.txt, banners/), open-setup.sh, lib/, create-admin.js, healthcheck.js
 ├── docs/brand/        README-Banner, Screenshot
 ├── tools/content/     Rohdaten für Fragen (werden nicht ausgeliefert)
 ├── data/              Laufzeitdaten (gitignored)
-├── Dockerfile  docker-compose.yml  .env.example
+├── Dockerfile  docker-compose.yml  .env.example  app.conf (App-Name und Kürzel)
 ```
 
 ---
