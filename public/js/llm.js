@@ -186,7 +186,7 @@ async function revealAnswer(e) {
             el.feedbackContainer.classList.add('info');
             el.feedbackBadge.className = 'feedback-badge info';
             el.feedbackBadge.textContent = isIdk ? 'KI erklärt...' : 'KI analysiert...';
-            el.feedbackDetails.innerHTML = '<span class="dis-mark dis-mark--info">..</span> Bitte warten, LLM verarbeitet<span class="dis-cursor"></span>';
+            el.feedbackDetails.innerHTML = '<span class="dis-mark dis-mark--info">INFO</span> Bitte warten, LLM verarbeitet<span class="dis-cursor"></span>';
             
             try {
                 const apiResponse = await callLLMAPI(q.question, q.answer, input, state.llmConfig, isIdk);
@@ -207,14 +207,14 @@ async function revealAnswer(e) {
             result = validateAnswer(q, input);
             // Ohne KI-Anbieter: Hinweisfeld zeigen, sonst (wenn weggeklickt) den kurzen Tipp
             if (state.llmConfig.url !== 'offline' && !showAiPromo()) {
-                result.text += `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; border-top: 1px dashed var(--bg-card-border); padding-top: 8px;"><span class="dis-mark dis-mark--info">ii</span> Tipp: Trage ein LLM in der Sidebar ein, um eine detaillierte KI-Auswertung deiner Antworten zu erhalten.</p>`;
+                result.text += `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; border-top: 1px dashed var(--bg-card-border); padding-top: 8px;"><span class="dis-mark dis-mark--info">INFO</span> Tipp: Trage ein LLM in der Sidebar ein, um eine detaillierte KI-Auswertung deiner Antworten zu erhalten.</p>`;
             }
         }
         
         // "Keine Ahnung" zählt immer als 0 Punkte, auch wenn die KI die (leere) Antwort anders einstuft
         if (isIdk) {
             result.rating = 'wrong';
-            if (source !== 'ai') result.text = '<span class="dis-mark dis-mark--info">ii</span> <strong>Keine Ahnung gewählt.</strong> Das zählt 0 Punkte. Lies die Musterlösung und markiere die Frage bei Bedarf mit „Nachlernen“.';
+            if (source !== 'ai') result.text = '<span class="dis-mark dis-mark--info">INFO</span> <strong>Keine Ahnung gewählt.</strong> Das zählt 0 Punkte. Lies die Musterlösung und markiere die Frage bei Bedarf mit „Nachlernen“.';
         }
 
         // Set feedback CSS classes
